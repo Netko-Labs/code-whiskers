@@ -1,9 +1,15 @@
+export interface SandboxMount {
+  host: string
+  container: string
+}
+
 export interface SandboxOptions {
   image?: string
   ttlMs?: number
   memory?: string
   cpus?: string
   network?: 'none' | 'bridge'
+  mounts?: SandboxMount[]
 }
 
 export interface ExecResult {
@@ -62,6 +68,7 @@ export async function createSandbox(opts: SandboxOptions = {}): Promise<Sandbox>
     opts.memory ?? '512m',
     '--cpus',
     opts.cpus ?? '1',
+    ...(opts.mounts ?? []).flatMap((m) => ['-v', `${m.host}:${m.container}`]),
     '-w',
     WORKDIR,
     image,

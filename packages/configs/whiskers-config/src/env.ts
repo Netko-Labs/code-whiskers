@@ -17,10 +17,15 @@ const whiskersConfig: WhiskersConfig = {
     appPrivateKey: Buffer.from(process.env.GITHUB_APP_PRIVATE_KEY_B64 ?? '', 'base64').toString(
       'utf8',
     ),
+    botHandle: process.env.GITHUB_BOT_HANDLE ?? 'code-whiskers',
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
     model: process.env.REVIEW_MODEL ?? 'anthropic/claude-sonnet-4.5',
+  },
+  fix: {
+    maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),
+    execTimeoutMs: Number(process.env.FIX_AGENT_EXEC_TIMEOUT_MS ?? 120_000),
   },
 }
 

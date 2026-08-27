@@ -120,5 +120,42 @@
       "!**/src/styles.css",
       "!**/drizzle"
     ]
-  }
+  },
+  "overrides": [
+    {
+      // GitHub webhook/API payload types are snake_case by contract
+      "includes": [
+        "packages/whiskers/api/src/routes/**",
+        "packages/whiskers/service/src/review/github.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "strictCase": false,
+                "conventions": [
+                  {
+                    "selector": {
+                      "kind": "objectLiteralProperty",
+                      "scope": "any"
+                    },
+                    "formats": ["camelCase", "CONSTANT_CASE", "PascalCase", "snake_case"]
+                  },
+                  {
+                    "selector": {
+                      "kind": "typeProperty",
+                      "scope": "any"
+                    },
+                    "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

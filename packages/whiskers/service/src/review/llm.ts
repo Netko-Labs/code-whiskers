@@ -1,5 +1,5 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
+import { type LlmFinding, type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
 
@@ -9,8 +9,22 @@ const SYSTEM = `You are a senior code reviewer for pull requests.
 Review the unified diff and report only real, actionable findings — bugs,
 security holes, performance traps, broken contracts. Do not pad with nitpicks;
 an empty findings list is a valid, good review. Line numbers must reference the
-NEW side of the diff. Verdict: "approve" when nothing blocks merging,
-"request_changes" when any high/critical finding exists, otherwise "comment".`
+NEW side of the diff. Verdict: "request_changes" when any high/critical finding
+exists, otherwise "approve" — non-blocking nitpicks do not block a merge.`
+
+const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
+// A stuck provider socket must surface as a failed review, never a silent hang.
+const LLM_TIMEOUT_MS = 180_000
+
+/**
+ * The verdict the LLM emits per chunk is advisory only — the review posted to
+ * GitHub uses this severity-derived policy, and it is binary: any high/critical
+ * finding REQUEST_CHANGES, everything else APPROVEs. Non-blocking nitpicks ride
+ * along as comments on an approval; a bare COMMENT review is never posted.
+ */
+export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
+  return findings.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
+}
 
 export async function reviewChunk(diff: string): Promise<LlmReview> {
   const { object } = await generateObject({
@@ -18,22 +32,20 @@ export async function reviewChunk(diff: string): Promise<LlmReview> {
     schema: LlmReviewSchema,
     system: SYSTEM,
     prompt: `Review this diff:\n\n${diff}`,
+    abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
   return object
 }
 
-/** Worst verdict wins; findings and summaries concatenate. */
+/** Findings and summaries concatenate; the verdict derives from the merged findings. */
 export function mergeReviews(reviews: LlmReview[]): LlmReview {
-  const rank = { approve: 0, comment: 1, request_changes: 2 } as const
+  const findings = reviews.flatMap((r) => r.findings)
   return {
-    findings: reviews.flatMap((r) => r.findings),
+    findings,
     summary: reviews
       .map((r) => r.summary)
       .filter(Boolean)
       .join('\n\n'),
-    verdict: reviews.reduce<LlmReview['verdict']>(
-      (worst, r) => (rank[r.verdict] > rank[worst] ? r.verdict : worst),
-      'approve',
-    ),
+    verdict: resolveVerdict(findings),
   }
 }

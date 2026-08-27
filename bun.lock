@@ -317,6 +317,7 @@
       "name": "@code-whiskers/whiskers-service",
       "dependencies": {
         "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/sandbox": "workspace:*",
         "@code-whiskers/typescript-config": "workspace:*",
         "@code-whiskers/whiskers-config": "workspace:*",
         "@code-whiskers/whiskers-domain": "workspace:*",
@@ -327,6 +328,7 @@
         "jose": "^6.0.11",
         "octokit": "^5.0.5",
         "parse-diff": "^0.12.0",
+        "zod": "^4.4.3",
       },
     },
   },
@@ -2260,6 +2262,10 @@
     "@ai-sdk/provider-utils/eventsource-parser": ["eventsource-parser@3.1.1", "", {}, "sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ=="],
 
     "@babel/helper-compilation-targets/lru-cache": ["lru-cache@5.1.1", "", { "dependencies": { "yallist": "^3.0.2" } }, "sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w=="],
+
+    "@code-whiskers/whiskers-domain/zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
+
+    "@code-whiskers/whiskers-service/zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
 
     "@commitlint/is-ignored/semver": ["semver@7.7.3", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q=="],
 

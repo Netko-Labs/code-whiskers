@@ -3,7 +3,14 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
 import { chunkDiff, commentableLines } from './chunk'
-import { fetchPrDiff, fetchPrHeadSha, type PrRef, postPrReview } from './github'
+import {
+  completeCheckRun,
+  fetchPrDiff,
+  fetchPrHeadSha,
+  type PrRef,
+  postPrReview,
+  startCheckRun,
+} from './github'
 import { mergeReviews, reviewChunk } from './llm'
 
 export * from './chunk'
@@ -24,6 +31,9 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     model: whiskersEnvConfig.openrouter.model,
   })
   if (!review) return undefined
+  logger.info({ ...ref, headSha, reviewId: review.id }, 'review started')
+  // The visible face in the PR's checks section — App auth only, null under PAT.
+  const checkRunId = await startCheckRun(ref, headSha).catch(() => null)
 
   try {
     const diff = await fetchPrDiff(ref)
@@ -44,6 +54,16 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       })),
     )
     await postPrReview(ref, headSha, merged, commentableLines(diff))
+    await completeCheckRun(ref, checkRunId, { review: merged }).catch((error) => {
+      logger.warn(
+        { err: error instanceof Error ? error.message : String(error) },
+        'check run update failed',
+      )
+    })
+    logger.info(
+      { ...ref, reviewId: review.id, verdict: merged.verdict, findings: merged.findings.length },
+      'review completed',
+    )
     return await completeReview(review.id, {
       status: 'completed',
       verdict: merged.verdict,
@@ -51,7 +71,9 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       model: review.model,
     })
   } catch (error) {
-    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'review failed')
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error({ err: message }, 'review failed')
+    await completeCheckRun(ref, checkRunId, { error: message }).catch(() => {})
     return await completeReview(review.id, {
       status: 'failed',
       verdict: null,
