@@ -8,6 +8,8 @@ const logger = createLogger('whiskers-webhooks')
 
 const REVIEWED_ACTIONS = new Set(['opened', 'synchronize', 'reopened', 'ready_for_review'])
 const MENTION_EVENTS = new Set(['issue_comment', 'pull_request_review_comment'])
+// Fix runs spend money and push commits — only repo insiders may trigger them.
+const TRUSTED_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR'])
 
 function validSignature(raw: string, signature: string | null): boolean {
   const secret = whiskersEnvConfig.github.webhookSecret
@@ -50,6 +52,7 @@ function handleMention(event: string, raw: string) {
       path?: string
       line?: number | null
       start_line?: number | null
+      author_association?: string
       user?: { login?: string; type?: string }
     }
     issue?: { number?: number; pull_request?: unknown }
@@ -65,9 +68,10 @@ function handleMention(event: string, raw: string) {
     return { ok: true }
   }
   // Only PR conversations (issue_comment also fires on plain issues), never
-  // other bots — and only when this bot is actually mentioned.
+  // other bots, only repo insiders — and only when this bot is actually mentioned.
   if (event === 'issue_comment' && !payload.issue?.pull_request) return { ok: true }
   if (payload.comment?.user?.type === 'Bot') return { ok: true }
+  if (!TRUSTED_ASSOCIATIONS.has(payload.comment?.author_association ?? '')) return { ok: true }
   if (!isBotMention(body, whiskersEnvConfig.github.botHandle)) return { ok: true }
 
   const target: FixTarget =

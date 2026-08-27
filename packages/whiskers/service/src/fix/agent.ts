@@ -25,16 +25,19 @@ export async function runFixAgent(
   request: string,
 ): Promise<AgentFixOutcome> {
   const exec = workspace.exec
+  // Tool results are model-selected inputs — one lockfile read must not blow the context.
+  const clamp = (text: string) =>
+    text.length > TOOL_OUTPUT_LIMIT ? `${text.slice(0, TOOL_OUTPUT_LIMIT)}\n…[truncated]` : text
   const tools = {
     listFiles: tool({
       description: 'List every tracked file in the checkout',
       inputSchema: z.object({}),
-      execute: async () => (await workspace.listFiles()).join('\n'),
+      execute: async () => clamp((await workspace.listFiles()).join('\n')),
     }),
     readFile: tool({
       description: 'Read a file; path is relative to the repo root',
       inputSchema: z.object({ path: z.string() }),
-      execute: ({ path }) => workspace.readFile(path),
+      execute: async ({ path }) => clamp(await workspace.readFile(path)),
     }),
     writeFile: tool({
       description: 'Replace a file with new content; path is relative to the repo root',
@@ -51,10 +54,7 @@ export async function runFixAgent(
             inputSchema: z.object({ command: z.string() }),
             execute: async ({ command }) => {
               const result = await exec(command)
-              return `exit ${result.code}\n${result.stdout}\n${result.stderr}`.slice(
-                0,
-                TOOL_OUTPUT_LIMIT,
-              )
+              return clamp(`exit ${result.code}\n${result.stdout}\n${result.stderr}`)
             },
           }),
         }

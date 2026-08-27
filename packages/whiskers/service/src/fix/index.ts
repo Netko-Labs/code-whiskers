@@ -133,10 +133,19 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
       try {
         pushed = await runAgentFix(ref, target, head)
       } catch (error) {
-        logger.warn(
-          { err: error instanceof Error ? error.message : String(error) },
-          'agent fix failed — falling back to a suggestion reply',
-        )
+        const message = error instanceof Error ? error.message : String(error)
+        // A moved head means finished work was rejected — an unrelated
+        // suggestion would be misleading; say what happened instead.
+        if (/non-fast-forward|fetch first|\[rejected\]/i.test(message)) {
+          logger.warn({ ...ref }, 'push race — branch moved during the fix run')
+          await deliverReply(
+            ref,
+            target,
+            'The branch moved while I was working, so my fix no longer applies cleanly. Mention me again to retry against the new head.',
+          ).catch(() => {})
+          return
+        }
+        logger.warn({ err: message }, 'agent fix failed — falling back to a suggestion reply')
       }
     }
     if (pushed) {
