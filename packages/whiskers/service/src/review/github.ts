@@ -82,8 +82,9 @@ export async function postPrReview(
   } catch (error) {
     // GitHub rejects APPROVE/REQUEST_CHANGES on your own PR (422). Personal-token
     // setups (dogfooding) demote to COMMENT so the findings still land.
-    const status = (error as { status?: number }).status
-    if (status !== 422 || review.verdict === 'comment') throw error
+    const { status, message } = error as { status?: number; message?: string }
+    const ownPr = status === 422 && /your own pull request/i.test(message ?? '')
+    if (!ownPr || review.verdict === 'comment') throw error
     await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
       ...payload,
       event: 'COMMENT',
