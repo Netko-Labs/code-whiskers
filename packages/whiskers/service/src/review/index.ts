@@ -19,6 +19,26 @@ export * from './llm'
 
 const logger = createLogger('whiskers-review')
 
+const TRANSIENT_ERROR = /timed out|timeout|abort|429|5\d\d|overloaded|rate limit/i
+const RETRY_DELAY_MS = 2_000
+
+/**
+ * One retry per chunk, transient failures only (timeouts, rate limits,
+ * provider 5xx) with a short pause — a 4xx would just fail again, and the
+ * original error stays visible in the log.
+ */
+async function reviewChunkWithRetry(chunk: string): Promise<ReturnType<typeof reviewChunk>> {
+  try {
+    return await reviewChunk(chunk)
+  } catch (error) {
+    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+    if (!TRANSIENT_ERROR.test(message)) throw error
+    logger.warn({ err: message }, 'transient chunk failure — retrying once')
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+    return reviewChunk(chunk)
+  }
+}
+
 /** The whole pipeline: diff -> chunks -> LLM -> persist -> PR review on GitHub. */
 export async function runReview(ref: PrRef): Promise<Review | undefined> {
   const headSha = await fetchPrHeadSha(ref)
@@ -38,11 +58,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   try {
     const diff = await fetchPrDiff(ref)
     const chunks = chunkDiff(diff)
-    // Provider timeouts are transient — one slow chunk gets a second chance
-    // before it fails the whole review.
-    const results = await Promise.all(
-      chunks.map((chunk) => reviewChunk(chunk).catch(() => reviewChunk(chunk))),
-    )
+    const results = await Promise.all(chunks.map(reviewChunkWithRetry))
     const merged = mergeReviews(results)
 
     await createFindings(

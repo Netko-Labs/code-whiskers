@@ -33,6 +33,8 @@ export function clampBody(body: string): string {
 export function isBotLogin(login: string | null | undefined, handle: string): boolean {
   if (!login) return false
   const slug = handle.replace(/\[bot\]$/i, '').toLowerCase()
+  // a misconfigured empty handle must never match anything
+  if (!slug) return false
   const normalized = login.toLowerCase()
   return normalized === slug || normalized === `${slug}[bot]`
 }

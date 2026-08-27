@@ -28,7 +28,7 @@ export const PROTECTED_PATH_PATTERNS: readonly RegExp[] = [
   /(^|\/)action\.ya?ml$/,
   // attribute filters and submodule sources shape what future git/CI runs execute
   /(^|\/)\.gitattributes$/,
-  /^\.gitmodules$/,
+  /(^|\/)\.gitmodules$/,
   /(^|\/)bun\.lock(b)?$/,
   /(^|\/)package-lock\.json$/,
   /(^|\/)yarn\.lock$/,

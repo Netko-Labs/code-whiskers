@@ -41,6 +41,7 @@ describe('isProtectedPath', () => {
       '.gitattributes',
       'packages/a/.gitattributes',
       '.gitmodules',
+      'tools/subrepo/.gitmodules',
       'package.json',
       'apps/studio/package.json',
       'package-lock.json',
@@ -196,6 +197,12 @@ describe('isBotLogin', () => {
 
   test('tolerates a handle configured with the [bot] suffix', () => {
     expect(isBotLogin('code-whiskers[bot]', 'code-whiskers[bot]')).toBe(true)
+  })
+
+  test('an empty or [bot]-only handle never matches', () => {
+    expect(isBotLogin('[bot]', '')).toBe(false)
+    expect(isBotLogin('', '')).toBe(false)
+    expect(isBotLogin('[bot]', '[bot]')).toBe(false)
   })
 
   test('rejects other users and missing logins', () => {
