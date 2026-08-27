@@ -3,6 +3,7 @@ import {
   buildAgentRequest,
   buildCommitMessage,
   buildFixReply,
+  isBotLogin,
   isBotMention,
   isProtectedPath,
   numberedExcerpt,
@@ -183,5 +184,23 @@ describe('assertSafeWritePath', () => {
   test('still composes the rel-path safety check', () => {
     expect(() => assertSafeWritePath('../x')).toThrow('unsafe path')
     expect(() => assertSafeWritePath('.git/config')).toThrow('unsafe path')
+  })
+})
+
+describe('isBotLogin', () => {
+  test('matches the bare slug and the [bot] account, case-insensitively', () => {
+    expect(isBotLogin('code-whiskers[bot]', 'code-whiskers')).toBe(true)
+    expect(isBotLogin('Code-Whiskers[bot]', 'code-whiskers')).toBe(true)
+    expect(isBotLogin('code-whiskers', 'code-whiskers')).toBe(true)
+  })
+
+  test('tolerates a handle configured with the [bot] suffix', () => {
+    expect(isBotLogin('code-whiskers[bot]', 'code-whiskers[bot]')).toBe(true)
+  })
+
+  test('rejects other users and missing logins', () => {
+    expect(isBotLogin('peje', 'code-whiskers')).toBe(false)
+    expect(isBotLogin('code-whiskers-dev[bot]', 'code-whiskers')).toBe(false)
+    expect(isBotLogin(undefined, 'code-whiskers')).toBe(false)
   })
 })
