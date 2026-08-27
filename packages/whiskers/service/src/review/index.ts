@@ -12,7 +12,7 @@ import {
   postPrReview,
   startCheckRun,
 } from './github'
-import { mergeReviews, reviewChunk } from './llm'
+import { filterBySeverity, mergeReviews, resolveVerdict, reviewChunk } from './llm'
 
 export * from './chunk'
 export * from './github'
@@ -64,7 +64,11 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     const diff = await fetchPrDiff(ref)
     const chunks = chunkDiff(diff)
     const results = await Promise.all(chunks.map(reviewChunkWithRetry))
-    const merged = mergeReviews(results)
+    const raw = mergeReviews(results)
+    // The pickiness floor: drop sub-threshold findings, then re-derive the
+    // verdict so it always matches what is actually posted.
+    const findings = filterBySeverity(raw.findings, whiskersEnvConfig.review.minSeverity)
+    const merged = { ...raw, findings, verdict: resolveVerdict(findings) }
 
     await createFindings(
       merged.findings.map((f) => ({

@@ -6,13 +6,30 @@ import { generateObject } from 'ai'
 const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
 
 const SYSTEM = `You are a senior code reviewer for pull requests.
-Review the unified diff and report only real, actionable findings — bugs,
-security holes, performance traps, broken contracts. Do not pad with nitpicks;
-an empty findings list is a valid, good review. Line numbers must reference the
-NEW side of the diff. Verdict: "request_changes" when any high/critical finding
-exists, otherwise "approve" — non-blocking nitpicks do not block a merge.`
+Review the unified diff and report only findings a maintainer would definitely
+act on: real bugs, security holes, performance traps, broken contracts. Never
+report style preferences, defensive-programming suggestions, documentation or
+naming nits, hypothetical edge cases without a concrete failure path, or issues
+in code outside this diff. An empty findings list is a valid, good review —
+most competent changes deserve one. Line numbers must reference the NEW side of
+the diff. Verdict: "request_changes" when any high/critical finding exists,
+otherwise "approve" — non-blocking findings do not block a merge.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
+const SEVERITY_RANK: Record<LlmFinding['severity'], number> = {
+  low: 0,
+  medium: 1,
+  high: 2,
+  critical: 3,
+}
+
+/** The pickiness knob: drop findings below `min` (REVIEW_MIN_SEVERITY). */
+export function filterBySeverity(
+  findings: LlmFinding[],
+  min: LlmFinding['severity'],
+): LlmFinding[] {
+  return findings.filter((f) => SEVERITY_RANK[f.severity] >= SEVERITY_RANK[min])
+}
 // A stuck provider socket must surface as a failed review, never a silent hang.
 const LLM_TIMEOUT_MS = 180_000
 

@@ -21,6 +21,10 @@ export const WhiskersConfigSchema = z.object({
     apiKey: z.string().default(''),
     model: z.string().default('anthropic/claude-sonnet-4.5'),
   }),
+  review: z.object({
+    // findings below this severity are dropped before anything is posted
+    minSeverity: z.enum(['low', 'medium', 'high', 'critical']).default('low'),
+  }),
   fix: z.object({
     maxTurns: z.number().int().positive().default(12),
     execTimeoutMs: z.number().int().positive().default(120_000),

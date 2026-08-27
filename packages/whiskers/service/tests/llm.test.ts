@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
-import { mergeReviews, resolveVerdict } from '../src/review/llm'
+import { filterBySeverity, mergeReviews, resolveVerdict } from '../src/review/llm'
 
 const finding = (severity: LlmFinding['severity']): LlmFinding => ({
   file: 'src/app.ts',
@@ -55,5 +55,25 @@ describe('mergeReviews', () => {
 
   test('an empty review set approves', () => {
     expect(mergeReviews([]).verdict).toBe('approve')
+  })
+})
+
+describe('filterBySeverity', () => {
+  const findings = [finding('low'), finding('medium'), finding('high'), finding('critical')]
+
+  test("min 'low' keeps everything (default behavior)", () => {
+    expect(filterBySeverity(findings, 'low')).toHaveLength(4)
+  })
+
+  test("min 'medium' drops the nitpick tier", () => {
+    expect(filterBySeverity(findings, 'medium').map((f) => f.severity)).toEqual([
+      'medium',
+      'high',
+      'critical',
+    ])
+  })
+
+  test("min 'critical' keeps only critical", () => {
+    expect(filterBySeverity(findings, 'critical').map((f) => f.severity)).toEqual(['critical'])
   })
 })
