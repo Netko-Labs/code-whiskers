@@ -182,6 +182,103 @@ const VERDICT_EVENT = {
   comment: 'COMMENT',
 } as const
 
+const CHECK_NAME = 'code-whiskers review'
+const ANNOTATION_LEVEL = {
+  low: 'notice',
+  medium: 'warning',
+  high: 'failure',
+  critical: 'failure',
+} as const
+// The Checks API accepts at most 50 annotations per update.
+const MAX_ANNOTATIONS = 50
+
+export interface CheckOutput {
+  title: string
+  summary: string
+  annotations: Array<{
+    path: string
+    start_line: number
+    end_line: number
+    annotation_level: 'notice' | 'warning' | 'failure'
+    message: string
+  }>
+}
+
+/** The check-run face of a review: verdict headline, summary, findings as annotations. */
+export function buildCheckOutput(review: LlmReview): CheckOutput {
+  const counts = review.findings.reduce<Record<string, number>>((acc, f) => {
+    acc[f.severity] = (acc[f.severity] ?? 0) + 1
+    return acc
+  }, {})
+  const breakdown = ['critical', 'high', 'medium', 'low']
+    .filter((s) => counts[s])
+    .map((s) => `${counts[s]} ${s}`)
+    .join(', ')
+  const headline = review.verdict === 'approve' ? 'Approved' : 'Changes requested'
+  return {
+    title:
+      review.findings.length === 0 ? `${headline} — no findings` : `${headline} — ${breakdown}`,
+    summary: review.summary || 'No summary.',
+    annotations: review.findings
+      .filter((f) => f.line !== null)
+      .slice(0, MAX_ANNOTATIONS)
+      .map((f) => ({
+        path: f.file,
+        // SAFETY: filter above guarantees line is non-null
+        start_line: f.line as number,
+        end_line: f.line as number,
+        annotation_level: ANNOTATION_LEVEL[f.severity],
+        message: `[${f.severity}/${f.category}] ${f.title}\n\n${f.body}`,
+      })),
+  }
+}
+
+/** Checks are App-only — under PAT fallback this quietly reports nothing. */
+export async function startCheckRun(ref: PrRef, headSha: string): Promise<number | null> {
+  if (!githubApp) return null
+  const octokit = await octokitFor(ref.owner, ref.repo)
+  const { data } = await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
+    owner: ref.owner,
+    repo: ref.repo,
+    name: CHECK_NAME,
+    head_sha: headSha,
+    status: 'in_progress',
+  })
+  return Number(data.id)
+}
+
+/**
+ * Approve -> green check, request_changes -> red check, pipeline error ->
+ * neutral (an infra failure must not read as a code verdict).
+ */
+export async function completeCheckRun(
+  ref: PrRef,
+  checkRunId: number | null,
+  result: { review: LlmReview } | { error: string },
+): Promise<void> {
+  if (checkRunId === null) return
+  const octokit = await octokitFor(ref.owner, ref.repo)
+  const done =
+    'review' in result
+      ? {
+          conclusion:
+            result.review.verdict === 'approve' ? ('success' as const) : ('failure' as const),
+          output: buildCheckOutput(result.review),
+        }
+      : {
+          conclusion: 'neutral' as const,
+          output: { title: 'Review failed', summary: result.error.slice(0, 1000), annotations: [] },
+        }
+  await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+    owner: ref.owner,
+    repo: ref.repo,
+    check_run_id: checkRunId,
+    status: 'completed',
+    conclusion: done.conclusion,
+    output: done.output,
+  })
+}
+
 function findingBody(finding: LlmFinding): string {
   const suggestion = finding.suggestion ? `\n\n**Suggestion:** ${finding.suggestion}` : ''
   return `**[${finding.severity}/${finding.category}] ${finding.title}**\n\n${finding.body}${suggestion}`

@@ -123,8 +123,11 @@
   },
   "overrides": [
     {
-      // GitHub webhook payload types are snake_case by contract
-      "includes": ["packages/whiskers/api/src/routes/**"],
+      // GitHub webhook/API payload types are snake_case by contract
+      "includes": [
+        "packages/whiskers/api/src/routes/**",
+        "packages/whiskers/service/src/review/github.ts"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -133,6 +136,13 @@
               "options": {
                 "strictCase": false,
                 "conventions": [
+                  {
+                    "selector": {
+                      "kind": "objectLiteralProperty",
+                      "scope": "any"
+                    },
+                    "formats": ["camelCase", "CONSTANT_CASE", "PascalCase", "snake_case"]
+                  },
                   {
                     "selector": {
                       "kind": "typeProperty",
