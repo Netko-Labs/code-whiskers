@@ -1,4 +1,4 @@
-# @temp-repo/cli
+# @code-whiskers/cli
 
 Monorepo CLI for managing apps, databases, Docker, and development workflows.
 

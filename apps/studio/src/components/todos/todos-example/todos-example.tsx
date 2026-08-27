@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@temp-repo/ui/components/card'
+import { Card, CardContent } from '@code-whiskers/ui/components/card'
 import { CreateTodoForm } from './create-todo-form/create-todo-form'
 import { ImplementationInfo } from './implementation-info/implementation-info'
 import { TODOS_PAGE_DESCRIPTION, TODOS_PAGE_TITLE, useTodosExample } from './lib'

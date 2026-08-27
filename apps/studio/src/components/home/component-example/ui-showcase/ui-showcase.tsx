@@ -1,13 +1,13 @@
-import { Badge } from '@temp-repo/ui/components/badge'
-import { Button } from '@temp-repo/ui/components/button'
+import { Badge } from '@code-whiskers/ui/components/badge'
+import { Button } from '@code-whiskers/ui/components/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
-import { Input } from '@temp-repo/ui/components/input'
+} from '@code-whiskers/ui/components/card'
+import { Input } from '@code-whiskers/ui/components/input'
 
 export function UiShowcase() {
   return (

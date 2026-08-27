@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import * as ResizablePrimitive from 'react-resizable-panels'
 
 function ResizablePanelGroup({ className, ...props }: ResizablePrimitive.GroupProps) {

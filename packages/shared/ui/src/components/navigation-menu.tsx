@@ -1,6 +1,6 @@
 import { NavigationMenu as NavigationMenuPrimitive } from '@base-ui/react/navigation-menu'
 import { IconChevronDown } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { cva } from 'class-variance-authority'
 
 function NavigationMenu({

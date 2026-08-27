@@ -1,5 +1,5 @@
-import { createLogger } from '@temp-repo/logger'
-import { realtimeEnvConfig } from '@temp-repo/realtime-config'
+import { createLogger } from '@code-whiskers/logger'
+import { realtimeEnvConfig } from '@code-whiskers/realtime-config'
 import { Elysia } from 'elysia'
 import { chatRoutes } from './routes/chat'
 import { roomRoutes } from './routes/room'

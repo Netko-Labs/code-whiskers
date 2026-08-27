@@ -1,14 +1,14 @@
-import { Button } from '@temp-repo/ui/components/button'
+import { Button } from '@code-whiskers/ui/components/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
-import { Field, FieldGroup, FieldLabel } from '@temp-repo/ui/components/field'
-import { Input } from '@temp-repo/ui/components/input'
-import { Textarea } from '@temp-repo/ui/components/textarea'
+} from '@code-whiskers/ui/components/card'
+import { Field, FieldGroup, FieldLabel } from '@code-whiskers/ui/components/field'
+import { Input } from '@code-whiskers/ui/components/input'
+import { Textarea } from '@code-whiskers/ui/components/textarea'
 import { type FormEvent, useState } from 'react'
 import type { CreateTodoFormProps } from '../lib'
 import {

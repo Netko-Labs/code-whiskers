@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/studio-domain",
+  "name": "@code-whiskers/studio-domain",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "drizzle-zod": "^0.8.3",
     "zod": "^4.1.13"

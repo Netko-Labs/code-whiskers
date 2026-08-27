@@ -1,5 +1,5 @@
-import { ClientMessageSchema, RoomConnectionQuerySchema } from '@temp-repo/realtime-domain'
-import { createChatMessage, getChatMessages, hub, verifyToken } from '@temp-repo/realtime-service'
+import { ClientMessageSchema, RoomConnectionQuerySchema } from '@code-whiskers/realtime-domain'
+import { createChatMessage, getChatMessages, hub, verifyToken } from '@code-whiskers/realtime-service'
 import { Elysia } from 'elysia'
 
 /**

@@ -1,4 +1,4 @@
-import type { Member, ServerEvent } from '@temp-repo/realtime-domain'
+import type { Member, ServerEvent } from '@code-whiskers/realtime-domain'
 
 /** Minimal shape the hub needs from a live socket. `send` takes a string (JSON). */
 export interface RoomConnection {

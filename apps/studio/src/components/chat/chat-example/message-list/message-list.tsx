@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
+} from '@code-whiskers/ui/components/card'
 import type { MessageListProps } from '../lib'
 import { MESSAGES_EMPTY, MESSAGES_LOADING, MESSAGES_TITLE } from '../lib'
 import { ChatMessageItem } from './chat-message-item/chat-message-item'

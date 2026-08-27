@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@temp-repo/ui/components/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@code-whiskers/ui/components/card'
 import {
   IMPLEMENTATION_HINT,
   IMPLEMENTATION_QUERY,

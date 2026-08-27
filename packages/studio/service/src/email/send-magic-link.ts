@@ -1,4 +1,4 @@
-import { createLogger } from '@temp-repo/logger'
+import { createLogger } from '@code-whiskers/logger'
 import { renderMagicLinkEmail } from './magic-link-email'
 
 const logger = createLogger('email')

@@ -2,7 +2,7 @@
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { IconCheck, IconChevronDown, IconChevronUp, IconSelector } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 const Select = SelectPrimitive.Root

@@ -1,4 +1,4 @@
-import { getChatMessages } from '@temp-repo/realtime-service'
+import { getChatMessages } from '@code-whiskers/realtime-service'
 import { Elysia } from 'elysia'
 
 // Chat history over HTTP; live sending happens over the WS room route.

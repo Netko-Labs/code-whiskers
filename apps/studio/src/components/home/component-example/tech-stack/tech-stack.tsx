@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
+} from '@code-whiskers/ui/components/card'
 import { TECH_STACK_ITEMS } from '../lib'
 
 export function TechStack() {

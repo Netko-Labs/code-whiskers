@@ -1,6 +1,6 @@
 import { Menu as MenuPrimitive } from '@base-ui/react/menu'
 import { IconCheck, IconChevronRight } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {

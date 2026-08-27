@@ -1,4 +1,4 @@
-import type { Todo } from '@temp-repo/realtime-domain'
+import type { Todo } from '@code-whiskers/realtime-domain'
 import type { FormEvent } from 'react'
 
 export interface TodoUpdateEvent {

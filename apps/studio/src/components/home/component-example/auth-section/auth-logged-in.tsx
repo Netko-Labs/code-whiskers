@@ -1,12 +1,12 @@
-import { Badge } from '@temp-repo/ui/components/badge'
-import { Button } from '@temp-repo/ui/components/button'
+import { Badge } from '@code-whiskers/ui/components/badge'
+import { Button } from '@code-whiskers/ui/components/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
+} from '@code-whiskers/ui/components/card'
 import type { AuthLoggedInProps } from './lib'
 import {
   AUTH_LOGGED_IN,

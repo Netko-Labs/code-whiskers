@@ -1,7 +1,7 @@
-import { Button } from '@temp-repo/ui/components/button'
-import { Input } from '@temp-repo/ui/components/input'
-import { Textarea } from '@temp-repo/ui/components/textarea'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { Button } from '@code-whiskers/ui/components/button'
+import { Input } from '@code-whiskers/ui/components/input'
+import { Textarea } from '@code-whiskers/ui/components/textarea'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 import type * as React from 'react'
 

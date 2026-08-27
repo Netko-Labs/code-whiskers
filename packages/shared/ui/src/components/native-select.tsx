@@ -1,5 +1,5 @@
 import { IconSelector } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 type NativeSelectProps = Omit<React.ComponentProps<'select'>, 'size'> & {

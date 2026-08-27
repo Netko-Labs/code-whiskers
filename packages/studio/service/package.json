@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/studio-service",
+  "name": "@code-whiskers/studio-service",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -7,11 +7,11 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@temp-repo/logger": "workspace:*",
-    "@temp-repo/studio-config": "workspace:*",
-    "@temp-repo/studio-domain": "workspace:*",
-    "@temp-repo/studio-repository": "workspace:*",
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/studio-config": "workspace:*",
+    "@code-whiskers/studio-domain": "workspace:*",
+    "@code-whiskers/studio-repository": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "better-auth": "^1.4.17",
     "drizzle-orm": "^0.45.1",
     "jose": "^6.0.11"

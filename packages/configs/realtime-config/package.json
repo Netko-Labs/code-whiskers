@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/realtime-config",
+  "name": "@code-whiskers/realtime-config",
   "version": "0.1.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -7,8 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@temp-repo/typescript-config": "workspace:*",
-    "@temp-repo/realtime-domain": "workspace:*"
+    "@code-whiskers/typescript-config": "workspace:*",
+    "@code-whiskers/realtime-domain": "workspace:*"
   },
   "scripts": {
     "check-types": "tsgo --noEmit"

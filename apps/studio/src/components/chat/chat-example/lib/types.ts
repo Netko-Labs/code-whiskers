@@ -1,4 +1,4 @@
-import type { ChatMessage, Member } from '@temp-repo/realtime-domain'
+import type { ChatMessage, Member } from '@code-whiskers/realtime-domain'
 import type { FormEvent, RefObject } from 'react'
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'

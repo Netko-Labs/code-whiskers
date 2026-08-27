@@ -1,4 +1,4 @@
-import { realtimeEnvConfig } from '@temp-repo/realtime-config'
+import { realtimeEnvConfig } from '@code-whiskers/realtime-config'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 const WEB = realtimeEnvConfig.app.webBaseUrl

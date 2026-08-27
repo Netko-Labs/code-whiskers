@@ -49,7 +49,7 @@ export const TECH_STACK_ITEMS = [
 
 export const CODE_EXAMPLE_API = `
 // packages/studio/api/src/routes/chat.ts
-import { chatEvents, createChatMessage } from '@temp-repo/studio-service'
+import { chatEvents, createChatMessage } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 import { authPlugin } from '../setup'

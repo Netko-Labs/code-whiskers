@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@temp-repo/ui/components/card'
+import { Card, CardContent } from '@code-whiskers/ui/components/card'
 import { AuthGuestForm } from './auth-guest-form'
 import { AuthLoggedIn } from './auth-logged-in'
 import { AUTH_LOADING, useAuthSection } from './lib'

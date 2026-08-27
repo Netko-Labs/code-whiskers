@@ -1,7 +1,7 @@
 import { Radio as RadioPrimitive } from '@base-ui/react/radio'
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { IconCircle } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 
 function RadioGroup({ className, ...props }: RadioGroupPrimitive.Props) {
   return (

@@ -1,4 +1,4 @@
-import { type StudioConfig, StudioConfigSchema } from '@temp-repo/studio-domain'
+import { type StudioConfig, StudioConfigSchema } from '@code-whiskers/studio-domain'
 
 const isEnabled = (args: (string | undefined)[]): boolean => {
   return args.every((arg) => arg !== undefined && arg !== '')

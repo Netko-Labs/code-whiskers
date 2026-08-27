@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/realtime-api",
+  "name": "@code-whiskers/realtime-api",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -10,11 +10,11 @@
     "check-types": "tsgo --noEmit"
   },
   "dependencies": {
-    "@temp-repo/realtime-config": "workspace:*",
-    "@temp-repo/realtime-domain": "workspace:*",
-    "@temp-repo/realtime-service": "workspace:*",
-    "@temp-repo/logger": "workspace:*",
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/realtime-config": "workspace:*",
+    "@code-whiskers/realtime-domain": "workspace:*",
+    "@code-whiskers/realtime-service": "workspace:*",
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "elysia": "2.0.0-exp.25",
     "zod": "^4.1.13"
   }

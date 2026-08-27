@@ -2,8 +2,8 @@
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { IconX } from '@tabler/icons-react'
-import { Button } from '@temp-repo/ui/components/button'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { Button } from '@code-whiskers/ui/components/button'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {

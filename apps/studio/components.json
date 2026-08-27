@@ -14,8 +14,8 @@
     "components": "@/components",
     "hooks": "@/hooks",
     "lib": "@/lib",
-    "utils": "@temp-repo/ui/lib/utils",
-    "ui": "@temp-repo/ui/components"
+    "utils": "@code-whiskers/ui/lib/utils",
+    "ui": "@code-whiskers/ui/components"
   },
   "rtl": false,
   "menuColor": "default-translucent",

@@ -1,5 +1,5 @@
 import { IconMinus } from '@tabler/icons-react'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { OTPInput, OTPInputContext } from 'input-otp'
 import * as React from 'react'
 

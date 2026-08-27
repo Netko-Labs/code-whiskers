@@ -5,9 +5,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@temp-repo/ui/components/dialog'
-import { InputGroup, InputGroupAddon } from '@temp-repo/ui/components/input-group'
-import { cn } from '@temp-repo/ui/lib/utils'
+} from '@code-whiskers/ui/components/dialog'
+import { InputGroup, InputGroupAddon } from '@code-whiskers/ui/components/input-group'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { Command as CommandPrimitive } from 'cmdk'
 import type * as React from 'react'
 

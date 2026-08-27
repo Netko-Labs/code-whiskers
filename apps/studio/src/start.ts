@@ -1,5 +1,5 @@
 import { createMiddleware, createStart } from '@tanstack/react-start'
-import { logger } from '@temp-repo/logger'
+import { logger } from '@code-whiskers/logger'
 
 /**
  * ✧･ﾟ: *✧･ﾟ:* REQUEST LOGGER MIDDLEWARE *:･ﾟ✧*:･ﾟ✧

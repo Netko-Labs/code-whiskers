@@ -18,11 +18,11 @@
     "apps/realtime": {
       "name": "realtime-app",
       "dependencies": {
-        "@temp-repo/logger": "workspace:*",
-        "@temp-repo/realtime-api": "workspace:*",
-        "@temp-repo/realtime-config": "workspace:*",
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/realtime-service": "workspace:*",
+        "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/realtime-api": "workspace:*",
+        "@code-whiskers/realtime-config": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/realtime-service": "workspace:*",
         "elysia": "2.0.0-exp.25",
       },
       "devDependencies": {
@@ -33,6 +33,14 @@
     "apps/studio": {
       "name": "studio-app",
       "dependencies": {
+        "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/realtime-api": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/studio-api": "workspace:*",
+        "@code-whiskers/studio-domain": "workspace:*",
+        "@code-whiskers/studio-repository": "workspace:*",
+        "@code-whiskers/studio-service": "workspace:*",
+        "@code-whiskers/ui": "workspace:*",
         "@elysiajs/eden": "^1.4.9",
         "@tabler/icons-react": "^3.41.0",
         "@tailwindcss/vite": "^4.0.6",
@@ -41,14 +49,6 @@
         "@tanstack/react-router": "^1.132.0",
         "@tanstack/react-router-devtools": "^1.132.0",
         "@tanstack/react-start": "^1.132.0",
-        "@temp-repo/logger": "workspace:*",
-        "@temp-repo/realtime-api": "workspace:*",
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/studio-api": "workspace:*",
-        "@temp-repo/studio-domain": "workspace:*",
-        "@temp-repo/studio-repository": "workspace:*",
-        "@temp-repo/studio-service": "workspace:*",
-        "@temp-repo/ui": "workspace:*",
         "better-auth": "^1.4.17",
         "elysia": "2.0.0-exp.25",
         "nitro": "3.0.260429-beta",
@@ -68,37 +68,37 @@
       },
     },
     "packages/configs/realtime-config": {
-      "name": "@temp-repo/realtime-config",
+      "name": "@code-whiskers/realtime-config",
       "version": "0.1.0",
       "dependencies": {
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
       },
     },
     "packages/configs/studio-config": {
-      "name": "@temp-repo/studio-config",
+      "name": "@code-whiskers/studio-config",
       "version": "0.1.0",
       "dependencies": {
-        "@temp-repo/studio-domain": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/studio-domain": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
       },
     },
     "packages/realtime/api": {
-      "name": "@temp-repo/realtime-api",
+      "name": "@code-whiskers/realtime-api",
       "dependencies": {
-        "@temp-repo/logger": "workspace:*",
-        "@temp-repo/realtime-config": "workspace:*",
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/realtime-service": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/realtime-config": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/realtime-service": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "elysia": "2.0.0-exp.25",
         "zod": "^4.1.13",
       },
     },
     "packages/realtime/domain": {
-      "name": "@temp-repo/realtime-domain",
+      "name": "@code-whiskers/realtime-domain",
       "dependencies": {
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "drizzle-zod": "^0.8.3",
         "zod": "^4.1.13",
@@ -108,10 +108,10 @@
       },
     },
     "packages/realtime/repository": {
-      "name": "@temp-repo/realtime-repository",
+      "name": "@code-whiskers/realtime-repository",
       "dependencies": {
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "postgres": "^3.4.7",
       },
@@ -121,24 +121,24 @@
       },
     },
     "packages/realtime/service": {
-      "name": "@temp-repo/realtime-service",
+      "name": "@code-whiskers/realtime-service",
       "dependencies": {
-        "@temp-repo/realtime-config": "workspace:*",
-        "@temp-repo/realtime-domain": "workspace:*",
-        "@temp-repo/realtime-repository": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/realtime-config": "workspace:*",
+        "@code-whiskers/realtime-domain": "workspace:*",
+        "@code-whiskers/realtime-repository": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "jose": "^6.0.11",
       },
     },
     "packages/shared/cli": {
-      "name": "@temp-repo/cli",
+      "name": "@code-whiskers/cli",
       "version": "0.1.0",
       "bin": {
         "repo": "./src/index.ts",
       },
       "dependencies": {
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "glob": "^11.0.0",
       },
       "devDependencies": {
@@ -147,29 +147,29 @@
       },
     },
     "packages/shared/logger": {
-      "name": "@temp-repo/logger",
+      "name": "@code-whiskers/logger",
       "version": "0.1.0",
       "dependencies": {
         "pino": "^10.2.1",
         "pino-pretty": "^13.0.0",
       },
       "devDependencies": {
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "typescript": "^5",
       },
     },
     "packages/shared/typescript-config": {
-      "name": "@temp-repo/typescript-config",
+      "name": "@code-whiskers/typescript-config",
       "version": "0.0.0",
     },
     "packages/shared/ui": {
-      "name": "@temp-repo/ui",
+      "name": "@code-whiskers/ui",
       "version": "0.0.0",
       "dependencies": {
         "@base-ui/react": "^1.3.0",
+        "@code-whiskers/typescript-config": "workspace:*",
         "@fontsource-variable/geist-mono": "^5.2.7",
         "@tabler/icons-react": "^3.41.0",
-        "@temp-repo/typescript-config": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -195,21 +195,21 @@
       },
     },
     "packages/studio/api": {
-      "name": "@temp-repo/studio-api",
+      "name": "@code-whiskers/studio-api",
       "dependencies": {
-        "@temp-repo/logger": "workspace:*",
-        "@temp-repo/studio-config": "workspace:*",
-        "@temp-repo/studio-domain": "workspace:*",
-        "@temp-repo/studio-service": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/studio-config": "workspace:*",
+        "@code-whiskers/studio-domain": "workspace:*",
+        "@code-whiskers/studio-service": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "elysia": "2.0.0-exp.25",
         "zod": "^4.1.13",
       },
     },
     "packages/studio/domain": {
-      "name": "@temp-repo/studio-domain",
+      "name": "@code-whiskers/studio-domain",
       "dependencies": {
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "drizzle-zod": "^0.8.3",
         "zod": "^4.1.13",
@@ -219,9 +219,9 @@
       },
     },
     "packages/studio/repository": {
-      "name": "@temp-repo/studio-repository",
+      "name": "@code-whiskers/studio-repository",
       "dependencies": {
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "drizzle-orm": "^0.45.1",
         "postgres": "^3.4.7",
       },
@@ -231,13 +231,13 @@
       },
     },
     "packages/studio/service": {
-      "name": "@temp-repo/studio-service",
+      "name": "@code-whiskers/studio-service",
       "dependencies": {
-        "@temp-repo/logger": "workspace:*",
-        "@temp-repo/studio-config": "workspace:*",
-        "@temp-repo/studio-domain": "workspace:*",
-        "@temp-repo/studio-repository": "workspace:*",
-        "@temp-repo/typescript-config": "workspace:*",
+        "@code-whiskers/logger": "workspace:*",
+        "@code-whiskers/studio-config": "workspace:*",
+        "@code-whiskers/studio-domain": "workspace:*",
+        "@code-whiskers/studio-repository": "workspace:*",
+        "@code-whiskers/typescript-config": "workspace:*",
         "better-auth": "^1.4.17",
         "drizzle-orm": "^0.45.1",
         "jose": "^6.0.11",
@@ -356,6 +356,34 @@
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.4", "", { "os": "win32", "cpu": "x64" }, "sha512-3Y4V4zVRarVh/B/eSHczR4LYoSVyv3Dfuvm3cWs5w/HScccS0+Wt/lHOcDTRYeHjQmMYVC3rIRWqyN2EI52+zg=="],
 
     "@borewit/text-codec": ["@borewit/text-codec@0.2.2", "", {}, "sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ=="],
+
+    "@code-whiskers/cli": ["@code-whiskers/cli@workspace:packages/shared/cli"],
+
+    "@code-whiskers/logger": ["@code-whiskers/logger@workspace:packages/shared/logger"],
+
+    "@code-whiskers/realtime-api": ["@code-whiskers/realtime-api@workspace:packages/realtime/api"],
+
+    "@code-whiskers/realtime-config": ["@code-whiskers/realtime-config@workspace:packages/configs/realtime-config"],
+
+    "@code-whiskers/realtime-domain": ["@code-whiskers/realtime-domain@workspace:packages/realtime/domain"],
+
+    "@code-whiskers/realtime-repository": ["@code-whiskers/realtime-repository@workspace:packages/realtime/repository"],
+
+    "@code-whiskers/realtime-service": ["@code-whiskers/realtime-service@workspace:packages/realtime/service"],
+
+    "@code-whiskers/studio-api": ["@code-whiskers/studio-api@workspace:packages/studio/api"],
+
+    "@code-whiskers/studio-config": ["@code-whiskers/studio-config@workspace:packages/configs/studio-config"],
+
+    "@code-whiskers/studio-domain": ["@code-whiskers/studio-domain@workspace:packages/studio/domain"],
+
+    "@code-whiskers/studio-repository": ["@code-whiskers/studio-repository@workspace:packages/studio/repository"],
+
+    "@code-whiskers/studio-service": ["@code-whiskers/studio-service@workspace:packages/studio/service"],
+
+    "@code-whiskers/typescript-config": ["@code-whiskers/typescript-config@workspace:packages/shared/typescript-config"],
+
+    "@code-whiskers/ui": ["@code-whiskers/ui@workspace:packages/shared/ui"],
 
     "@commitlint/cli": ["@commitlint/cli@19.8.1", "", { "dependencies": { "@commitlint/format": "^19.8.1", "@commitlint/lint": "^19.8.1", "@commitlint/load": "^19.8.1", "@commitlint/read": "^19.8.1", "@commitlint/types": "^19.8.1", "tinyexec": "^1.0.0", "yargs": "^17.0.0" }, "bin": { "commitlint": "./cli.js" } }, "sha512-LXUdNIkspyxrlV6VDHWBmCZRtkEVRpBKxi2Gtw3J54cGWhLCTouVD/Q6ZSaSvd2YaDObWK8mDjrz3TIKtaQMAA=="],
 
@@ -804,34 +832,6 @@
     "@tanstack/store": ["@tanstack/store@0.8.0", "", {}, "sha512-Om+BO0YfMZe//X2z0uLF2j+75nQga6TpTJgLJQBiq85aOyZNIhkCgleNcud2KQg4k4v9Y9l+Uhru3qWMPGTOzQ=="],
 
     "@tanstack/virtual-file-routes": ["@tanstack/virtual-file-routes@1.141.0", "", {}, "sha512-CJrWtr6L9TVzEImm9S7dQINx+xJcYP/aDkIi6gnaWtIgbZs1pnzsE0yJc2noqXZ+yAOqLx3TBGpBEs9tS0P9/A=="],
-
-    "@temp-repo/cli": ["@temp-repo/cli@workspace:packages/shared/cli"],
-
-    "@temp-repo/logger": ["@temp-repo/logger@workspace:packages/shared/logger"],
-
-    "@temp-repo/realtime-api": ["@temp-repo/realtime-api@workspace:packages/realtime/api"],
-
-    "@temp-repo/realtime-config": ["@temp-repo/realtime-config@workspace:packages/configs/realtime-config"],
-
-    "@temp-repo/realtime-domain": ["@temp-repo/realtime-domain@workspace:packages/realtime/domain"],
-
-    "@temp-repo/realtime-repository": ["@temp-repo/realtime-repository@workspace:packages/realtime/repository"],
-
-    "@temp-repo/realtime-service": ["@temp-repo/realtime-service@workspace:packages/realtime/service"],
-
-    "@temp-repo/studio-api": ["@temp-repo/studio-api@workspace:packages/studio/api"],
-
-    "@temp-repo/studio-config": ["@temp-repo/studio-config@workspace:packages/configs/studio-config"],
-
-    "@temp-repo/studio-domain": ["@temp-repo/studio-domain@workspace:packages/studio/domain"],
-
-    "@temp-repo/studio-repository": ["@temp-repo/studio-repository@workspace:packages/studio/repository"],
-
-    "@temp-repo/studio-service": ["@temp-repo/studio-service@workspace:packages/studio/service"],
-
-    "@temp-repo/typescript-config": ["@temp-repo/typescript-config@workspace:packages/shared/typescript-config"],
-
-    "@temp-repo/ui": ["@temp-repo/ui@workspace:packages/shared/ui"],
 
     "@tokenizer/inflate": ["@tokenizer/inflate@0.4.1", "", { "dependencies": { "debug": "^4.4.3", "token-types": "^6.1.1" } }, "sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA=="],
 

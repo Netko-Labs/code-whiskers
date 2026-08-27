@@ -1,4 +1,4 @@
-import { auth } from '@temp-repo/studio-service'
+import { auth } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 
 /**

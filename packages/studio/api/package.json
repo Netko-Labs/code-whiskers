@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/studio-api",
+  "name": "@code-whiskers/studio-api",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -10,11 +10,11 @@
     "check-types": "tsgo --noEmit"
   },
   "dependencies": {
-    "@temp-repo/studio-config": "workspace:*",
-    "@temp-repo/studio-domain": "workspace:*",
-    "@temp-repo/studio-service": "workspace:*",
-    "@temp-repo/logger": "workspace:*",
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/studio-config": "workspace:*",
+    "@code-whiskers/studio-domain": "workspace:*",
+    "@code-whiskers/studio-service": "workspace:*",
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "elysia": "2.0.0-exp.25",
     "zod": "^4.1.13"
   }

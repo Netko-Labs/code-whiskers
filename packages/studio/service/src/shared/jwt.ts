@@ -1,4 +1,4 @@
-import { studioEnvConfig } from '@temp-repo/studio-config'
+import { studioEnvConfig } from '@code-whiskers/studio-config'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 
 export async function validateToken(token: string) {

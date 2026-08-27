@@ -1,20 +1,20 @@
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { IconLayoutSidebar } from '@tabler/icons-react'
-import { Button } from '@temp-repo/ui/components/button'
-import { Input } from '@temp-repo/ui/components/input'
-import { Separator } from '@temp-repo/ui/components/separator'
+import { Button } from '@code-whiskers/ui/components/button'
+import { Input } from '@code-whiskers/ui/components/input'
+import { Separator } from '@code-whiskers/ui/components/separator'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@temp-repo/ui/components/sheet'
-import { Skeleton } from '@temp-repo/ui/components/skeleton'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@temp-repo/ui/components/tooltip'
-import { useIsMobile } from '@temp-repo/ui/hooks/use-mobile'
-import { cn } from '@temp-repo/ui/lib/utils'
+} from '@code-whiskers/ui/components/sheet'
+import { Skeleton } from '@code-whiskers/ui/components/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@code-whiskers/ui/components/tooltip'
+import { useIsMobile } from '@code-whiskers/ui/hooks/use-mobile'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
 

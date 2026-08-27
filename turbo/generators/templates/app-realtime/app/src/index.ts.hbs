@@ -1,10 +1,10 @@
-import { createLogger } from '@temp-repo/logger'
-import { app } from '@temp-repo/{{ name }}-api'
-import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
+import { createLogger } from '@code-whiskers/logger'
+import { app } from '@code-whiskers/{{ name }}-api'
+import { {{ camelCase name }}EnvConfig } from '@code-whiskers/{{ name }}-config'
 
 const logger = createLogger('{{ name }}')
 
-// The full app (HTTP routes + the WebSocket room) lives in @temp-repo/{{ name }}-api;
+// The full app (HTTP routes + the WebSocket room) lives in @code-whiskers/{{ name }}-api;
 // the entry just starts the Bun server.
 const port = {{ camelCase name }}EnvConfig.app.port
 app.listen(port)

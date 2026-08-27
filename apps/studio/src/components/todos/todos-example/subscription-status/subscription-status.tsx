@@ -1,11 +1,11 @@
-import { Badge } from '@temp-repo/ui/components/badge'
+import { Badge } from '@code-whiskers/ui/components/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
+} from '@code-whiskers/ui/components/card'
 import type { SubscriptionStatusProps } from '../lib'
 import { SUBSCRIPTION_BADGE, SUBSCRIPTION_DESCRIPTION, SUBSCRIPTION_TITLE } from '../lib'
 

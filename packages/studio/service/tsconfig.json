@@ -1,5 +1,5 @@
 {
-  "extends": "@temp-repo/typescript-config/bun.json",
+  "extends": "@code-whiskers/typescript-config/bun.json",
   "compilerOptions": {
     "noUnusedLocals": false,
     "noUnusedParameters": false,

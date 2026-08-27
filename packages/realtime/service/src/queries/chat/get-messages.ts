@@ -1,5 +1,5 @@
-import { type ChatMessage, chatMessageTable } from '@temp-repo/realtime-domain'
-import { db } from '@temp-repo/realtime-repository'
+import { type ChatMessage, chatMessageTable } from '@code-whiskers/realtime-domain'
+import { db } from '@code-whiskers/realtime-repository'
 import { desc } from 'drizzle-orm'
 
 export const getChatMessages = async (limit = 100): Promise<ChatMessage[]> => {

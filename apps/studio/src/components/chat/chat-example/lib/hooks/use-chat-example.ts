@@ -1,4 +1,4 @@
-import type { ChatMessage, ClientMessage, Member, ServerEvent } from '@temp-repo/realtime-domain'
+import type { ChatMessage, ClientMessage, Member, ServerEvent } from '@code-whiskers/realtime-domain'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useSession } from '@/integrations/auth'
 import { connectRoom } from '@/integrations/realtime'

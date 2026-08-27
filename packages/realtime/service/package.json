@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/realtime-service",
+  "name": "@code-whiskers/realtime-service",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -7,10 +7,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@temp-repo/realtime-config": "workspace:*",
-    "@temp-repo/realtime-domain": "workspace:*",
-    "@temp-repo/realtime-repository": "workspace:*",
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/realtime-config": "workspace:*",
+    "@code-whiskers/realtime-domain": "workspace:*",
+    "@code-whiskers/realtime-repository": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "drizzle-orm": "^0.45.1",
     "jose": "^6.0.11"
   },

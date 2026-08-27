@@ -2,8 +2,8 @@ import {
   type ChatMessage,
   type ChatMessageInsert,
   chatMessageTable,
-} from '@temp-repo/realtime-domain'
-import { db } from '@temp-repo/realtime-repository'
+} from '@code-whiskers/realtime-domain'
+import { db } from '@code-whiskers/realtime-repository'
 
 export const createChatMessage = async (
   data: ChatMessageInsert,

@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@temp-repo/ui/components/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@temp-repo/ui/components/tabs'
+} from '@code-whiskers/ui/components/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@code-whiskers/ui/components/tabs'
 import { CodeBlock } from '../code-block/code-block'
 import { CODE_EXAMPLE_API, CODE_EXAMPLE_QUERY, CODE_EXAMPLE_SUBSCRIPTION } from '../lib'
 

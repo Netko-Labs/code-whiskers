@@ -1,4 +1,4 @@
-import { Separator } from '@temp-repo/ui/components/separator'
+import { Separator } from '@code-whiskers/ui/components/separator'
 import { AuthSection } from './auth-section/auth-section'
 import { CodeExamples } from './code-examples/code-examples'
 import { FeatureCard } from './feature-card/feature-card'

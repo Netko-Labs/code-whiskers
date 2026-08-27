@@ -1,8 +1,8 @@
 'use client'
 
 import { IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
-import { Button, buttonVariants } from '@temp-repo/ui/components/button'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { Button, buttonVariants } from '@code-whiskers/ui/components/button'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import * as React from 'react'
 import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from 'react-day-picker'
 

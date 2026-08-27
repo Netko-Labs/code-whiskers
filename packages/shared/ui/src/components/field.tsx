@@ -1,8 +1,8 @@
 'use client'
 
-import { Label } from '@temp-repo/ui/components/label'
-import { Separator } from '@temp-repo/ui/components/separator'
-import { cn } from '@temp-repo/ui/lib/utils'
+import { Label } from '@code-whiskers/ui/components/label'
+import { Separator } from '@code-whiskers/ui/components/separator'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { useMemo } from 'react'
 

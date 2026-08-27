@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { app } from '@temp-repo/studio-api'
+import { app } from '@code-whiskers/studio-api'
 
 function handler({ request }: { request: Request }) {
   return app.handle(request)

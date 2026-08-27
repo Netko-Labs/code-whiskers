@@ -1,5 +1,5 @@
 {
-  "extends": "@temp-repo/typescript-config/base.json",
+  "extends": "@code-whiskers/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"

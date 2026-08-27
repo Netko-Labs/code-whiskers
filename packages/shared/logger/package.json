@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/logger",
+  "name": "@code-whiskers/logger",
   "version": "0.1.0",
   "type": "module",
   "main": "src/index.ts",
@@ -12,7 +12,7 @@
     "pino-pretty": "^13.0.0"
   },
   "devDependencies": {
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "typescript": "^5"
   },
   "scripts": {

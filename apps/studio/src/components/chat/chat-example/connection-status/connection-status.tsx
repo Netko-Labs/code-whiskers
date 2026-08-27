@@ -1,4 +1,4 @@
-import { Badge } from '@temp-repo/ui/components/badge'
+import { Badge } from '@code-whiskers/ui/components/badge'
 import type { ConnectionStatusProps } from '../lib'
 import {
   CONNECTION_CONNECTED,

@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo/cli",
+  "name": "@code-whiskers/cli",
   "version": "0.1.0",
   "type": "module",
   "bin": {
@@ -13,7 +13,7 @@
     "cli": "bun run src/index.ts"
   },
   "dependencies": {
-    "@temp-repo/typescript-config": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "glob": "^11.0.0"
   },
   "devDependencies": {

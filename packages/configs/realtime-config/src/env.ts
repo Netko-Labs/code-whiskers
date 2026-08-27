@@ -1,4 +1,4 @@
-import { type RealtimeConfig, RealtimeConfigSchema } from '@temp-repo/realtime-domain'
+import { type RealtimeConfig, RealtimeConfigSchema } from '@code-whiskers/realtime-domain'
 
 const realtimeConfig: RealtimeConfig = {
   app: {

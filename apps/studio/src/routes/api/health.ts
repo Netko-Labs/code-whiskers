@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/health')({
         let dbStatus = 'unknown'
         try {
           // Import dynamically to avoid issues if db not configured
-          const { db, sql } = await import('@temp-repo/studio-repository')
+          const { db, sql } = await import('@code-whiskers/studio-repository')
           await db.execute(sql`SELECT 1`)
           dbStatus = 'connected'
         } catch {

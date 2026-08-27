@@ -15,8 +15,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@temp-repo/ui/components/dropdown-menu'
-import { cn } from '@temp-repo/ui/lib/utils'
+} from '@code-whiskers/ui/components/dropdown-menu'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 function Menubar({ className, ...props }: MenubarPrimitive.Props) {

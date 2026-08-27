@@ -1,4 +1,4 @@
-import { verifyToken } from '@temp-repo/realtime-service'
+import { verifyToken } from '@code-whiskers/realtime-service'
 import { Elysia } from 'elysia'
 
 /**

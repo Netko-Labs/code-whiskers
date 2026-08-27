@@ -1,5 +1,5 @@
 {
-  "name": "@temp-repo",
+  "name": "@code-whiskers",
   "private": true,
   "scripts": {
     "repo": "bun run packages/shared/cli/src/index.ts",

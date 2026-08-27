@@ -15,11 +15,11 @@
     "db:push": "bun run repo db:push --app realtime"
   },
   "dependencies": {
-    "@temp-repo/logger": "workspace:*",
-    "@temp-repo/realtime-api": "workspace:*",
-    "@temp-repo/realtime-config": "workspace:*",
-    "@temp-repo/realtime-domain": "workspace:*",
-    "@temp-repo/realtime-service": "workspace:*",
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/realtime-api": "workspace:*",
+    "@code-whiskers/realtime-config": "workspace:*",
+    "@code-whiskers/realtime-domain": "workspace:*",
+    "@code-whiskers/realtime-service": "workspace:*",
     "elysia": "2.0.0-exp.25"
   },
   "devDependencies": {

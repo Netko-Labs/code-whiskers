@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import * as React from 'react'
 import type { TooltipValueType } from 'recharts'
 import * as RechartsPrimitive from 'recharts'

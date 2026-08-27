@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@temp-repo/ui/lib/utils'
+import { cn } from '@code-whiskers/ui/lib/utils'
 import type * as React from 'react'
 
 function Label({ className, ...props }: React.ComponentProps<'label'>) {

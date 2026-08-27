@@ -1,5 +1,5 @@
-import { Button } from '@temp-repo/ui/components/button'
-import { Separator } from '@temp-repo/ui/components/separator'
+import { Button } from '@code-whiskers/ui/components/button'
+import { Separator } from '@code-whiskers/ui/components/separator'
 import { Fragment } from 'react'
 import { formatDateTime } from '@/shared/format-date'
 import type { TodoItemProps, TodoItemRowProps } from '../../lib'
