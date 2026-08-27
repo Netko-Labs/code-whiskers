@@ -38,7 +38,11 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   try {
     const diff = await fetchPrDiff(ref)
     const chunks = chunkDiff(diff)
-    const results = await Promise.all(chunks.map((chunk) => reviewChunk(chunk)))
+    // Provider timeouts are transient — one slow chunk gets a second chance
+    // before it fails the whole review.
+    const results = await Promise.all(
+      chunks.map((chunk) => reviewChunk(chunk).catch(() => reviewChunk(chunk))),
+    )
     const merged = mergeReviews(results)
 
     await createFindings(
