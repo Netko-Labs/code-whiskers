@@ -17,9 +17,10 @@ they describe this repo's specific topology, scaffolding, and commands.
 
 - Runtime and package manager: `bun@1.2.23`
 - Monorepo tooling: Turborepo
-- Two apps:
+- Three apps:
   - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). The frontend + identity provider.
   - `apps/realtime` — a **headless** Bun/Elysia server (own port, `:3001`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
+  - `apps/whiskers` — the 360 code tool server (`:3002`): GitHub webhook -> AI PR review (AI SDK + OpenRouter, BYOK via `OPENROUTER_API_KEY`), Sentry-SDK-compatible error ingest (`/api/:projectId/envelope` + `/store`), read-only `/v1` insights. Packages: `packages/whiskers/{domain,repository,service,api}` + `packages/configs/whiskers-config`. Disposable Docker sandboxes live in `packages/shared/sandbox`.
 - Studio packages: `packages/studio/{domain,repository,service,api}` (auth only) + `packages/configs/studio-config`.
 - Realtime packages: `packages/realtime/{domain,repository,service,api}` + `packages/configs/realtime-config`.
 - Two databases: studio (auth tables) and realtime (business/realtime data).

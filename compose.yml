@@ -1,4 +1,27 @@
 services:
+
+  # Whiskers App Services
+  db-whiskers:
+    image: postgres:17
+    profiles: [whiskers]
+    ports:
+      - "${WHISKERS_DB_PORT:-5434}:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: whiskers
+    volumes:
+      - whiskers_postgres_data:/var/lib/postgresql/data
+
+  redis-whiskers:
+    image: redis:latest
+    profiles: [whiskers]
+    ports:
+      - "${WHISKERS_REDIS_PORT:-6380}:6379"
+    volumes:
+      - whiskers_redis_data:/data
+
+
   # Studio App Services
   db-studio:
     image: postgres:17
@@ -23,3 +46,6 @@ services:
 volumes:
   studio_postgres_data:
   studio_redis_data:
+
+  whiskers_postgres_data:
+  whiskers_redis_data:

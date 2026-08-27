@@ -1,5 +1,5 @@
-import { createRootRouteWithContext } from '@tanstack/react-router'
 import appCss from '@code-whiskers/ui/globals.css?url'
+import { createRootRouteWithContext } from '@tanstack/react-router'
 import type { RouterContext } from '@/components/core/root'
 import { NotFound, RootDocument } from '@/components/core/root'
 

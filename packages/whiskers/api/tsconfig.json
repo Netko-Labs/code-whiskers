@@ -1,0 +1,6 @@
+{
+  "extends": "@code-whiskers/typescript-config/bun.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"]
+  }
+}

@@ -1,0 +1,15 @@
+services:
+  db-whiskers:
+    image: postgres:17
+    profiles: [whiskers]
+    ports:
+      - "${WHISKERS_DB_PORT:-5434}:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: whiskers
+    volumes:
+      - whiskers_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  whiskers_postgres_data:

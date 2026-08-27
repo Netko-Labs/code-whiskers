@@ -1,5 +1,5 @@
-import { treaty } from '@elysiajs/eden'
 import type { App as RealtimeApp } from '@code-whiskers/realtime-api'
+import { treaty } from '@elysiajs/eden'
 
 function getRealtimeUrl(): string {
   return import.meta.env.VITE_REALTIME_URL ?? 'http://localhost:3001'

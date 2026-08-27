@@ -1,0 +1,26 @@
+{
+  "name": "@code-whiskers/whiskers-service",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
+    "@code-whiskers/whiskers-config": "workspace:*",
+    "@code-whiskers/whiskers-domain": "workspace:*",
+    "@code-whiskers/whiskers-repository": "workspace:*",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
+    "ai": "^7.0.83",
+    "drizzle-orm": "^0.45.1",
+    "jose": "^6.0.11",
+    "octokit": "^5.0.5",
+    "parse-diff": "^0.12.0"
+  },
+  "scripts": {
+    "check-types": "tsgo --noEmit",
+    "test": "bun test"
+  }
+}

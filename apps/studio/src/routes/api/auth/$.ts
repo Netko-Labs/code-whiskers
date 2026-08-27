@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { auth } from '@code-whiskers/studio-service'
+import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/api/auth/$')({
   server: {

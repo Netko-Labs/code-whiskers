@@ -1,5 +1,11 @@
 import { TodoInsertSchema } from '@code-whiskers/realtime-domain'
-import { createTodo, deleteTodo, getTodo, getTodos, updateTodo } from '@code-whiskers/realtime-service'
+import {
+  createTodo,
+  deleteTodo,
+  getTodo,
+  getTodos,
+  updateTodo,
+} from '@code-whiskers/realtime-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 import { authPlugin } from '../setup'
