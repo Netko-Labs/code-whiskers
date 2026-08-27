@@ -13,6 +13,10 @@ const whiskersConfig: WhiskersConfig = {
   github: {
     token: process.env.GITHUB_TOKEN ?? '',
     webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? '',
+    appId: process.env.GITHUB_APP_ID ?? '',
+    appPrivateKey: Buffer.from(process.env.GITHUB_APP_PRIVATE_KEY_B64 ?? '', 'base64').toString(
+      'utf8',
+    ),
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',

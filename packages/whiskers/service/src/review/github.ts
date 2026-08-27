@@ -1,8 +1,29 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
-import { Octokit } from 'octokit'
+import { App, Octokit } from 'octokit'
 
-const octokit = new Octokit({ auth: whiskersEnvConfig.github.token })
+const { appId, appPrivateKey, token } = whiskersEnvConfig.github
+const githubApp = appId && appPrivateKey ? new App({ appId, privateKey: appPrivateKey }) : null
+const patOctokit = new Octokit({ auth: token })
+const installationCache = new Map<string, Octokit>()
+
+/**
+ * App installation auth when GITHUB_APP_ID + key are configured (reviews post
+ * as the app's bot identity); personal-token fallback otherwise (BYOK).
+ */
+async function octokitFor(owner: string, repo: string): Promise<Octokit> {
+  if (!githubApp) return patOctokit
+  const key = `${owner}/${repo}`
+  const cached = installationCache.get(key)
+  if (cached) return cached
+  const { data } = await githubApp.octokit.request('GET /repos/{owner}/{repo}/installation', {
+    owner,
+    repo,
+  })
+  const installed = (await githubApp.getInstallationOctokit(data.id)) as unknown as Octokit
+  installationCache.set(key, installed)
+  return installed
+}
 
 export interface PrRef {
   owner: string
@@ -11,6 +32,7 @@ export interface PrRef {
 }
 
 export async function fetchPrHeadSha({ owner, repo, prNumber }: PrRef): Promise<string> {
+  const octokit = await octokitFor(owner, repo)
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
     owner,
     repo,
@@ -20,6 +42,7 @@ export async function fetchPrHeadSha({ owner, repo, prNumber }: PrRef): Promise<
 }
 
 export async function fetchPrDiff({ owner, repo, prNumber }: PrRef): Promise<string> {
+  const octokit = await octokitFor(owner, repo)
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
     owner,
     repo,
@@ -50,6 +73,7 @@ export async function postPrReview(
   review: LlmReview,
   commentable: Map<string, Set<number>>,
 ): Promise<void> {
+  const octokit = await octokitFor(ref.owner, ref.repo)
   const inline = review.findings.filter(
     (f) => f.line !== null && commentable.get(f.file)?.has(f.line),
   )

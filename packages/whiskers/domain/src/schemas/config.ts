@@ -13,6 +13,8 @@ export const WhiskersConfigSchema = z.object({
   github: z.object({
     token: z.string().default(''),
     webhookSecret: z.string().default(''),
+    appId: z.string().default(''),
+    appPrivateKey: z.string().default(''),
   }),
   openrouter: z.object({
     apiKey: z.string().default(''),
