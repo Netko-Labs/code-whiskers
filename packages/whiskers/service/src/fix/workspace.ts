@@ -1,15 +1,19 @@
 import {
   readFile as fsReadFile,
   writeFile as fsWriteFile,
+  lstat,
   mkdir,
   mkdtemp,
+  realpath,
   rm,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname, join, sep } from 'node:path'
 import { createSandbox, dockerAvailable, type ExecResult } from '@code-whiskers/sandbox'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { PrRef } from '../review/github'
+import { SANDBOX_TTL_MS } from './constants'
+import { isProtectedPath } from './utils'
 
 const BOT_NAME = 'code-whiskers[bot]'
 const BOT_EMAIL = 'code-whiskers[bot]@users.noreply.github.com'
@@ -17,8 +21,10 @@ const BOT_EMAIL = 'code-whiskers[bot]@users.noreply.github.com'
 /**
  * The agent's window onto the PR checkout. With Docker available, reads,
  * writes and commands run inside a network-less sandbox mounted over the
- * clone; without it (e.g. Railway) the agent gets file access only — `exec`
- * is null and no shell ever runs on the host.
+ * clone (with `.git` shielded behind an empty mount so container-side
+ * tampering can't plant hooks the host would execute); without Docker
+ * (e.g. Railway) the agent gets file access only — `exec` is null and no
+ * shell ever runs on the host.
  */
 export interface FixWorkspace {
   dir: string
@@ -44,15 +50,47 @@ export function assertSafeRelPath(path: string): void {
   }
 }
 
-async function git(dir: string | null, args: string[], authToken?: string): Promise<ExecResult> {
-  // `git -c` config is per-invocation only — the token never lands on disk.
-  const auth = authToken
-    ? [
-        '-c',
-        `http.extraHeader=Authorization: Basic ${Buffer.from(`x-access-token:${authToken}`).toString('base64')}`,
-      ]
-    : []
-  const proc = Bun.spawn(['git', ...auth, ...(dir ? ['-C', dir] : []), ...args], {
+/** Write guard: everything in assertSafeRelPath plus the protected-path denylist. */
+export function assertSafeWritePath(path: string): void {
+  assertSafeRelPath(path)
+  if (isProtectedPath(path)) throw new Error(`protected path: ${path}`)
+}
+
+interface GitOptions {
+  authToken?: string
+  noSymlinks?: boolean
+  identity?: boolean
+}
+
+/**
+ * Credentials and per-call config travel via GIT_CONFIG_* env vars — never
+ * argv (visible in /proc) and never the on-disk config. Hooks and fsmonitor
+ * are always disabled: the checkout's `.git` is agent-adjacent, and the host
+ * must not execute anything from it.
+ */
+async function git(dir: string | null, args: string[], opts: GitOptions = {}): Promise<ExecResult> {
+  const configs: Array<[string, string]> = [
+    ['core.hooksPath', '/dev/null'],
+    ['core.fsmonitor', 'false'],
+  ]
+  if (opts.authToken) {
+    const basic = Buffer.from(`x-access-token:${opts.authToken}`).toString('base64')
+    configs.push(['http.extraHeader', `Authorization: Basic ${basic}`])
+  }
+  if (opts.noSymlinks) configs.push(['core.symlinks', 'false'])
+  if (opts.identity) configs.push(['user.name', BOT_NAME], ['user.email', BOT_EMAIL])
+
+  const env: Record<string, string | undefined> = {
+    ...process.env,
+    GIT_CONFIG_COUNT: String(configs.length),
+  }
+  configs.forEach(([key, value], i) => {
+    env[`GIT_CONFIG_KEY_${i}`] = key
+    env[`GIT_CONFIG_VALUE_${i}`] = value
+  })
+
+  const proc = Bun.spawn(['git', ...(dir ? ['-C', dir] : []), ...args], {
+    env,
     stdout: 'pipe',
     stderr: 'pipe',
   })
@@ -70,10 +108,12 @@ export async function clonePrBranch(
   token: string,
 ): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'whiskers-fix-'))
+  // symlinks off: a committed symlink must materialize as a plain file, never
+  // as a live link the host-fallback fs tools could traverse out of the tree.
   const result = await git(
     null,
     ['clone', '--depth', '50', '--branch', branch, `https://github.com/${owner}/${repo}.git`, dir],
-    token,
+    { authToken: token, noSymlinks: true },
   )
   if (result.code !== 0) {
     await rm(dir, { recursive: true, force: true })
@@ -82,7 +122,12 @@ export async function clonePrBranch(
   return dir
 }
 
-/** Stage everything; commit and push as the bot. Returns the pushed sha, or null when nothing changed. */
+/**
+ * Stage everything; refuse the push outright if any staged path is protected
+ * (the sandbox `run` tool can write files without going through writeFile);
+ * then commit and push as the bot with hooks disabled. Returns the pushed
+ * sha, or null when nothing changed.
+ */
 export async function commitAndPush(
   dir: string,
   branch: string,
@@ -90,23 +135,28 @@ export async function commitAndPush(
   token: string,
 ): Promise<string | null> {
   await git(dir, ['add', '-A'])
-  const staged = await git(dir, ['diff', '--cached', '--quiet'])
-  if (staged.code === 0) return null
+  const staged = await git(dir, ['diff', '--cached', '--name-only'])
+  const stagedPaths = staged.stdout.split('\n').filter(Boolean)
+  if (stagedPaths.length === 0) return null
 
-  const commit = await git(dir, [
-    '-c',
-    `user.name=${BOT_NAME}`,
-    '-c',
-    `user.email=${BOT_EMAIL}`,
-    'commit',
-    '-m',
-    message,
-  ])
+  const blocked = stagedPaths.filter(isProtectedPath)
+  if (blocked.length > 0) {
+    throw new Error(`refusing to push protected paths: ${blocked.join(', ')}`)
+  }
+
+  const commit = await git(dir, ['commit', '--no-verify', '-m', message], { identity: true })
   if (commit.code !== 0) throw new Error(`commit failed: ${commit.stderr.trim().slice(0, 500)}`)
 
-  const push = await git(dir, ['push', 'origin', `HEAD:${branch}`], token)
+  const push = await git(dir, ['push', '--no-verify', 'origin', `HEAD:${branch}`], {
+    authToken: token,
+  })
   if (push.code !== 0) throw new Error(`push failed: ${push.stderr.trim().slice(0, 500)}`)
   return (await git(dir, ['rev-parse', 'HEAD'])).stdout.trim()
+}
+
+async function assertInsideRoot(root: string, target: string): Promise<void> {
+  const real = await realpath(target)
+  if (real !== root && !real.startsWith(root + sep)) throw new Error(`unsafe path: ${target}`)
 }
 
 export async function openWorkspace(dir: string): Promise<FixWorkspace> {
@@ -116,9 +166,16 @@ export async function openWorkspace(dir: string): Promise<FixWorkspace> {
   }
 
   if (await dockerAvailable()) {
+    // An empty mount shadows /workspace/.git so container-side writes can
+    // never reach the real git dir the host later runs commit/push against.
+    const gitShield = await mkdtemp(join(tmpdir(), 'whiskers-gitshield-'))
     const sandbox = await createSandbox({
-      mounts: [{ host: dir, container: '/workspace' }],
-      ttlMs: 15 * 60_000,
+      mounts: [
+        { host: dir, container: '/workspace' },
+        { host: gitShield, container: '/workspace/.git' },
+      ],
+      network: 'none',
+      ttlMs: SANDBOX_TTL_MS,
     })
     return {
       dir,
@@ -127,25 +184,34 @@ export async function openWorkspace(dir: string): Promise<FixWorkspace> {
         return sandbox.readFile(path)
       },
       writeFile: (path, content) => {
-        assertSafeRelPath(path)
+        assertSafeWritePath(path)
         return sandbox.writeFile(path, content)
       },
       listFiles,
       exec: (command) => sandbox.exec(command, { timeoutMs: whiskersEnvConfig.fix.execTimeoutMs }),
-      destroy: () => sandbox.destroy(),
+      destroy: async () => {
+        await sandbox.destroy()
+        await rm(gitShield, { recursive: true, force: true })
+      },
     }
   }
 
+  const root = await realpath(dir)
   return {
     dir,
-    readFile: (path) => {
+    readFile: async (path) => {
       assertSafeRelPath(path)
+      await assertInsideRoot(root, join(dir, path))
       return fsReadFile(join(dir, path), 'utf8')
     },
     writeFile: async (path, content) => {
-      assertSafeRelPath(path)
-      await mkdir(dirname(join(dir, path)), { recursive: true })
-      await fsWriteFile(join(dir, path), content)
+      assertSafeWritePath(path)
+      const target = join(dir, path)
+      const existing = await lstat(target).catch(() => null)
+      if (existing?.isSymbolicLink()) throw new Error(`unsafe path: ${path}`)
+      await mkdir(dirname(target), { recursive: true })
+      await assertInsideRoot(root, dirname(target))
+      await fsWriteFile(target, content)
     },
     listFiles,
     exec: null,

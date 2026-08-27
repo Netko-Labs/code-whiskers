@@ -2,11 +2,9 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type LlmFix, LlmFixSchema } from '@code-whiskers/whiskers-domain'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject, type LanguageModel } from 'ai'
+import { LLM_TIMEOUT_MS } from './constants'
 
 const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
-
-// A stuck provider socket must surface as a failed fix, never a silent hang.
-export const LLM_TIMEOUT_MS = 180_000
 
 export const fixModel = (): LanguageModel => openrouter(whiskersEnvConfig.openrouter.model)
 

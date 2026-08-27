@@ -4,9 +4,10 @@ import {
   buildCommitMessage,
   buildFixReply,
   isBotMention,
+  isProtectedPath,
   numberedExcerpt,
 } from '../src/fix/utils'
-import { assertSafeRelPath } from '../src/fix/workspace'
+import { assertSafeRelPath, assertSafeWritePath } from '../src/fix/workspace'
 
 describe('isBotMention', () => {
   test('matches the handle word-bounded and case-insensitive', () => {
@@ -19,6 +20,35 @@ describe('isBotMention', () => {
     expect(isBotMention('cc @code-whiskers-dev', 'code-whiskers')).toBe(false)
     expect(isBotMention('code-whiskers without the @', 'code-whiskers')).toBe(false)
     expect(isBotMention('mail@code-whiskers2.dev', 'code-whiskers')).toBe(false)
+  })
+
+  test('ignores email addresses and npm-scope references', () => {
+    expect(isBotMention('mail me@code-whiskers.io please', 'code-whiskers')).toBe(false)
+    expect(isBotMention('use @code-whiskers/logger here', 'code-whiskers')).toBe(false)
+    expect(isBotMention('foo@code-whiskers.dev in CI', 'code-whiskers')).toBe(false)
+  })
+})
+
+describe('isProtectedPath', () => {
+  test('blocks CI entrypoints, manifests, and lockfiles', () => {
+    for (const path of [
+      '.github/workflows/ci.yml',
+      '.gitlab-ci.yml',
+      'bun.lock',
+      'package.json',
+      'apps/studio/package.json',
+      'package-lock.json',
+      'yarn.lock',
+      'pnpm-lock.yaml',
+    ]) {
+      expect(isProtectedPath(path)).toBe(true)
+    }
+  })
+
+  test('allows ordinary source paths', () => {
+    for (const path of ['src/app.ts', 'packages/a/src/index.ts', 'docs/github/notes.md']) {
+      expect(isProtectedPath(path)).toBe(false)
+    }
   })
 })
 
@@ -129,5 +159,13 @@ describe('buildCommitMessage', () => {
   test('truncates long subjects', () => {
     const message = buildCommitMessage(target(`fix ${'x'.repeat(100)}`), 'code-whiskers')
     expect(message.length).toBeLessThanOrEqual('🐛 fix: '.length + 60)
+  })
+})
+
+describe('assertSafeWritePath', () => {
+  test('additionally rejects protected paths', () => {
+    expect(() => assertSafeWritePath('.github/workflows/ci.yml')).toThrow('protected path')
+    expect(() => assertSafeWritePath('package.json')).toThrow('protected path')
+    expect(() => assertSafeWritePath('src/app.ts')).not.toThrow()
   })
 })

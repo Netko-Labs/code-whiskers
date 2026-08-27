@@ -1,13 +1,23 @@
 import type { LlmFix } from '@code-whiskers/whiskers-domain'
+import { PROTECTED_PATH_PATTERNS } from './constants'
 import type { FixTarget } from './types'
 
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/g
 const COMMIT_SUBJECT_LIMIT = 60
 
-/** True when `body` @-mentions the bot handle (word-bounded, case-insensitive). */
+/**
+ * True when `body` @-mentions the bot handle. The left lookbehind rejects
+ * email addresses (`me@code-whiskers.io`); excluding `/` on the right rejects
+ * npm-scope references (`@code-whiskers/logger`).
+ */
 export function isBotMention(body: string, handle: string): boolean {
   const escaped = handle.replace(REGEX_SPECIALS, '\\$&')
-  return new RegExp(`@${escaped}(?![\\w-])`, 'i').test(body)
+  return new RegExp(`(?<![\\w.@-])@${escaped}(?![\\w/-])`, 'i').test(body)
+}
+
+/** True for paths the fix agent must never modify (CI entrypoints, manifests, lockfiles). */
+export function isProtectedPath(path: string): boolean {
+  return PROTECTED_PATH_PATTERNS.some((pattern) => pattern.test(path))
 }
 
 /** 1-indexed numbered window around [start, end] the model can anchor a fix to. */

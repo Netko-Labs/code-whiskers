@@ -47,8 +47,7 @@
                   "kind": "typeProperty",
                   "scope": "any"
                 },
-                // snake_case admitted for external API payload shapes (GitHub webhooks)
-                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
               },
               {
                 "selector": {
@@ -121,5 +120,32 @@
       "!**/src/styles.css",
       "!**/drizzle"
     ]
-  }
+  },
+  "overrides": [
+    {
+      // GitHub webhook payload types are snake_case by contract
+      "includes": ["packages/whiskers/api/src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "strictCase": false,
+                "conventions": [
+                  {
+                    "selector": {
+                      "kind": "typeProperty",
+                      "scope": "any"
+                    },
+                    "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
