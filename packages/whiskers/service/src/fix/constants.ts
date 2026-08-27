@@ -26,6 +26,9 @@ export const PROTECTED_PATH_PATTERNS: readonly RegExp[] = [
   /(^|\/)\.gitlab-ci\.yml$/,
   // local composite actions (`uses: ./tools/action`) execute in CI with secrets
   /(^|\/)action\.ya?ml$/,
+  // attribute filters and submodule sources shape what future git/CI runs execute
+  /(^|\/)\.gitattributes$/,
+  /^\.gitmodules$/,
   /(^|\/)bun\.lock(b)?$/,
   /(^|\/)package-lock\.json$/,
   /(^|\/)yarn\.lock$/,

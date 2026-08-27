@@ -27,11 +27,20 @@ function handlePullRequest(raw: string) {
     action?: string
     number?: number
     repository?: { name?: string; owner?: { login?: string } }
+    sender?: { login?: string }
   }
   const owner = payload.repository?.owner?.login
   const repo = payload.repository?.name
   const prNumber = payload.number
   if (!payload.action || !REVIEWED_ACTIONS.has(payload.action) || !owner || !repo || !prNumber) {
+    return { ok: true }
+  }
+  // A synchronize fired by the bot's own fix push needs no self-review —
+  // the fix already answers a review thread on this PR.
+  if (
+    payload.action === 'synchronize' &&
+    payload.sender?.login === `${whiskersEnvConfig.github.botHandle}[bot]`
+  ) {
     return { ok: true }
   }
 
