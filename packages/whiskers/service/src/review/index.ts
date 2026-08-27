@@ -8,6 +8,7 @@ import {
   fetchPrDiff,
   fetchPrHeadSha,
   type PrRef,
+  postPrComment,
   postPrReview,
   startCheckRun,
 } from './github'
@@ -21,6 +22,10 @@ const logger = createLogger('whiskers-review')
 
 const TRANSIENT_ERROR = /timed out|timeout|abort|429|5\d\d|overloaded|rate limit/i
 const RETRY_DELAY_MS = 2_000
+// A failed review must be visible on the PR, but only once per head —
+// webhook redeliveries and repeated failures must not pile up comments.
+const failureNotified = new Set<string>()
+const FAILURE_NOTIFIED_CAP = 1_000
 
 /**
  * One retry per chunk, transient failures only (timeouts, rate limits,
@@ -94,6 +99,22 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     const message = error instanceof Error ? error.message : String(error)
     logger.error({ err: message }, 'review failed')
     await completeCheckRun(ref, checkRunId, { error: message }).catch(() => {})
+    const failureKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
+    if (!failureNotified.has(failureKey)) {
+      if (failureNotified.size >= FAILURE_NOTIFIED_CAP) failureNotified.clear()
+      failureNotified.add(failureKey)
+      await postPrComment(
+        ref,
+        `⚠️ **code-whiskers review failed** on \`${headSha.slice(0, 7)}\`\n\n> ${message.slice(0, 500)}\n\nThis is usually a transient provider error — push a new commit to trigger another review.`,
+      ).catch((commentError) => {
+        logger.warn(
+          {
+            err: commentError instanceof Error ? commentError.message : String(commentError),
+          },
+          'failure comment delivery failed',
+        )
+      })
+    }
     return await completeReview(review.id, {
       status: 'failed',
       verdict: null,
