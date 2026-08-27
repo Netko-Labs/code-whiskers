@@ -1,7 +1,7 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { generateText, stepCountIs, tool } from 'ai'
 import { z } from 'zod'
-import { AGENT_TIMEOUT_MS, TOOL_OUTPUT_LIMIT } from './constants'
+import { AGENT_TIMEOUT_MS, TOOL_OUTPUT_LIMIT, WRITE_CONTENT_LIMIT } from './constants'
 import { fixModel } from './llm'
 import type { AgentFixOutcome } from './types'
 import type { FixWorkspace } from './workspace'
@@ -28,6 +28,19 @@ export async function runFixAgent(
   // Tool results are model-selected inputs — one lockfile read must not blow the context.
   const clamp = (text: string) =>
     text.length > TOOL_OUTPUT_LIMIT ? `${text.slice(0, TOOL_OUTPUT_LIMIT)}\n…[truncated]` : text
+  // The loop's abort must also release in-flight tool work, or the whole-run
+  // ceiling only bounds the model calls, not the run.
+  const abortable = <T>(promise: Promise<T>, signal: AbortSignal | undefined): Promise<T> =>
+    signal
+      ? Promise.race([
+          promise,
+          new Promise<never>((_, reject) => {
+            signal.addEventListener('abort', () => reject(new Error('agent run aborted')), {
+              once: true,
+            })
+          }),
+        ])
+      : promise
   const tools = {
     listFiles: tool({
       description: 'List every tracked file in the checkout',
@@ -43,6 +56,9 @@ export async function runFixAgent(
       description: 'Replace a file with new content; path is relative to the repo root',
       inputSchema: z.object({ path: z.string(), content: z.string() }),
       execute: async ({ path, content }) => {
+        if (content.length > WRITE_CONTENT_LIMIT) {
+          throw new Error(`content exceeds ${WRITE_CONTENT_LIMIT} bytes — write something smaller`)
+        }
         await workspace.writeFile(path, content)
         return `wrote ${path}`
       },
@@ -52,8 +68,8 @@ export async function runFixAgent(
           run: tool({
             description: 'Run a shell command in the sandboxed checkout (no network access)',
             inputSchema: z.object({ command: z.string() }),
-            execute: async ({ command }) => {
-              const result = await exec(command)
+            execute: async ({ command }, options) => {
+              const result = await abortable(exec(command), options.abortSignal)
               return clamp(`exit ${result.code}\n${result.stdout}\n${result.stderr}`)
             },
           }),

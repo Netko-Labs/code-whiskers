@@ -40,7 +40,10 @@ export function assertSafeRelPath(path: string): void {
   if (
     path.length === 0 ||
     path.startsWith('/') ||
-    path.includes('..') ||
+    // segment check, not substring — `a..b.ts` is a legitimate filename
+    path
+      .split('/')
+      .includes('..') ||
     path.includes("'") ||
     path.includes('\\') ||
     path.startsWith('.git/') ||
@@ -80,8 +83,12 @@ async function git(dir: string | null, args: string[], opts: GitOptions = {}): P
   if (opts.noSymlinks) configs.push(['core.symlinks', 'false'])
   if (opts.identity) configs.push(['user.name', BOT_NAME], ['user.email', BOT_EMAIL])
 
+  // Minimal env — the service's own secrets (API keys, app key) have no
+  // business inside git subprocesses, and inherited GIT_* vars could
+  // redirect or instrument the clone.
   const env: Record<string, string | undefined> = {
-    ...process.env,
+    PATH: process.env.PATH,
+    HOME: process.env.HOME,
     GIT_CONFIG_COUNT: String(configs.length),
   }
   configs.forEach(([key, value], i) => {
@@ -175,14 +182,20 @@ export async function openWorkspace(dir: string): Promise<FixWorkspace> {
     // An empty mount shadows /workspace/.git so container-side writes can
     // never reach the real git dir the host later runs commit/push against.
     const gitShield = await mkdtemp(join(tmpdir(), 'whiskers-gitshield-'))
-    const sandbox = await createSandbox({
-      mounts: [
-        { host: dir, container: '/workspace' },
-        { host: gitShield, container: '/workspace/.git' },
-      ],
-      network: 'none',
-      ttlMs: SANDBOX_TTL_MS,
-    })
+    let sandbox: Awaited<ReturnType<typeof createSandbox>>
+    try {
+      sandbox = await createSandbox({
+        mounts: [
+          { host: dir, container: '/workspace' },
+          { host: gitShield, container: '/workspace/.git' },
+        ],
+        network: 'none',
+        ttlMs: SANDBOX_TTL_MS,
+      })
+    } catch (error) {
+      await rm(gitShield, { recursive: true, force: true })
+      throw error
+    }
     return {
       dir,
       readFile: (path) => {
@@ -196,8 +209,11 @@ export async function openWorkspace(dir: string): Promise<FixWorkspace> {
       listFiles,
       exec: (command) => sandbox.exec(command, { timeoutMs: whiskersEnvConfig.fix.execTimeoutMs }),
       destroy: async () => {
-        await sandbox.destroy()
-        await rm(gitShield, { recursive: true, force: true })
+        try {
+          await sandbox.destroy()
+        } finally {
+          await rm(gitShield, { recursive: true, force: true })
+        }
       },
     }
   }

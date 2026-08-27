@@ -15,7 +15,14 @@ import { runFixAgent } from './agent'
 import { MAX_CONCURRENT_FIXES, MAX_DIFF_CHARS } from './constants'
 import { ANCHORED_SYSTEM, generateFix, UNANCHORED_SYSTEM } from './llm'
 import type { FixTarget } from './types'
-import { buildAgentRequest, buildCommitMessage, buildFixReply, numberedExcerpt } from './utils'
+import {
+  buildAgentRequest,
+  buildCommitMessage,
+  buildFixReply,
+  clampBody,
+  isProtectedPath,
+  numberedExcerpt,
+} from './utils'
 import { clonePrBranch, commitAndPush, openWorkspace, removeWorkspaceDir } from './workspace'
 
 export * from './agent'
@@ -91,9 +98,12 @@ async function runSuggestionFix(ref: PrRef, target: FixTarget): Promise<void> {
       const excerpt = numberedExcerpt(await fetchFileAtRef(ref, path, sha), start, line)
       const fix = await generateFix(
         ANCHORED_SYSTEM,
-        `File: ${path}\nCommented lines: ${start}-${line}\n\nExcerpt:\n${excerpt}\n\nRequest from @${target.author}:\n${target.body}`,
+        `File: ${path}\nCommented lines: ${start}-${line}\n\nExcerpt:\n${excerpt}\n\nRequest from @${target.author}:\n${clampBody(target.body)}`,
       )
-      await replyToReviewComment(ref, target.commentId as number, buildFixReply(fix))
+      // A one-click-committable suggestion must honor the same denylist as
+      // the push path — protected paths get prose, never a suggestion fence.
+      const reply = isProtectedPath(path) ? fix.explanation : buildFixReply(fix)
+      await replyToReviewComment(ref, target.commentId as number, reply)
       return
     } catch (error) {
       // e.g. files >1MB aren't served by the contents API — degrade to prose.
@@ -107,7 +117,7 @@ async function runSuggestionFix(ref: PrRef, target: FixTarget): Promise<void> {
   const diff = (await fetchPrDiff(ref)).slice(0, MAX_DIFF_CHARS)
   const fix = await generateFix(
     UNANCHORED_SYSTEM,
-    `PR diff:\n${diff}\n\nRequest from @${target.author}:\n${target.body}`,
+    `PR diff:\n${diff}\n\nRequest from @${target.author}:\n${clampBody(target.body)}`,
   )
   await deliverReply(ref, target, buildFixReply(fix))
 }
@@ -124,6 +134,12 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
       { ...ref, inFlight: inFlight.size },
       'fix concurrency cap reached — dropping mention',
     )
+    // A capacity drop is a legitimate request, not spam — say so.
+    await deliverReply(
+      ref,
+      target,
+      'I am at capacity right now — mention me again in a few minutes.',
+    ).catch(() => {})
     return
   }
   inFlight.add(key)

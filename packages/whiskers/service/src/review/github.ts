@@ -146,7 +146,7 @@ export async function resolveThreadForComment(
           pullRequest(number: $pr) {
             reviewThreads(first: 100, after: $cursor) {
               pageInfo { hasNextPage endCursor }
-              nodes { id comments(first: 50) { nodes { databaseId } } }
+              nodes { id comments(first: 100) { nodes { databaseId } } }
             }
           }
         }
@@ -230,7 +230,7 @@ export function buildCheckOutput(review: LlmReview): CheckOutput {
         start_line: f.line as number,
         end_line: f.line as number,
         annotation_level: ANNOTATION_LEVEL[f.severity],
-        message: `[${f.severity}/${f.category}] ${f.title}\n\n${f.body}`,
+        message: `[${f.severity}/${f.category}] ${f.title}\n\n${f.body}`.slice(0, 4_000),
       })),
   }
 }
@@ -271,14 +271,26 @@ export async function completeCheckRun(
           conclusion: 'neutral' as const,
           output: { title: 'Review failed', summary: result.error.slice(0, 1000), annotations: [] },
         }
-  await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+  const base = {
     owner: ref.owner,
     repo: ref.repo,
     check_run_id: checkRunId,
-    status: 'completed',
+    status: 'completed' as const,
     conclusion: done.conclusion,
-    output: done.output,
-  })
+  }
+  try {
+    await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+      ...base,
+      output: done.output,
+    })
+  } catch {
+    // A rejected annotation (hallucinated path, oversize) must not leave the
+    // check hanging in_progress — retry with the conclusion alone.
+    await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
+      ...base,
+      output: { title: done.output.title, summary: done.output.summary },
+    })
+  }
 }
 
 function findingBody(finding: LlmFinding): string {
