@@ -28,8 +28,8 @@ describe('resolveVerdict', () => {
     expect(resolveVerdict([finding('critical')])).toBe('request_changes')
   })
 
-  test('comments when findings are all low/medium', () => {
-    expect(resolveVerdict([finding('low'), finding('medium')])).toBe('comment')
+  test('still approves when findings are all non-blocking nitpicks', () => {
+    expect(resolveVerdict([finding('low'), finding('medium')])).toBe('approve')
   })
 })
 
@@ -50,7 +50,7 @@ describe('mergeReviews', () => {
     ])
     expect(merged.findings).toHaveLength(2)
     expect(merged.summary).toBe('summary for comment')
-    expect(merged.verdict).toBe('comment')
+    expect(merged.verdict).toBe('approve')
   })
 
   test('an empty review set approves', () => {

@@ -9,19 +9,19 @@ const SYSTEM = `You are a senior code reviewer for pull requests.
 Review the unified diff and report only real, actionable findings — bugs,
 security holes, performance traps, broken contracts. Do not pad with nitpicks;
 an empty findings list is a valid, good review. Line numbers must reference the
-NEW side of the diff. Verdict: "approve" when there are no findings,
-"request_changes" when any high/critical finding exists, otherwise "comment".`
+NEW side of the diff. Verdict: "request_changes" when any high/critical finding
+exists, otherwise "approve" — non-blocking nitpicks do not block a merge.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
 
 /**
  * The verdict the LLM emits per chunk is advisory only — the review posted to
- * GitHub uses this severity-derived policy, so a clean diff reliably APPROVEs
- * and a high/critical finding reliably REQUEST_CHANGES.
+ * GitHub uses this severity-derived policy, and it is binary: any high/critical
+ * finding REQUEST_CHANGES, everything else APPROVEs. Non-blocking nitpicks ride
+ * along as comments on an approval; a bare COMMENT review is never posted.
  */
 export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
-  if (findings.some((f) => BLOCKING_SEVERITIES.has(f.severity))) return 'request_changes'
-  return findings.length === 0 ? 'approve' : 'comment'
+  return findings.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
 }
 
 export async function reviewChunk(diff: string): Promise<LlmReview> {
