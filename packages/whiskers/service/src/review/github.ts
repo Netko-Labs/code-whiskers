@@ -60,19 +60,33 @@ export async function postPrReview(
       ? `\n\n---\n${orphaned.map((f) => `- ${f.file}${f.line ? `:${f.line}` : ''} — ${findingBody(f)}`).join('\n')}`
       : ''
 
-  await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+  const payload = {
     owner: ref.owner,
     repo: ref.repo,
     pull_number: ref.prNumber,
     commit_id: headSha,
-    event: VERDICT_EVENT[review.verdict],
     body: `${review.summary}${orphanSection}`,
     comments: inline.map((f) => ({
       path: f.file,
       // SAFETY: filter above guarantees line is non-null for inline findings
       line: f.line as number,
-      side: 'RIGHT',
+      side: 'RIGHT' as const,
       body: findingBody(f),
     })),
-  })
+  }
+  try {
+    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+      ...payload,
+      event: VERDICT_EVENT[review.verdict],
+    })
+  } catch (error) {
+    // GitHub rejects APPROVE/REQUEST_CHANGES on your own PR (422). Personal-token
+    // setups (dogfooding) demote to COMMENT so the findings still land.
+    const status = (error as { status?: number }).status
+    if (status !== 422 || review.verdict === 'comment') throw error
+    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+      ...payload,
+      event: 'COMMENT',
+    })
+  }
 }
