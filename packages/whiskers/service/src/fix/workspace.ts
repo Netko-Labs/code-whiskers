@@ -12,7 +12,7 @@ import { dirname, join, sep } from 'node:path'
 import { createSandbox, dockerAvailable, type ExecResult } from '@code-whiskers/sandbox'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { PrRef } from '../review/github'
-import { SANDBOX_TTL_MS } from './constants'
+import { GIT_TIMEOUT_MS, SANDBOX_TTL_MS } from './constants'
 import { isProtectedPath } from './utils'
 
 const BOT_NAME = 'code-whiskers[bot]'
@@ -94,11 +94,13 @@ async function git(dir: string | null, args: string[], opts: GitOptions = {}): P
     stdout: 'pipe',
     stderr: 'pipe',
   })
+  const timer = setTimeout(() => proc.kill(), GIT_TIMEOUT_MS)
   const [stdout, stderr, code] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
     proc.exited,
   ])
+  clearTimeout(timer)
   return { code, stdout, stderr }
 }
 
@@ -135,7 +137,9 @@ export async function commitAndPush(
   token: string,
 ): Promise<string | null> {
   await git(dir, ['add', '-A'])
-  const staged = await git(dir, ['diff', '--cached', '--name-only'])
+  // --no-renames: rename detection would report only the destination path,
+  // letting `mv .github/workflows/x.yml elsewhere` slip past the denylist.
+  const staged = await git(dir, ['diff', '--cached', '--name-only', '--no-renames'])
   const stagedPaths = staged.stdout.split('\n').filter(Boolean)
   if (stagedPaths.length === 0) return null
 

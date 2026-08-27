@@ -4,6 +4,8 @@ export const LLM_TIMEOUT_MS = 180_000
 export const AGENT_TIMEOUT_MS = 600_000
 // The sandbox must outlive the worst-case agent run plus commit/push margin.
 export const SANDBOX_TTL_MS = AGENT_TIMEOUT_MS + 5 * 60_000
+// Every git subprocess gets a deadline — a hung clone must not pin an in-flight slot.
+export const GIT_TIMEOUT_MS = 180_000
 export const TOOL_OUTPUT_LIMIT = 8_000
 export const MAX_DIFF_CHARS = 60_000
 // Concurrent mention-triggered fix runs across all PRs.
