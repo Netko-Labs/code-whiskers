@@ -3,6 +3,7 @@ import {
   buildAgentRequest,
   buildCommitMessage,
   buildFixReply,
+  isBotLogin,
   isBotMention,
   isProtectedPath,
   numberedExcerpt,
@@ -37,6 +38,10 @@ describe('isProtectedPath', () => {
       'bun.lock',
       'tools/action.yml',
       'ci/action.yaml',
+      '.gitattributes',
+      'packages/a/.gitattributes',
+      '.gitmodules',
+      'tools/subrepo/.gitmodules',
       'package.json',
       'apps/studio/package.json',
       'package-lock.json',
@@ -88,6 +93,12 @@ describe('buildFixReply', () => {
   test('falls back to prose when there is no code change', () => {
     expect(buildFixReply({ explanation: 'Nothing to change here.', suggestion: null })).toBe(
       'Nothing to change here.',
+    )
+  })
+
+  test('keeps the closing fence on its own line without a trailing newline', () => {
+    expect(buildFixReply({ explanation: 'x', suggestion: 'if (a === b) {' })).toBe(
+      'x\n\n```suggestion\nif (a === b) {\n```',
     )
   })
 })
@@ -169,5 +180,34 @@ describe('assertSafeWritePath', () => {
     expect(() => assertSafeWritePath('.github/workflows/ci.yml')).toThrow('protected path')
     expect(() => assertSafeWritePath('package.json')).toThrow('protected path')
     expect(() => assertSafeWritePath('src/app.ts')).not.toThrow()
+  })
+
+  test('still composes the rel-path safety check', () => {
+    expect(() => assertSafeWritePath('../x')).toThrow('unsafe path')
+    expect(() => assertSafeWritePath('.git/config')).toThrow('unsafe path')
+  })
+})
+
+describe('isBotLogin', () => {
+  test('matches the bare slug and the [bot] account, case-insensitively', () => {
+    expect(isBotLogin('code-whiskers[bot]', 'code-whiskers')).toBe(true)
+    expect(isBotLogin('Code-Whiskers[bot]', 'code-whiskers')).toBe(true)
+    expect(isBotLogin('code-whiskers', 'code-whiskers')).toBe(true)
+  })
+
+  test('tolerates a handle configured with the [bot] suffix', () => {
+    expect(isBotLogin('code-whiskers[bot]', 'code-whiskers[bot]')).toBe(true)
+  })
+
+  test('an empty or [bot]-only handle never matches', () => {
+    expect(isBotLogin('[bot]', '')).toBe(false)
+    expect(isBotLogin('', '')).toBe(false)
+    expect(isBotLogin('[bot]', '[bot]')).toBe(false)
+  })
+
+  test('rejects other users and missing logins', () => {
+    expect(isBotLogin('peje', 'code-whiskers')).toBe(false)
+    expect(isBotLogin('code-whiskers-dev[bot]', 'code-whiskers')).toBe(false)
+    expect(isBotLogin(undefined, 'code-whiskers')).toBe(false)
   })
 })

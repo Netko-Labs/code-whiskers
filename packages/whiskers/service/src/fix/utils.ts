@@ -25,6 +25,20 @@ export function clampBody(body: string): string {
   return body.slice(0, REQUEST_BODY_LIMIT)
 }
 
+/**
+ * True when `login` is the bot's own account — tolerant of the handle being
+ * configured with or without the `[bot]` suffix and of case differences, so
+ * the self-review skip can't silently no-op on a config-form mismatch.
+ */
+export function isBotLogin(login: string | null | undefined, handle: string): boolean {
+  if (!login) return false
+  const slug = handle.replace(/\[bot\]$/i, '').toLowerCase()
+  // a misconfigured empty handle must never match anything
+  if (!slug) return false
+  const normalized = login.toLowerCase()
+  return normalized === slug || normalized === `${slug}[bot]`
+}
+
 /** 1-indexed numbered window around [start, end] the model can anchor a fix to. */
 export function numberedExcerpt(source: string, start: number, end: number, context = 30): string {
   const lines = source.split('\n')
