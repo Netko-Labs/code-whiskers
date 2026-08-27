@@ -47,7 +47,8 @@
                   "kind": "typeProperty",
                   "scope": "any"
                 },
-                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+                // snake_case admitted for external API payload shapes (GitHub webhooks)
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
               },
               {
                 "selector": {

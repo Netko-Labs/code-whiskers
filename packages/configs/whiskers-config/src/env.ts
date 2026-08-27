@@ -17,6 +17,7 @@ const whiskersConfig: WhiskersConfig = {
     appPrivateKey: Buffer.from(process.env.GITHUB_APP_PRIVATE_KEY_B64 ?? '', 'base64').toString(
       'utf8',
     ),
+    botHandle: process.env.GITHUB_BOT_HANDLE ?? 'code-whiskers',
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',

@@ -52,6 +52,45 @@ export async function fetchPrDiff({ owner, repo, prNumber }: PrRef): Promise<str
   return data as unknown as string
 }
 
+export async function fetchFileAtRef(
+  { owner, repo }: Omit<PrRef, 'prNumber'> & { prNumber?: number },
+  path: string,
+  gitRef: string,
+): Promise<string> {
+  const octokit = await octokitFor(owner, repo)
+  const { data } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+    owner,
+    repo,
+    path,
+    ref: gitRef,
+  })
+  const { content, encoding } = data as { content?: string; encoding?: string }
+  if (!content || encoding !== 'base64') throw new Error(`unreadable file at ${path}@${gitRef}`)
+  return Buffer.from(content, 'base64').toString('utf8')
+}
+
+export async function replyToReviewComment(
+  { owner, repo, prNumber }: PrRef,
+  commentId: number,
+  body: string,
+): Promise<void> {
+  const octokit = await octokitFor(owner, repo)
+  await octokit.request(
+    'POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies',
+    { owner, repo, pull_number: prNumber, comment_id: commentId, body },
+  )
+}
+
+export async function postPrComment({ owner, repo, prNumber }: PrRef, body: string): Promise<void> {
+  const octokit = await octokitFor(owner, repo)
+  await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+    owner,
+    repo,
+    issue_number: prNumber,
+    body,
+  })
+}
+
 const VERDICT_EVENT = {
   approve: 'APPROVE',
   request_changes: 'REQUEST_CHANGES',

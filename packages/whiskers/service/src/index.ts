@@ -1,4 +1,5 @@
 export * from './auth'
+export * from './fix'
 export * from './mutations'
 export * from './queries'
 export * from './review'

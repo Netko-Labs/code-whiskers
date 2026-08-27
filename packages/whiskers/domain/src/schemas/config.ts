@@ -15,6 +15,7 @@ export const WhiskersConfigSchema = z.object({
     webhookSecret: z.string().default(''),
     appId: z.string().default(''),
     appPrivateKey: z.string().default(''),
+    botHandle: z.string().default('code-whiskers'),
   }),
   openrouter: z.object({
     apiKey: z.string().default(''),
