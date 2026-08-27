@@ -23,6 +23,10 @@ const whiskersConfig: WhiskersConfig = {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
     model: process.env.REVIEW_MODEL ?? 'anthropic/claude-sonnet-4.5',
   },
+  fix: {
+    maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),
+    execTimeoutMs: Number(process.env.FIX_AGENT_EXEC_TIMEOUT_MS ?? 120_000),
+  },
 }
 
 export const whiskersEnvConfig = WhiskersConfigSchema.parse(whiskersConfig)

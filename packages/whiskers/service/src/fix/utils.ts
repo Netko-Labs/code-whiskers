@@ -1,6 +1,8 @@
 import type { LlmFix } from '@code-whiskers/whiskers-domain'
+import type { FixTarget } from './types'
 
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/g
+const COMMIT_SUBJECT_LIMIT = 60
 
 /** True when `body` @-mentions the bot handle (word-bounded, case-insensitive). */
 export function isBotMention(body: string, handle: string): boolean {
@@ -23,4 +25,25 @@ export function numberedExcerpt(source: string, start: number, end: number, cont
 export function buildFixReply(fix: LlmFix): string {
   if (!fix.suggestion) return fix.explanation
   return `${fix.explanation}\n\n\`\`\`suggestion\n${fix.suggestion.replace(/\n+$/, '')}\n\`\`\``
+}
+
+/** The task handed to the fix agent, anchored to the commented lines when known. */
+export function buildAgentRequest(target: FixTarget): string {
+  const anchor =
+    target.path && target.line
+      ? `\nThe request refers to ${target.path}, lines ${target.startLine ?? target.line}-${target.line}.`
+      : ''
+  return `Fix the following request from @${target.author} on this pull request.${anchor}\n\nRequest:\n${target.body}`
+}
+
+/** `🐛 fix: <request first line>` — mention stripped, whitespace collapsed, truncated. */
+export function buildCommitMessage(target: FixTarget, handle: string): string {
+  const escaped = handle.replace(REGEX_SPECIALS, '\\$&')
+  const subject = (target.body.split('\n', 1)[0] ?? '')
+    .replace(new RegExp(`@${escaped}(?![\\w-])`, 'gi'), '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, COMMIT_SUBJECT_LIMIT)
+    .trim()
+  return `🐛 fix: ${subject || 'address PR comment'}`
 }

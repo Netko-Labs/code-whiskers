@@ -1,53 +1,67 @@
+import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { type LlmFix, LlmFixSchema } from '@code-whiskers/whiskers-domain'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { generateObject } from 'ai'
 import {
   fetchFileAtRef,
   fetchPrDiff,
-  fetchPrHeadSha,
+  fetchPrHead,
+  type PrHead,
   type PrRef,
   postPrComment,
+  pushToken,
   replyToReviewComment,
 } from '../review/github'
+import { runFixAgent } from './agent'
+import { ANCHORED_SYSTEM, generateFix, UNANCHORED_SYSTEM } from './llm'
 import type { FixTarget } from './types'
-import { buildFixReply, numberedExcerpt } from './utils'
+import { buildAgentRequest, buildCommitMessage, buildFixReply, numberedExcerpt } from './utils'
+import { clonePrBranch, commitAndPush, openWorkspace, removeWorkspaceDir } from './workspace'
 
+export * from './agent'
 export * from './types'
 export * from './utils'
+export * from './workspace'
 
-const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
+const logger = createLogger('whiskers-fix')
 
 const MAX_DIFF_CHARS = 60_000
 
-const ANCHORED_SYSTEM = `You are the code-whiskers PR review agent. A user mentioned
-you on a review comment and asked you to fix the issue discussed there. You get a
-numbered excerpt of the file at the PR head and the commented line range. Return
-"suggestion" as the exact replacement for that line range — complete lines with
-correct indentation, no markdown fences, no line numbers. Keep the change minimal
-and in scope. If no code change applies (a question, or the fix belongs elsewhere),
-set suggestion to null and answer in "explanation". Keep the explanation to one or
-two sentences.`
-
-const UNANCHORED_SYSTEM = `You are the code-whiskers PR review agent. A user
-mentioned you on a pull request and asked you to fix something. You get the PR
-diff. Set "suggestion" to null — there is no anchored line range — and answer in
-"explanation" with short markdown: name the file paths and show the proposed
-change in fenced code blocks. Stay minimal and in scope; if the request is not
-actionable from the diff, say what is missing.`
-
-async function generateFix(system: string, prompt: string): Promise<LlmFix> {
-  const { object } = await generateObject({
-    model: openrouter(whiskersEnvConfig.openrouter.model),
-    schema: LlmFixSchema,
-    system,
-    prompt,
-  })
-  return object
+async function deliverReply(ref: PrRef, target: FixTarget, reply: string): Promise<void> {
+  if (target.commentId !== null) {
+    await replyToReviewComment(ref, target.commentId, reply)
+  } else {
+    await postPrComment(ref, `@${target.author} ${reply}`)
+  }
 }
 
-/** Mention-to-fix pipeline: gather context -> LLM -> reply where the ask happened. */
-export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
+/**
+ * The real fix: clone the PR branch, let the sandboxed agent work it with a
+ * turn budget, commit and push as the bot, and report the commit on the thread.
+ */
+async function runAgentFix(ref: PrRef, target: FixTarget, head: PrHead): Promise<void> {
+  const token = await pushToken(ref.owner, ref.repo)
+  const dir = await clonePrBranch(ref, head.branch, token)
+  const workspace = await openWorkspace(dir)
+  try {
+    const outcome = await runFixAgent(workspace, buildAgentRequest(target))
+    const sha = await commitAndPush(
+      dir,
+      head.branch,
+      buildCommitMessage(target, whiskersEnvConfig.github.botHandle),
+      token,
+    )
+    logger.info({ ...ref, sha, steps: outcome.steps }, 'agent fix finished')
+    const reply = sha
+      ? `Pushed ${sha.slice(0, 7)} to \`${head.branch}\`.\n\n${outcome.summary}`
+      : outcome.summary || 'I looked into it but found no change to make.'
+    await deliverReply(ref, target, reply)
+  } finally {
+    await workspace.destroy()
+    await removeWorkspaceDir(dir)
+  }
+}
+
+/** Fallback when the branch can't be pushed (fork PR) or the agent run failed. */
+async function runSuggestionFix(ref: PrRef, target: FixTarget, headSha: string): Promise<void> {
   const anchored = target.commentId !== null && target.path !== null && target.line !== null
 
   if (anchored) {
@@ -55,7 +69,6 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
     const path = target.path as string
     const line = target.line as number
     const start = target.startLine ?? line
-    const headSha = await fetchPrHeadSha(ref)
     const excerpt = numberedExcerpt(await fetchFileAtRef(ref, path, headSha), start, line)
     const fix = await generateFix(
       ANCHORED_SYSTEM,
@@ -70,10 +83,22 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
     UNANCHORED_SYSTEM,
     `PR diff:\n${diff}\n\nRequest from @${target.author}:\n${target.body}`,
   )
-  const reply = buildFixReply(fix)
-  if (target.commentId !== null) {
-    await replyToReviewComment(ref, target.commentId, reply)
-  } else {
-    await postPrComment(ref, `@${target.author} ${reply}`)
+  await deliverReply(ref, target, buildFixReply(fix))
+}
+
+/** Mention-to-fix pipeline: push a real commit when possible, suggest otherwise. */
+export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
+  const head = await fetchPrHead(ref)
+  if (head.sameRepo) {
+    try {
+      await runAgentFix(ref, target, head)
+      return
+    } catch (error) {
+      logger.warn(
+        { err: error instanceof Error ? error.message : String(error) },
+        'agent fix failed — falling back to a suggestion reply',
+      )
+    }
   }
+  await runSuggestionFix(ref, target, head.sha)
 }

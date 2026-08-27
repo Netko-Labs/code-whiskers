@@ -31,14 +31,48 @@ export interface PrRef {
   prNumber: number
 }
 
-export async function fetchPrHeadSha({ owner, repo, prNumber }: PrRef): Promise<string> {
+export interface PrHead {
+  sha: string
+  branch: string
+  sameRepo: boolean
+}
+
+export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrHead> {
   const octokit = await octokitFor(owner, repo)
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
     owner,
     repo,
     pull_number: prNumber,
   })
-  return data.head.sha
+  return {
+    sha: data.head.sha,
+    branch: data.head.ref,
+    sameRepo: data.head.repo?.full_name === data.base.repo.full_name,
+  }
+}
+
+export async function fetchPrHeadSha(ref: PrRef): Promise<string> {
+  return (await fetchPrHead(ref)).sha
+}
+
+/**
+ * A token that can push to the repo: a short-lived installation token under
+ * App auth, the configured PAT otherwise.
+ */
+export async function pushToken(owner: string, repo: string): Promise<string> {
+  if (!githubApp) {
+    if (!token) throw new Error('no GitHub credentials able to push')
+    return token
+  }
+  const { data: installation } = await githubApp.octokit.request(
+    'GET /repos/{owner}/{repo}/installation',
+    { owner, repo },
+  )
+  const { data } = await githubApp.octokit.request(
+    'POST /app/installations/{installation_id}/access_tokens',
+    { installation_id: installation.id },
+  )
+  return data.token
 }
 
 export async function fetchPrDiff({ owner, repo, prNumber }: PrRef): Promise<string> {
