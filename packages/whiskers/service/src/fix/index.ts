@@ -9,6 +9,7 @@ import {
   postPrComment,
   pushToken,
   replyToReviewComment,
+  resolveThreadForComment,
 } from '../review/github'
 import { runFixAgent } from './agent'
 import { MAX_CONCURRENT_FIXES, MAX_DIFF_CHARS } from './constants'
@@ -149,6 +150,15 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
           'fix reply delivery failed',
         )
       })
+      // A pushed fix closes the thread it was asked on; prose-only outcomes stay open.
+      if (pushed.sha && target.commentId !== null) {
+        await resolveThreadForComment(ref, target.commentId).catch((error) => {
+          logger.warn(
+            { err: error instanceof Error ? error.message : String(error) },
+            'thread resolve failed',
+          )
+        })
+      }
       return
     }
     await runSuggestionFix(ref, target)

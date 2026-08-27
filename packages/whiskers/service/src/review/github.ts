@@ -115,6 +115,57 @@ export async function replyToReviewComment(
   )
 }
 
+interface ReviewThreadsPage {
+  repository: {
+    pullRequest: {
+      reviewThreads: {
+        pageInfo: { hasNextPage: boolean; endCursor: string | null }
+        nodes: Array<{ id: string; comments: { nodes: Array<{ databaseId: number | null }> } }>
+      }
+    }
+  }
+}
+
+/**
+ * Mark the review thread containing `commentId` as resolved — REST has no
+ * endpoint for this, so it's a GraphQL lookup + mutation. No-op when the
+ * thread can't be found.
+ */
+export async function resolveThreadForComment(
+  { owner, repo, prNumber }: PrRef,
+  commentId: number,
+): Promise<void> {
+  const octokit = await octokitFor(owner, repo)
+  let cursor: string | null = null
+  do {
+    const page: ReviewThreadsPage = await octokit.graphql(
+      `query($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number: $pr) {
+            reviewThreads(first: 100, after: $cursor) {
+              pageInfo { hasNextPage endCursor }
+              nodes { id comments(first: 50) { nodes { databaseId } } }
+            }
+          }
+        }
+      }`,
+      { owner, repo, pr: prNumber, cursor },
+    )
+    const threads = page.repository.pullRequest.reviewThreads
+    const match = threads.nodes.find((t) =>
+      t.comments.nodes.some((c) => c.databaseId === commentId),
+    )
+    if (match) {
+      await octokit.graphql(
+        'mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { id } } }',
+        { id: match.id },
+      )
+      return
+    }
+    cursor = threads.pageInfo.hasNextPage ? threads.pageInfo.endCursor : null
+  } while (cursor)
+}
+
 export async function postPrComment({ owner, repo, prNumber }: PrRef, body: string): Promise<void> {
   const octokit = await octokitFor(owner, repo)
   await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
