@@ -1,0 +1,50 @@
+import { ClientMessageSchema, RoomConnectionQuerySchema } from '@temp-repo/realtime-domain'
+import { createChatMessage, getChatMessages, hub, verifyToken } from '@temp-repo/realtime-service'
+import { Elysia } from 'elysia'
+
+/**
+ * WebSocket room: presence + live chat. Auth rides `?token=` and each connection
+ * carries a unique `?cid=` (the client generates it) — Elysia 2's `ws.id` is
+ * empty and the `ws` object isn't stable across handlers, so `ws.query.cid` is
+ * the reliable per-connection key. `ws.send` takes a string, so events are JSON.
+ */
+export const roomRoutes = new Elysia().ws('/room/:id', {
+  query: RoomConnectionQuerySchema,
+  body: ClientMessageSchema,
+  // (｡•̀ᴗ-)✧ someone slides in — auth, send history, announce presence
+  async open(ws) {
+    const roomId = ws.params.id
+    const user = await verifyToken(ws.query.token)
+    if (!user) {
+      ws.close(1008, 'Unauthorized')
+      return
+    }
+    const member = { userId: user.id, name: user.name, status: 'active' as const }
+    ws.send(JSON.stringify({ type: 'history', messages: await getChatMessages() }))
+    const members = hub.join(roomId, ws.query.cid, ws, member)
+    ws.send(JSON.stringify({ type: 'presence', members }))
+    hub.broadcast(roomId, { type: 'join', member }, ws.query.cid)
+  },
+  // (◕‿◕)/ a message lands — persist chat or update presence
+  async message(ws, message) {
+    const roomId = ws.params.id
+    const member = hub.getMember(roomId, ws.query.cid)
+    if (!member) return
+    if (message.type === 'chat') {
+      const saved = await createChatMessage({
+        content: message.content,
+        authorId: member.userId,
+        authorName: member.name,
+      })
+      if (saved) hub.broadcast(roomId, { type: 'chat', message: saved })
+    } else {
+      hub.setStatus(roomId, ws.query.cid, message.status)
+    }
+  },
+  // (｡•́︿•̀｡) someone leaves — wave goodbye to the room
+  close(ws) {
+    const roomId = ws.params.id
+    const member = hub.leave(roomId, ws.query.cid)
+    if (member) hub.broadcast(roomId, { type: 'leave', userId: member.userId })
+  },
+})
