@@ -28,7 +28,8 @@ const logger = createLogger('whiskers-fix')
 
 // One fix run per PR at a time, few overall: mentions are cheap to post,
 // clones and agent loops are not. Duplicates (webhook redelivery, mention
-// spam) are dropped, not queued.
+// spam) are dropped, not queued. Per-process state — the deployment runs a
+// single replica; scaling out needs a shared lock (e.g. Postgres advisory).
 const inFlight = new Set<string>()
 
 interface AgentPushResult {
@@ -128,6 +129,15 @@ export async function runFix(ref: PrRef, target: FixTarget): Promise<void> {
   inFlight.add(key)
   try {
     const head = await fetchPrHead(ref)
+    if (head.state !== 'open') {
+      logger.warn({ ...ref, state: head.state }, 'fix requested on a non-open PR — skipping')
+      await deliverReply(
+        ref,
+        target,
+        'This pull request is no longer open, so there is nothing to fix here.',
+      ).catch(() => {})
+      return
+    }
     let pushed: AgentPushResult | null = null
     if (head.sameRepo) {
       try {

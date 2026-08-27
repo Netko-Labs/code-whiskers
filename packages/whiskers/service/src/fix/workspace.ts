@@ -139,8 +139,10 @@ export async function commitAndPush(
   await git(dir, ['add', '-A'])
   // --no-renames: rename detection would report only the destination path,
   // letting `mv .github/workflows/x.yml elsewhere` slip past the denylist.
-  const staged = await git(dir, ['diff', '--cached', '--name-only', '--no-renames'])
-  const stagedPaths = staged.stdout.split('\n').filter(Boolean)
+  // -z: raw NUL-separated paths — the default output C-quotes unusual names
+  // (`".github/workflows/caf\303\251.yml"`), which would defeat the regex match.
+  const staged = await git(dir, ['diff', '--cached', '--name-only', '--no-renames', '-z'])
+  const stagedPaths = staged.stdout.split('\0').filter(Boolean)
   if (stagedPaths.length === 0) return null
 
   const blocked = stagedPaths.filter(isProtectedPath)

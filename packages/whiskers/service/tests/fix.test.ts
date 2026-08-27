@@ -35,6 +35,8 @@ describe('isProtectedPath', () => {
       '.github/workflows/ci.yml',
       '.gitlab-ci.yml',
       'bun.lock',
+      'tools/action.yml',
+      'ci/action.yaml',
       'package.json',
       'apps/studio/package.json',
       'package-lock.json',

@@ -35,6 +35,7 @@ export interface PrHead {
   sha: string
   branch: string
   sameRepo: boolean
+  state: string
 }
 
 export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrHead> {
@@ -48,6 +49,7 @@ export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrH
     sha: data.head.sha,
     branch: data.head.ref,
     sameRepo: data.head.repo?.full_name === data.base.repo.full_name,
+    state: data.state,
   }
 }
 

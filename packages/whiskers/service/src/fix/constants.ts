@@ -20,6 +20,8 @@ export const MAX_CONCURRENT_FIXES = 3
 export const PROTECTED_PATH_PATTERNS: readonly RegExp[] = [
   /^\.github\//,
   /(^|\/)\.gitlab-ci\.yml$/,
+  // local composite actions (`uses: ./tools/action`) execute in CI with secrets
+  /(^|\/)action\.ya?ml$/,
   /(^|\/)bun\.lock(b)?$/,
   /(^|\/)package-lock\.json$/,
   /(^|\/)yarn\.lock$/,
