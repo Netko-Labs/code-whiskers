@@ -13,6 +13,8 @@ NEW side of the diff. Verdict: "request_changes" when any high/critical finding
 exists, otherwise "approve" — non-blocking nitpicks do not block a merge.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
+// A stuck provider socket must surface as a failed review, never a silent hang.
+const LLM_TIMEOUT_MS = 180_000
 
 /**
  * The verdict the LLM emits per chunk is advisory only — the review posted to
@@ -30,6 +32,7 @@ export async function reviewChunk(diff: string): Promise<LlmReview> {
     schema: LlmReviewSchema,
     system: SYSTEM,
     prompt: `Review this diff:\n\n${diff}`,
+    abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
   return object
 }

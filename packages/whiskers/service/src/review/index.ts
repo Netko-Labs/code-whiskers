@@ -24,6 +24,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     model: whiskersEnvConfig.openrouter.model,
   })
   if (!review) return undefined
+  logger.info({ ...ref, headSha, reviewId: review.id }, 'review started')
 
   try {
     const diff = await fetchPrDiff(ref)
@@ -44,6 +45,10 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       })),
     )
     await postPrReview(ref, headSha, merged, commentableLines(diff))
+    logger.info(
+      { ...ref, reviewId: review.id, verdict: merged.verdict, findings: merged.findings.length },
+      'review completed',
+    )
     return await completeReview(review.id, {
       status: 'completed',
       verdict: merged.verdict,

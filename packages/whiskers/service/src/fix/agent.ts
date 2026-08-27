@@ -6,6 +6,8 @@ import type { AgentFixOutcome } from './types'
 import type { FixWorkspace } from './workspace'
 
 const TOOL_OUTPUT_LIMIT = 8_000
+// Whole-run ceiling across all turns — a hung provider call must not pin the workspace forever.
+const AGENT_TIMEOUT_MS = 600_000
 
 const AGENT_SYSTEM = `You are code-whiskers, an autonomous fix agent working inside a
 checkout of a pull request branch. Resolve the request with the smallest correct
@@ -68,6 +70,7 @@ export async function runFixAgent(
     prompt: request,
     tools,
     stopWhen: stepCountIs(whiskersEnvConfig.fix.maxTurns),
+    abortSignal: AbortSignal.timeout(AGENT_TIMEOUT_MS),
   })
   return { summary: text.trim(), steps: steps.length }
 }

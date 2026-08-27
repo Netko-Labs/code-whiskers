@@ -5,6 +5,9 @@ import { generateObject, type LanguageModel } from 'ai'
 
 const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
 
+// A stuck provider socket must surface as a failed fix, never a silent hang.
+export const LLM_TIMEOUT_MS = 180_000
+
 export const fixModel = (): LanguageModel => openrouter(whiskersEnvConfig.openrouter.model)
 
 export const ANCHORED_SYSTEM = `You are the code-whiskers PR review agent. A user mentioned
@@ -29,6 +32,7 @@ export async function generateFix(system: string, prompt: string): Promise<LlmFi
     schema: LlmFixSchema,
     system,
     prompt,
+    abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
   return object
 }
