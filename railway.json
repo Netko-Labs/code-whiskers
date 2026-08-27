@@ -2,7 +2,8 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": { "builder": "RAILPACK" },
   "deploy": {
-    "startCommand": "bun run --cwd packages/whiskers/repository db:migrate && bun apps/whiskers/src/index.ts",
+    "preDeployCommand": "bun run --cwd packages/whiskers/repository db:migrate",
+    "startCommand": "bun apps/whiskers/src/index.ts",
     "healthcheckPath": "/health",
     "restartPolicyType": "ON_FAILURE"
   }
