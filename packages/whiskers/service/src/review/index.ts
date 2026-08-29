@@ -12,10 +12,12 @@ import {
   postPrReview,
   startCheckRun,
 } from './github'
+import { fetchRepoGuidelines } from './guidelines'
 import { filterBySeverity, mergeReviews, resolveVerdict, reviewChunk } from './llm'
 
 export * from './chunk'
 export * from './github'
+export * from './guidelines'
 export * from './llm'
 
 const logger = createLogger('whiskers-review')
@@ -32,15 +34,18 @@ const FAILURE_NOTIFIED_CAP = 1_000
  * provider 5xx) with a short pause — a 4xx would just fail again, and the
  * original error stays visible in the log.
  */
-async function reviewChunkWithRetry(chunk: string): Promise<ReturnType<typeof reviewChunk>> {
+async function reviewChunkWithRetry(
+  chunk: string,
+  guidelines: string,
+): Promise<ReturnType<typeof reviewChunk>> {
   try {
-    return await reviewChunk(chunk)
+    return await reviewChunk(chunk, guidelines)
   } catch (error) {
     const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
     if (!TRANSIENT_ERROR.test(message)) throw error
     logger.warn({ err: message }, 'transient chunk failure — retrying once')
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
-    return reviewChunk(chunk)
+    return reviewChunk(chunk, guidelines)
   }
 }
 
@@ -63,7 +68,12 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   try {
     const diff = await fetchPrDiff(ref)
     const chunks = chunkDiff(diff)
-    const results = await Promise.all(chunks.map(reviewChunkWithRetry))
+    // The repo's own rules ride along with every chunk; a repo without
+    // CLAUDE.md/AGENTS.md reviews on general standards alone.
+    const guidelines = await fetchRepoGuidelines(ref, headSha).catch(() => '')
+    const results = await Promise.all(
+      chunks.map((chunk) => reviewChunkWithRetry(chunk, guidelines)),
+    )
     const raw = mergeReviews(results)
     // The pickiness floor: drop sub-threshold findings, then re-derive the
     // verdict so it always matches what is actually posted.

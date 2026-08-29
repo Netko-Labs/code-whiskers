@@ -11,9 +11,12 @@ act on: real bugs, security holes, performance traps, broken contracts. Never
 report style preferences, defensive-programming suggestions, documentation or
 naming nits, hypothetical edge cases without a concrete failure path, or issues
 in code outside this diff. An empty findings list is a valid, good review —
-most competent changes deserve one. Line numbers must reference the NEW side of
-the diff. Verdict: "request_changes" when any high/critical finding exists,
-otherwise "approve" — non-blocking findings do not block a merge.`
+most competent changes deserve one. When repository guidelines are provided,
+enforce them: a clear violation of an explicit repo rule is a reportable
+finding, but do not invent rules beyond what they state. Line numbers must
+reference the NEW side of the diff. Verdict: "request_changes" when any
+high/critical finding exists, otherwise "approve" — non-blocking findings do
+not block a merge.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
 const SEVERITY_RANK: Record<LlmFinding['severity'], number> = {
@@ -43,12 +46,15 @@ export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
   return findings.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
 }
 
-export async function reviewChunk(diff: string): Promise<LlmReview> {
+export async function reviewChunk(diff: string, guidelines = ''): Promise<LlmReview> {
+  const context = guidelines
+    ? `Repository guidelines (the project's own rules, from CLAUDE.md/AGENTS.md):\n${guidelines}\n\n`
+    : ''
   const { object } = await generateObject({
     model: openrouter(whiskersEnvConfig.openrouter.model),
     schema: LlmReviewSchema,
     system: SYSTEM,
-    prompt: `Review this diff:\n\n${diff}`,
+    prompt: `${context}Review this diff:\n\n${diff}`,
     abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
   return object
