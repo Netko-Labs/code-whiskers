@@ -22,6 +22,10 @@ const whiskersConfig: WhiskersConfig = {
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
     model: process.env.REVIEW_MODEL ?? 'anthropic/claude-sonnet-4.5',
+    providerOrder: (process.env.REVIEW_PROVIDER_ORDER ?? '')
+      .split(',')
+      .map((slug) => slug.trim())
+      .filter(Boolean),
   },
   review: {
     minSeverity: (process.env.REVIEW_MIN_SEVERITY ??

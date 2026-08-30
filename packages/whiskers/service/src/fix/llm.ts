@@ -2,11 +2,13 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type LlmFix, LlmFixSchema } from '@code-whiskers/whiskers-domain'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject, type LanguageModel } from 'ai'
+import { openrouterModelSettings } from '../review/llm'
 import { LLM_TIMEOUT_MS } from './constants'
 
 const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
 
-export const fixModel = (): LanguageModel => openrouter(whiskersEnvConfig.openrouter.model)
+export const fixModel = (): LanguageModel =>
+  openrouter(whiskersEnvConfig.openrouter.model, openrouterModelSettings)
 
 export const ANCHORED_SYSTEM = `You are the code-whiskers PR review agent. A user mentioned
 you on a review comment and asked you to fix the issue discussed there. You get a

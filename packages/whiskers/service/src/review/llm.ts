@@ -1,9 +1,24 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type LlmFinding, type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOpenRouter, type OpenRouterChatSettings } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
 
 const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
+
+/**
+ * When REVIEW_PROVIDER_ORDER pins providers, fallbacks are disabled so a
+ * request can never route to an unlisted (slow/flaky) provider — a total
+ * miss surfaces through the existing retry + failure paths instead.
+ */
+export const openrouterModelSettings: OpenRouterChatSettings | undefined =
+  whiskersEnvConfig.openrouter.providerOrder.length > 0
+    ? {
+        provider: {
+          order: whiskersEnvConfig.openrouter.providerOrder,
+          allow_fallbacks: false,
+        },
+      }
+    : undefined
 
 const SYSTEM = `You are a senior code reviewer for pull requests.
 Review the unified diff and report only findings a maintainer would definitely
@@ -51,7 +66,7 @@ export async function reviewChunk(diff: string, guidelines = ''): Promise<LlmRev
     ? `Repository guidelines (the project's own rules, from CLAUDE.md/AGENTS.md):\n${guidelines}\n\n`
     : ''
   const { object } = await generateObject({
-    model: openrouter(whiskersEnvConfig.openrouter.model),
+    model: openrouter(whiskersEnvConfig.openrouter.model, openrouterModelSettings),
     schema: LlmReviewSchema,
     system: SYSTEM,
     prompt: `${context}Review this diff:\n\n${diff}`,

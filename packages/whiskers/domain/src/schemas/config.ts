@@ -20,6 +20,8 @@ export const WhiskersConfigSchema = z.object({
   openrouter: z.object({
     apiKey: z.string().default(''),
     model: z.string().default('anthropic/claude-sonnet-4.5'),
+    // pin routing to specific OpenRouter providers, best first; empty = let OpenRouter route
+    providerOrder: z.array(z.string()).default([]),
   }),
   review: z.object({
     // findings below this severity are dropped before anything is posted
