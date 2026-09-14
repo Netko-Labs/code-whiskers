@@ -52,7 +52,8 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 
 - Studio (frontend + auth) development: `bun run repo dev --app studio` (https://studio.localhost)
 - Realtime (WebSocket server) development: `bun run repo dev --app realtime` (https://realtime.localhost)
-- Bypass portless (plain `localhost:3000` / `:3001`): `PORTLESS=0 bun run repo dev --app <app>`
+- Whiskers (360 code tool) development: `bun run repo dev --app whiskers` (https://whiskers.localhost)
+- Bypass portless (plain `localhost:3000` / `:3001` / `:3002`): `PORTLESS=0 bun run repo dev --app <app>`
 - Web production build: `bun run repo build --app studio`
 - Web preview: `bun run repo serve --app studio`
 - Docker up/down: `bun run repo docker:up --app studio` / `bun run repo docker:down --app studio`

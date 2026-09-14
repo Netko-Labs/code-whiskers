@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalPassThroughEnv": ["PORT", "PORTLESS", "PORTLESS_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
