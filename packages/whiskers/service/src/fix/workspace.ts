@@ -41,9 +41,7 @@ export function assertSafeRelPath(path: string): void {
     path.length === 0 ||
     path.startsWith('/') ||
     // segment check, not substring — `a..b.ts` is a legitimate filename
-    path
-      .split('/')
-      .includes('..') ||
+    path.split('/').includes('..') ||
     path.includes("'") ||
     path.includes('\\') ||
     path.startsWith('.git/') ||
