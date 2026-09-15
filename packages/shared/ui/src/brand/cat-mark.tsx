@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { CatMarkProps } from './lib'
 import {
   CAT_BODY_EARS,
@@ -87,7 +88,7 @@ export function CatMark({
       role="img"
       aria-label={label}
       className={className}
-      style={{ '--cw-ink': inkColor, '--cw-bg': paperColor, ...style } as React.CSSProperties}
+      style={{ '--cw-ink': inkColor, '--cw-bg': paperColor, ...style } as CSSProperties}
     >
       {background && <rect width={1024} height={1024} fill={CAT_FILL_PAPER} />}
       <g transform={cut === 'round' ? CAT_ROUND_TRANSFORM : CAT_OFFSET}>
