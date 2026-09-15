@@ -3,42 +3,50 @@ import {
   BACKDROP_CELL_SIZE,
   BACKDROP_INK,
   BACKDROP_PAPER,
-  BACKDROP_TILE_COUNT,
   BACKDROP_TILE_SIZE,
   BACKDROP_TILES,
 } from '../lib'
 
-const TILES = Array.from({ length: BACKDROP_TILE_COUNT }, (_, i) => ({
-  key: i,
-  ...BACKDROP_TILES[i % BACKDROP_TILES.length],
-}))
+const COLUMNS = 4
+const PATTERN_SIZE = BACKDROP_CELL_SIZE * COLUMNS
+const TILE_INSET = (BACKDROP_CELL_SIZE - BACKDROP_TILE_SIZE) / 2
 
+// One 4x4 pattern tile, repeated by the GPU: 16 SVGs instead of one per cell
 export function SignInBackdrop() {
   return (
-    <div
+    <svg
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden opacity-45 md:opacity-100"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-45 md:opacity-100"
     >
-      <div
-        className="absolute -inset-[20%] grid origin-center content-start"
-        style={{
-          gridTemplateColumns: `repeat(auto-fill, ${BACKDROP_CELL_SIZE}px)`,
-          gridAutoRows: `${BACKDROP_CELL_SIZE}px`,
-          transform: 'rotate(-8deg) scale(0.85)',
-        }}
-      >
-        {TILES.map((tile) => (
-          <div key={tile.key} className="flex items-center justify-center">
-            <CatExpression
-              expression={tile.expression}
-              size={BACKDROP_TILE_SIZE}
-              ink={BACKDROP_INK}
-              paper={BACKDROP_PAPER}
-              style={{ transform: `rotate(${tile.rotate}deg)` }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
+      <defs>
+        <pattern
+          id="cw-backdrop"
+          width={PATTERN_SIZE}
+          height={PATTERN_SIZE}
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(-8) scale(0.85)"
+        >
+          {BACKDROP_TILES.map((tile, i) => {
+            const x = (i % COLUMNS) * BACKDROP_CELL_SIZE + TILE_INSET
+            const y = Math.floor(i / COLUMNS) * BACKDROP_CELL_SIZE + TILE_INSET
+            const center = BACKDROP_TILE_SIZE / 2
+            return (
+              <g
+                key={`${tile.expression}-${i}`}
+                transform={`translate(${x} ${y}) rotate(${tile.rotate} ${center} ${center})`}
+              >
+                <CatExpression
+                  expression={tile.expression}
+                  size={BACKDROP_TILE_SIZE}
+                  ink={BACKDROP_INK}
+                  paper={BACKDROP_PAPER}
+                />
+              </g>
+            )
+          })}
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#cw-backdrop)" />
+    </svg>
   )
 }

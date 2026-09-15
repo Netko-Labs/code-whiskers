@@ -20,7 +20,6 @@ export const BACKDROP_INK = '#1F1F22'
 export const BACKDROP_PAPER = '#09090B'
 export const BACKDROP_TILE_SIZE = 124
 export const BACKDROP_CELL_SIZE = 160
-export const BACKDROP_TILE_COUNT = 96
 
 export const BACKDROP_TILES: BackdropTile[] = [
   { expression: 'idle', rotate: -8 },

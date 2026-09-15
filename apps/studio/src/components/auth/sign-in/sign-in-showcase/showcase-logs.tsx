@@ -15,8 +15,8 @@ export function ShowcaseLogs() {
         ))}
         <span className="ml-auto">{LOGS_TAIL}</span>
       </header>
-      {LOG_LINES.map((line) => (
-        <div key={line.time}>
+      {LOG_LINES.map((line, i) => (
+        <div key={`${line.time}-${i}`} className="whitespace-pre">
           <span className="text-ink-text">{line.time}</span>
           {'  '}
           <span className={LOG_LEVEL_CLASS[line.level]}>{line.level.padEnd(5)}</span>{' '}

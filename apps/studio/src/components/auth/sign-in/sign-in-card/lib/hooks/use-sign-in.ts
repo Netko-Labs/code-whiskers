@@ -39,10 +39,10 @@ export function useSignIn() {
       const result = await signIn.social({ provider: 'github', callbackURL: SIGN_IN_REDIRECT_TO })
       if (result.error) {
         setMessage({ type: 'error', text: result.error.message || SIGN_IN_GITHUB_FAILED })
-        setIsLoading(false)
       }
     } catch {
       setMessage({ type: 'error', text: SIGN_IN_GITHUB_FAILED })
+    } finally {
       setIsLoading(false)
     }
   }
