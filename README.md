@@ -11,7 +11,8 @@ A modern, type-safe full-stack **two-app** template on **Elysia 2** + Bun: a Tan
 - 🔐 **Cross-service JWT** - studio mints JWTs; realtime verifies via JWKS (no shared secret)
 - 📊 **TanStack Query** + 🗃️ **Drizzle ORM** - typed data fetching + `drizzle-zod` schemas; two databases
 - 📦 **Turborepo** + ⚙️ **Bun** - fast monorepo tooling and runtime
-- 🎯 **TypeScript** - Full type safety across the stack (the whole repo checks under `tsgo`)
+- 🎯 **TypeScript 7** - Full type safety across the stack, checked by the native `tsc`
+- 🔗 **portless** - stable `https://studio.localhost` / `https://realtime.localhost` dev URLs, no port juggling
 
 ## 📦 What's Included
 
@@ -28,15 +29,15 @@ A modern, type-safe full-stack **two-app** template on **Elysia 2** + Bun: a Tan
 ```
 .
 ├── apps/
-│   ├── studio/                     # TanStack Start frontend + auth (:3000)
+│   ├── studio/                     # TanStack Start frontend + auth (studio.localhost)
 │   │   └── src/
 │   │       ├── components/         # feature modules (lib/, barrels)
 │   │       ├── integrations/
 │   │       │   ├── tanstack-query/
 │   │       │   ├── auth/           # better-auth client (magic link)
-│   │       │   └── realtime/       # Eden HTTP + native WebSocket to :3001
+│   │       │   └── realtime/       # Eden HTTP + native WebSocket to realtime.localhost
 │   │       └── routes/             # file-based routes (incl. /sign-in)
-│   └── realtime/                   # headless Elysia server (:3001)
+│   └── realtime/                   # headless Elysia server (realtime.localhost)
 │       └── src/index.ts            # imports the api app, `app.listen()`
 │
 ├── packages/
@@ -88,23 +89,29 @@ bun run repo db:migrate --app realtime
 ### Run both servers
 
 ```bash
-bun run repo dev --app studio     # http://localhost:3000  (frontend + auth)
-bun run repo dev --app realtime   # http://localhost:3001  (HTTP + WebSocket)
+bun run repo dev --app studio     # https://studio.localhost    (frontend + auth)
+bun run repo dev --app realtime   # https://realtime.localhost  (HTTP + WebSocket)
 ```
 
-Sign in at **http://localhost:3000/sign-in** — the magic link is logged to the studio console in dev (or emailed via Resend when `RESEND_API_KEY` is set). Once signed in, the todos list and the live chat room talk to the realtime server.
+Dev servers run through [portless](https://github.com/vercel-labs/portless): each app gets a stable
+`https://{app}.localhost` URL and a random port behind a local HTTPS proxy. First run generates and
+trusts a local CA (sudo prompt on macOS/Linux). `PORTLESS=0 bun run repo dev --app studio` bypasses
+the proxy and serves plain `http://localhost:3000` / `:3001` — point `BASE_URL`, `WEB_BASE_URL`,
+`CORS` and `VITE_REALTIME_URL` at those instead. Names live in `portless.json`.
+
+Sign in at **https://studio.localhost/sign-in** — the magic link is logged to the studio console in dev (or emailed via Resend when `RESEND_API_KEY` is set). Once signed in, the todos list and the live chat room talk to the realtime server.
 
 ## 📖 Architecture
 
 ### Two apps, two databases, cross-service JWT
 
-- **studio** (`:3000`) — TanStack Start frontend + better-auth (magic link + `jwt`/`jwks`) mounted at `/api/auth`. Owns the **auth** database only.
-- **realtime** (`:3001`) — a **standalone** Elysia server started with `.listen()` (so native WebSocket upgrades work). Owns all transactional operations (todos, chat) over HTTP **and** the presence/live-chat room over WebSocket, plus its own **business** database.
+- **studio** (`https://studio.localhost`) — TanStack Start frontend + better-auth (magic link + `jwt`/`jwks`) mounted at `/api/auth`. Owns the **auth** database only.
+- **realtime** (`https://realtime.localhost`) — a **standalone** Elysia server started with `.listen()` (so native WebSocket upgrades work). Owns all transactional operations (todos, chat) over HTTP **and** the presence/live-chat room over WebSocket, plus its own **business** database.
 - **Auth** — studio mints a JWT (`GET /api/auth/token`); realtime verifies it against studio's JWKS (`GET /api/auth/jwks`) with `jose` — **no shared secret**. HTTP calls send `Authorization: Bearer <jwt>`; the WebSocket passes the token via `?token=` (browsers can't set WS headers).
 
 ```
-studio (:3000)                          realtime (:3001, headless Bun/Elysia)
-  TanStack Start frontend                 new Elysia().listen(3001)
+studio.localhost                        realtime.localhost (headless Bun/Elysia)
+  TanStack Start frontend                 new Elysia().use(websocket()).listen(PORT)
   + better-auth at /api/auth                HTTP: /todos, /chat  (Bearer JWT)
     - /api/auth/token  (mint JWT)           WS:   /room/:id      (?token= + ?cid=)
     - /api/auth/jwks   (verify keys)         └ verifies studio JWT via jose + JWKS
@@ -255,14 +262,43 @@ const { data: todos } = useQuery({
 
 ## ⚡ Elysia 2 notes
 
-Pinned to `elysia@2.0.0-exp.25` (experimental — expect changes). Because of it, the whole repo (including the `.ws()` app) type-checks under **tsgo** — no `tsc` fallback. Specifics worth knowing:
+Pinned to `elysia@2.0.0-beta.14` (the `next` tag — still pre-release, expect changes). The whole repo (including the `.ws()` app) type-checks under TypeScript 7's native `tsc`. Specifics worth knowing:
 
+- `.ws()` needs the WebSocket capability: `import { websocket } from 'elysia/websocket'` + `.use(websocket())` before the routes (`realtime/api/src/app.ts`).
 - `@elysiajs/cors` has no Elysia 2 build → CORS is hand-rolled in `realtime/api/src/app.ts`.
 - A `.ws()` route only populates `ws.query`/the message when a **schema is declared**.
 - `ws.id` is empty and the `ws` object isn't stable across handlers → the client sends a unique **`?cid=`** and `RoomHub` keys on it; `ws.send` takes a **string** (events are JSON).
 - `@elysiajs/eden@1.4` is forward-compatible with Elysia 2 (no 2.x build yet).
 
 Re-pin these when Elysia 2 and its plugins reach a stable release.
+
+## 🚀 Deploy — Coolify + Railpack
+
+Each app deploys as its own Coolify application, built from the **repo root** with the Railpack build pack. `bun run repo build --app {app}` produces a self-contained output plus a bundled migration runner; `apps/{app}/railpack.json` ships only that output (and the mise-installed bun) into the runtime image.
+
+| | studio | realtime |
+| --- | --- | --- |
+| Build variable | `RAILPACK_CONFIG_FILE=apps/studio/railpack.json` | `RAILPACK_CONFIG_FILE=apps/realtime/railpack.json` |
+| Output | `apps/studio/.output` (Nitro, bun preset) | `apps/realtime/dist` (`bun build --target bun`) |
+| Start | `bun run apps/studio/.output/server/index.mjs` | `bun run apps/realtime/dist/index.js` |
+| Pre-deployment command | `bun run apps/studio/.output/migrate/migrate.js` | `bun run apps/realtime/dist/migrate/migrate.js` |
+| Health check | `/api/health` | `/health` |
+| Port | `PORT` (default 3000) | `PORT` (default 3001) |
+
+```mermaid
+flowchart LR
+  G[git push] --> C[Coolify · Railpack]
+  C -->|bun install --frozen-lockfile| I[install]
+  I -->|bun run repo build --app X| B[build]
+  B -->|only .output / dist + bun| R[runtime image]
+  R -->|pre-deploy: migrate.js| DB[(Postgres)]
+  R -->|startCommand| App
+```
+
+- Base Directory stays `/`; Railpack detects bun from `bun.lock` + `packageManager`.
+- Env vars are read at **runtime** (the build needs none). Studio: `BASE_URL`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`, `CACHE_URL`, one social provider pair, optional `RESEND_API_KEY`/`EMAIL_FROM`, and `VITE_REALTIME_URL` (this one **is** baked in at build time — set it as a build variable too). Realtime: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`.
+- `db:migrate` runs the same `src/db/migrate.ts` locally (drizzle's programmatic migrator), so dev and prod share one migration path; `drizzle-kit` only generates.
+- Adding an app via `gen:app` scaffolds its `railpack.json` and `migrate.ts` for the same flow.
 
 ## 🚧 Production Notes
 

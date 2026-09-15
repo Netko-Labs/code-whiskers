@@ -4,8 +4,8 @@ export const WhiskersConfigSchema = z.object({
   app: z.object({
     dev: z.boolean(),
     port: z.number().default(3002),
-    cors: z.array(z.string()).default(['http://localhost:3000']),
-    webBaseUrl: z.string().default('http://localhost:3000'),
+    cors: z.array(z.string()).default(['https://studio.localhost', 'http://localhost:3000']),
+    webBaseUrl: z.string().default('https://studio.localhost'),
   }),
   db: z.object({
     url: z.string(),

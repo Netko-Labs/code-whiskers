@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "steps": {
+    "build": {
+      "commands": ["...", "bun run repo build --app whiskers"]
+    }
+  },
+  "deploy": {
+    "inputs": [
+      {
+        "step": "packages:mise",
+        "include": [
+          "/mise/shims",
+          "/mise/installs",
+          "/usr/local/bin/mise",
+          "/etc/mise/config.toml",
+          "/root/.local/state/mise"
+        ]
+      },
+      {
+        "step": "build",
+        "include": ["apps/whiskers/dist"]
+      }
+    ],
+    "startCommand": "bun run apps/whiskers/dist/index.js"
+  }
+}

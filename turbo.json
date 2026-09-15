@@ -1,11 +1,12 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalPassThroughEnv": ["PORT", "PORTLESS", "PORTLESS_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".output/**"],
+      "outputs": [".output/**", "dist/**"],
       "env": ["AUTH_SECRET", "BASE_URL", "DATABASE_URL", "CACHE_URL", "ENCRYPTION_KEY"]
     },
     "check-types": {
