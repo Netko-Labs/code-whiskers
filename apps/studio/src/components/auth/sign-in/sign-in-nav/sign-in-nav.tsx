@@ -10,15 +10,18 @@ export function SignInNav() {
         <span className="text-sm font-semibold tracking-tight text-ink-text">{BRAND_NAME}</span>
       </Link>
       <div className="hidden gap-6 text-[13px] md:flex">
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            className={link.emphasis ? 'font-medium text-ink-text' : 'text-ink-muted'}
-          >
-            {link.label}
-          </a>
-        ))}
+        {NAV_LINKS.map((link) => {
+          const className = link.emphasis ? 'font-medium text-ink-text' : 'text-ink-muted'
+          return link.href.startsWith('/') ? (
+            <Link key={link.label} to={link.href} className={className}>
+              {link.label}
+            </Link>
+          ) : (
+            <a key={link.label} href={link.href} className={className}>
+              {link.label}
+            </a>
+          )
+        })}
       </div>
     </nav>
   )

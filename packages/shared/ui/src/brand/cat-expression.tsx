@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { CatEyes, CatMarks, CatMouth, CatRow, CatTail } from './cat-parts'
 import type { CatExpressionName, CatExpressionProps } from './lib'
 import {
@@ -120,7 +120,7 @@ export function CatExpression({
           '--cw-ink': inkColor,
           '--cw-bg': paperColor,
           ...style,
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       <g transform={CAT_OFFSET}>

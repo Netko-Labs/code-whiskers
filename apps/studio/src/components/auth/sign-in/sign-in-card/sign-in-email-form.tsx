@@ -43,7 +43,8 @@ export function SignInEmailForm({
         {isLoading ? SIGN_IN_EMAIL_SENDING : SIGN_IN_EMAIL_SUBMIT}
       </Button>
       <p
-        role={message?.type === 'error' ? 'alert' : 'status'}
+        role="status"
+        aria-live="polite"
         className={`m-0 text-center text-xs leading-4 ${
           message?.type === 'error' ? 'text-severity-error' : 'text-ink-muted md:text-ash'
         }`}
