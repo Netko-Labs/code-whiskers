@@ -99,7 +99,12 @@ export function CatExpression({
   const spec = CAT_EXPRESSIONS[expression]
   const inkColor = ink ?? (tone === 'light' ? CAT_INK : CAT_PAPER)
   const paperColor = paper ?? (tone === 'light' ? CAT_PAPER : CAT_INK)
-  const height = crop && typeof size === 'number' ? Math.round((size * 620) / 720) : size
+  // A cropped frame is 720x620; with a CSS size, leave height unset so the viewBox keeps the ratio
+  const height = !crop
+    ? size
+    : typeof size === 'number'
+      ? Math.round((size * 620) / 720)
+      : undefined
 
   return (
     <svg

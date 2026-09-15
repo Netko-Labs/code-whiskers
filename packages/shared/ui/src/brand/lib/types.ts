@@ -24,7 +24,7 @@ export type CatRow = 'diff' | 'caret' | 'dots' | 'bang' | 'check' | 'cross' | 's
 
 export type CatBody = 'ears' | 'flat'
 
-export type CatMark = 'none' | 'bang' | 'bangs' | 'zz'
+export type CatMarkGlyph = 'none' | 'bang' | 'bangs' | 'zz'
 
 export interface CatExpressionSpec {
   eyes: CatEyes
@@ -32,7 +32,7 @@ export interface CatExpressionSpec {
   tail: CatTail
   row: CatRow
   body: CatBody
-  mark: CatMark
+  mark: CatMarkGlyph
 }
 
 interface CatBaseProps {
@@ -77,5 +77,5 @@ export interface CatRowProps extends CatPartProps {
 }
 
 export interface CatMarksProps extends CatPartProps {
-  mark: CatMark
+  mark: CatMarkGlyph
 }

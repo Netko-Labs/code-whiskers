@@ -1,8 +1,8 @@
 import type { CatEyesProps } from '../lib'
 import { CAT_EYE_SQUINT_RIGHT, CAT_EYES_CLOSED, CAT_EYES_HAPPY, CAT_FILL_PAPER } from '../lib'
 
-const BLINK_VALUES = '24;24;3;24;24;24;3;24'
-const BLINK_KEYTIMES = '0;0.42;0.45;0.48;0.56;0.6;0.63;0.66'
+const BLINK_VALUES = '24;24;3;24;24;24;3;24;24'
+const BLINK_KEYTIMES = '0;0.42;0.45;0.48;0.56;0.6;0.63;0.66;1'
 
 const stroke = {
   fill: 'none',
