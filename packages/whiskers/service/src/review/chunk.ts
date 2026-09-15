@@ -1,7 +1,18 @@
 import parseDiff from 'parse-diff'
 
-const SKIP_PATTERNS = [/\.lock$/, /^bun\.lock/, /-lock\.(json|yaml)$/, /\.min\.(js|css)$/, /\.map$/]
-const MAX_CHUNK_CHARS = 60_000
+const SKIP_PATTERNS = [
+  /\.lock$/,
+  /^bun\.lock/,
+  /-lock\.(json|yaml)$/,
+  /\.min\.(js|css)$/,
+  /\.map$/,
+  /\.gen\.(ts|tsx|js)$/,
+  /\.(svg|png|jpe?g|gif|ico|webp|woff2?|ttf)$/,
+  /(^|\/)(dist|\.output|build|generated|__generated__|__snapshots__)\//,
+  /\.snap$/,
+]
+// Small enough that a flash-tier model answers inside the per-chunk timeout
+const MAX_CHUNK_CHARS = 24_000
 
 function reviewable(fileName: string): boolean {
   return !SKIP_PATTERNS.some((pattern) => pattern.test(fileName))
