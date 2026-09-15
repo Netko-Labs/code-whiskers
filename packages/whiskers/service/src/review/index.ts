@@ -2,6 +2,7 @@ import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
+import { mapWithConcurrency } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
 import {
   completeCheckRun,
@@ -32,7 +33,7 @@ const FAILURE_NOTIFIED_CAP = 1_000
  * provider 5xx) with a short pause — a 4xx would just fail again, and the
  * original error stays visible in the log.
  */
-async function reviewChunkWithRetry(chunk: string): Promise<ReturnType<typeof reviewChunk>> {
+async function reviewChunkWithRetry(chunk: string): ReturnType<typeof reviewChunk> {
   try {
     return await reviewChunk(chunk)
   } catch (error) {
@@ -63,7 +64,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   try {
     const diff = await fetchPrDiff(ref)
     const chunks = chunkDiff(diff)
-    const results = await Promise.all(chunks.map(reviewChunkWithRetry))
+    const results = await mapWithConcurrency(chunks, reviewChunkWithRetry)
     const merged = mergeReviews(results)
 
     await createFindings(

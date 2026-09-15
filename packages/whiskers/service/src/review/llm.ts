@@ -1,16 +1,15 @@
-import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type LlmFinding, type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
-
-const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
+import { openrouterModel } from '../shared/llm'
+import { repairReviewText } from './repair'
 
 const SYSTEM = `You are a senior code reviewer for pull requests.
 Review the unified diff and report only real, actionable findings — bugs,
 security holes, performance traps, broken contracts. Do not pad with nitpicks;
 an empty findings list is a valid, good review. Line numbers must reference the
 NEW side of the diff. Verdict: "request_changes" when any high/critical finding
-exists, otherwise "approve" — non-blocking nitpicks do not block a merge.`
+exists, otherwise "approve" — non-blocking nitpicks do not block a merge.
+Respond with the JSON object only, no markdown fences, no prose.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
 // A stuck provider socket must surface as a failed review, never a silent hang.
@@ -28,11 +27,12 @@ export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
 
 export async function reviewChunk(diff: string): Promise<LlmReview> {
   const { object } = await generateObject({
-    model: openrouter(whiskersEnvConfig.openrouter.model),
+    model: openrouterModel(),
     schema: LlmReviewSchema,
     system: SYSTEM,
     prompt: `Review this diff:\n\n${diff}`,
     abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+    repairText: repairReviewText,
   })
   return object
 }
