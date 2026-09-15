@@ -26,6 +26,7 @@ they describe this repo's specific topology, scaffolding, and commands.
 - Realtime packages: `packages/realtime/{domain,repository,service,api}` + `packages/configs/realtime-config`.
 - Two databases: studio (auth tables) and realtime (business/realtime data).
 - Shared tooling and UI live under `packages/shared/*` (`cli`, `logger`, `ui`, `typescript-config`).
+- **Brand**: `docs/brand.md` (colors, type, voice, rules). The cat mark and expressions ship from `@code-whiskers/ui/brand` (`CatMark`, `CatExpression`); static cuts live in `apps/studio/public/`. Fonts are Inter (interface) + JetBrains Mono (evidence); brand color tokens (`ink`, `paper`, `fog`, `hairline`, `ash`, `severity-*`) are Tailwind theme colors in `globals.css`.
 
 When extending the template with additional apps, colocate app-specific packages under `packages/{app-name}/*` and config under `packages/configs/{app-name}-config`. Keep cross-cutting concerns in `packages/shared/*`.
 
