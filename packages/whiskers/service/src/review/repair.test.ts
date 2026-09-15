@@ -26,3 +26,24 @@ describe('repairReviewText', () => {
     expect(await repairReviewText({ text: '{"findings":[],"verdict":"approve"}' })).toBeNull()
   })
 })
+
+describe('LlmReviewSchema enums', () => {
+  const withFinding = (severity: unknown, category: unknown) =>
+    LlmReviewSchema.parse({
+      findings: [{ file: 'a.ts', title: 't', severity, category }],
+      verdict: 'APPROVE',
+    })
+
+  test('normalizes casing instead of falling back', () => {
+    const parsed = withFinding('HIGH', ' Security ')
+    expect(parsed.findings[0]?.severity).toBe('high')
+    expect(parsed.findings[0]?.category).toBe('security')
+    expect(parsed.verdict).toBe('approve')
+  })
+
+  test('falls back only on genuinely unknown values', () => {
+    const parsed = withFinding('spicy', 'vibes')
+    expect(parsed.findings[0]?.severity).toBe('medium')
+    expect(parsed.findings[0]?.category).toBe('bug')
+  })
+})
