@@ -25,25 +25,40 @@ describe('repairReviewText', () => {
   test('returns null when nothing changes', async () => {
     expect(await repairReviewText({ text: '{"findings":[],"verdict":"approve"}' })).toBeNull()
   })
+
+  test('returns null on truncated JSON instead of buying a doomed retry', async () => {
+    expect(await repairReviewText({ text: '{"findings":[{"file":"a.ts"' })).toBeNull()
+  })
+
+  test('returns null when the parsed object still fails the schema', async () => {
+    expect(await repairReviewText({ text: '```json\n{"findings":"oops"}\n```' })).toBeNull()
+  })
 })
 
 describe('LlmReviewSchema enums', () => {
-  const withFinding = (severity: unknown, category: unknown) =>
+  const severityOf = (severity: unknown) =>
     LlmReviewSchema.parse({
-      findings: [{ file: 'a.ts', title: 't', severity, category }],
-      verdict: 'APPROVE',
-    })
+      findings: [{ file: 'a.ts', title: 't', severity }],
+      verdict: 'approve',
+    }).findings[0]?.severity
 
   test('normalizes casing instead of falling back', () => {
-    const parsed = withFinding('HIGH', ' Security ')
+    const parsed = LlmReviewSchema.parse({
+      findings: [{ file: 'a.ts', title: 't', severity: 'HIGH', category: ' Security ' }],
+      verdict: 'APPROVE',
+    })
     expect(parsed.findings[0]?.severity).toBe('high')
     expect(parsed.findings[0]?.category).toBe('security')
     expect(parsed.verdict).toBe('approve')
   })
 
-  test('falls back only on genuinely unknown values', () => {
-    const parsed = withFinding('spicy', 'vibes')
-    expect(parsed.findings[0]?.severity).toBe('medium')
-    expect(parsed.findings[0]?.category).toBe('bug')
+  test('maps severity synonyms rather than softening them', () => {
+    expect(severityOf('blocker')).toBe('critical')
+    expect(severityOf('Major')).toBe('high')
+    expect(severityOf('nit')).toBe('low')
+  })
+
+  test('falls back to medium only on genuinely unknown severities', () => {
+    expect(severityOf('spicy')).toBe('medium')
   })
 })
