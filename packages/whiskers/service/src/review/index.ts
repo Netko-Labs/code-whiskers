@@ -21,7 +21,10 @@ export * from './llm'
 
 const logger = createLogger('whiskers-review')
 
-const TRANSIENT_ERROR = /timed out|timeout|abort|429|5\d\d|overloaded|rate limit/i
+// A malformed sample counts as transient too: cheap models emit unparseable JSON
+// a few percent of the time, and a fresh sample almost always parses.
+const TRANSIENT_ERROR =
+  /timed out|timeout|abort|429|5\d\d|overloaded|rate limit|no object generated|could not parse|did not match schema/i
 const RETRY_DELAY_MS = 2_000
 // A failed review must be visible on the PR, but only once per head —
 // webhook redeliveries and repeated failures must not pile up comments.
@@ -30,8 +33,8 @@ const FAILURE_NOTIFIED_CAP = 1_000
 
 /**
  * One retry per chunk, transient failures only (timeouts, rate limits,
- * provider 5xx) with a short pause — a 4xx would just fail again, and the
- * original error stays visible in the log.
+ * provider 5xx, a malformed sample) with a short pause — a 4xx would just fail
+ * again, and the original error stays visible in the log.
  */
 async function reviewChunkWithRetry(chunk: string): ReturnType<typeof reviewChunk> {
   try {
