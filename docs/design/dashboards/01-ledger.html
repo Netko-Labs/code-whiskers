@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>01 · Ledger — the day as a diff</title>
+<link rel="stylesheet" href="_shared.css" />
+<style>
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 24px 80px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+  .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  nav { display: flex; gap: 18px; font-size: 13px; color: var(--muted); }
+  nav .on { color: var(--text); font-weight: 500; }
+  h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  .sub { color: var(--ash); margin: 0 0 28px; }
+  .tally { display: flex; gap: 28px; margin-bottom: 36px; padding-bottom: 20px; border-bottom: 1px solid var(--hairline); }
+  .tally div { display: flex; flex-direction: column; gap: 2px; }
+  .tally b { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tally span { font-size: 12px; color: var(--ash); }
+  .day { margin-bottom: 28px; }
+  .day h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--ash); text-transform: uppercase; }
+  .diff { font-family: var(--mono); font-size: 13px; line-height: 1.7; border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; }
+  .row { display: grid; grid-template-columns: 22px 92px 1fr auto; gap: 0 12px; padding: 4px 14px; align-items: baseline; }
+  .row + .row { border-top: 1px solid #1c1c1c; }
+  .row:hover { background: #1a1a1a; }
+  .sign { color: var(--ash); }
+  .row.add { background: #0f1a15; } .row.add .sign { color: var(--resolved); }
+  .row.del { background: #1c1616; } .row.del .sign { color: var(--error); }
+  .row.bang .sign { color: var(--warning); }
+  .row .t { color: var(--ash); }
+  .row .msg { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .msg .path { color: var(--muted); }
+  .row .meta { color: var(--ash); font-size: 12px; }
+  .row .meta a { color: var(--muted); }
+  .hunk { padding: 4px 14px; color: var(--info); background: #111318; font-size: 12px; }
+  .cat { position: fixed; right: 28px; bottom: 24px; width: 64px; opacity: 0.9; }
+  @media (max-width: 720px) { .row { grid-template-columns: 18px 1fr; } .row .t, .row .meta { display: none; } .cat { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="_cat.svg" alt="" />Code Whiskers</div>
+    <nav><a class="on" href="#">Today</a><a href="#">Reviews</a><a href="#">Issues</a><a href="#">Logs</a><a href="#">Settings</a></nav>
+  </header>
+
+  <h1>Tuesday, as a diff.</h1>
+  <p class="sub">Everything the cat did or noticed, in the order it happened. Green landed, red went away, amber wants a human.</p>
+
+  <div class="tally">
+    <div><b>14</b><span>reviews posted</span></div>
+    <div><b>3</b><span>changes requested</span></div>
+    <div><b>2</b><span>new errors</span></div>
+    <div><b>1</b><span>resolved</span></div>
+    <div><b>2.4k</b><span>log lines / s</span></div>
+  </div>
+
+  <section class="day">
+    <h2>Afternoon</h2>
+    <div class="diff">
+      <div class="hunk">@@ 14:00 – 15:00 @@ netko-labs/code-whiskers</div>
+      <div class="row add"><span class="sign">+</span><span class="t">14:02:11</span><span class="msg"><span class="path">checkout.ts:118</span> — TypeError: cart is undefined linked to issue #1207</span><span class="meta">128 events · <a href="#">#1207</a></span></div>
+      <div class="row bang"><span class="sign">!</span><span class="t">14:01:52</span><span class="msg"><span class="path">PR #482</span> — changes requested: response.json() unguarded in client.ts:42</span><span class="meta">1 high · <a href="#">review</a></span></div>
+      <div class="row add"><span class="sign">+</span><span class="t">13:48:30</span><span class="msg"><span class="path">PR #481</span> — approved, no findings</span><span class="meta">4 files · 52s</span></div>
+      <div class="row del"><span class="sign">−</span><span class="t">13:31:05</span><span class="msg"><span class="path">useAuth.ts:88</span> — stale token issue #1198 resolved by deploy 9f2c1d</span><span class="meta">0 events in 2h</span></div>
+    </div>
+  </section>
+
+  <section class="day">
+    <h2>Morning</h2>
+    <div class="diff">
+      <div class="hunk">@@ 09:00 – 12:00 @@ netko-labs/graphya</div>
+      <div class="row add"><span class="sign">+</span><span class="t">11:40:18</span><span class="msg"><span class="path">PR #77</span> — approved, 2 low notes left as comments</span><span class="meta">11 files · 1m 04s</span></div>
+      <div class="row bang"><span class="sign">!</span><span class="t">10:12:44</span><span class="msg"><span class="path">worker/cart-sync</span> — retries climbing: 14 in 10 minutes, was 2</span><span class="meta">warning · <a href="#">logs</a></span></div>
+      <div class="row add"><span class="sign">+</span><span class="t">09:31:00</span><span class="msg"><span class="path">PR #76</span> — approved, no findings</span><span class="meta">2 files · 18s</span></div>
+      <div class="row add"><span class="sign">+</span><span class="t">09:04:27</span><span class="msg"><span class="path">@code-whiskers</span> — fix applied on PR #75 thread: null-check before parse</span><span class="meta">suggestion accepted</span></div>
+    </div>
+  </section>
+
+  <p class="small">Nothing before 09:00. The cat was asleep.</p>
+</div>
+<img class="cat" src="_cat.svg" alt="" />
+</body>
+</html>

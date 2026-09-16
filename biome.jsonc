@@ -112,6 +112,7 @@
       "!**/.next",
       "!**/routeTree.gen.ts",
       "!**/public",
+      "!docs/design",
       "!**/generated",
       "!**/dist",
       "!**/src/components/ui",
