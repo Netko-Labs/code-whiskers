@@ -13,7 +13,7 @@ export function RootDocument({ children }: RootDocumentProps) {
 
   return (
     <TanstackQuery.Provider {...rqContext}>
-      <html lang="en">
+      <html lang="en" className="dark">
         <head>
           <HeadContent />
         </head>
