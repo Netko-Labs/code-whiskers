@@ -44,23 +44,6 @@ const _protoStudioConfigSchema = z.object({
   }),
 })
 
-const studioConfigSuperRefinement = (
-  config: z.infer<typeof _protoStudioConfigSchema>,
-  ctx: z.RefinementCtx,
-) => {
-  const enabledProviders = Object.entries(config.auth.socialProviders).filter(
-    ([_, value]) => value?.enabled,
-  )
-
-  if (enabledProviders.length === 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'At least one authentication provider must be configured (GitHub or Google).',
-      path: ['auth', 'socialProviders', 'github', 'google'],
-      fatal: true,
-    })
-  }
-}
-
-export const StudioConfigSchema = _protoStudioConfigSchema.superRefine(studioConfigSuperRefinement)
+// Magic link is always mounted, so social providers are optional extras
+export const StudioConfigSchema = _protoStudioConfigSchema
 export type StudioConfig = z.infer<typeof StudioConfigSchema>
