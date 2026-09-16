@@ -21,6 +21,12 @@ const studioConfig: StudioConfig = {
   whiskers: {
     url: process.env.WHISKERS_URL ?? 'https://whiskers.localhost',
   },
+  email: {
+    from: process.env.EMAIL_FROM ?? 'Code Whiskers <hello@netko.dev>',
+    usesend: isEnabled([process.env.USESEND_URL, process.env.USESEND_API_KEY])
+      ? { url: process.env.USESEND_URL ?? '', apiKey: process.env.USESEND_API_KEY ?? '' }
+      : undefined,
+  },
   auth: {
     secret: process.env.AUTH_SECRET,
     emailAndPassword: {

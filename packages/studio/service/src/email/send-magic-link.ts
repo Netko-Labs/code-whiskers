@@ -1,11 +1,12 @@
 import { createLogger } from '@code-whiskers/logger'
+import { studioEnvConfig } from '@code-whiskers/studio-config'
 import { renderMagicLinkEmail } from './magic-link-email'
 
 const logger = createLogger('email')
 
 /**
- * Deliver a magic-link email via Resend when `RESEND_API_KEY` is set; otherwise
- * log the link to the console (dev fallback).
+ * Deliver a magic link through UseSend (self-hosted, Resend-shaped API) when
+ * configured; otherwise log the link so local sign-in still works.
  */
 export async function sendMagicLinkEmail({
   email,
@@ -14,25 +15,24 @@ export async function sendMagicLinkEmail({
   email: string
   url: string
 }): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM ?? 'Studio <onboarding@resend.dev>'
+  const { from, usesend } = studioEnvConfig.email
 
-  if (!apiKey) {
-    logger.info(`\n✨ Magic Link for ${email}:\n${url}\n`)
+  if (!usesend) {
+    logger.info(`\n✨ Magic link for ${email}:\n${url}\n`)
     return
   }
 
-  const res = await fetch('https://api.resend.com/emails', {
+  const res = await fetch(new URL('/api/v1/emails', usesend.url), {
     method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${usesend.apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
       to: email,
-      subject: 'Your Studio sign-in link',
+      subject: 'Your Code Whiskers sign-in link',
       html: renderMagicLinkEmail(url),
     }),
   })
   if (!res.ok) {
-    logger.error({ status: res.status, body: await res.text() }, 'Resend send failed')
+    logger.error({ status: res.status, body: await res.text() }, 'magic link send failed')
   }
 }
