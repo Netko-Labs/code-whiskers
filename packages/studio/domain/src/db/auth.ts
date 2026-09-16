@@ -99,6 +99,9 @@ export const jwks = pgTable('jwks', {
   privateKey: text('private_key').notNull(),
   createdAt: timestamp('created_at').notNull(),
   expiresAt: timestamp('expires_at'),
+  // better-auth 1.7 records the key's algorithm and curve alongside the pair
+  alg: text('alg'),
+  crv: text('crv'),
 })
 
 /**
