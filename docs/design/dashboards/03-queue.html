@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>03 · Queue — reviews, grouped by what happens next</title>
+<link rel="stylesheet" href="_shared.css" />
+<style>
+  .app { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+  .list { border-right: 1px solid var(--hairline); display: flex; flex-direction: column; }
+  .lhead { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; }
+  .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  .search { margin: 0 16px 10px; height: 32px; border: 1px solid var(--hairline); border-radius: 8px; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--ash); font-size: 13px; }
+  .search kbd { margin-left: auto; }
+  .group h2 { margin: 0; padding: 12px 16px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--ash); text-transform: uppercase; display: flex; justify-content: space-between; }
+  .pr { display: grid; grid-template-columns: 8px 1fr auto; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid #1c1c1c; }
+  .pr.on { background: var(--card); }
+  .pr .title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr .sub { font-size: 12px; color: var(--ash); font-family: var(--mono); }
+  .pr .num { font-family: var(--mono); font-size: 12px; color: var(--ash); }
+  .detail { padding: 20px 28px 40px; min-width: 0; }
+  .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .dhead h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .verdict { display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border: 1px solid var(--hairline); border-radius: 999px; font-size: 12px; font-weight: 500; }
+  .summary { color: var(--muted); max-width: 720px; margin: 0 0 22px; }
+  .findings { display: flex; flex-direction: column; gap: 12px; }
+  .finding { border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+  .finding .fh { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; }
+  .finding .fh .where { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: auto; }
+  .finding .body { padding: 0 14px 12px; color: var(--muted); font-size: 13px; }
+  .sugg { font-family: var(--mono); font-size: 12px; line-height: 1.8; border-top: 1px solid var(--hairline); }
+  .sugg div { padding: 0 14px; }
+  .sugg .d { color: var(--removed); text-decoration: line-through; }
+  .sugg .a { background: #0f1a15; color: var(--text); }
+  .acts { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--hairline); }
+  .sev { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sev.high { color: var(--error); } .sev.medium { color: var(--warning); } .sev.low { color: var(--ash); }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } .detail { display: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="list">
+    <div class="lhead"><div class="brand"><img src="_cat.svg" alt="" />Reviews</div><span class="small">14 today</span></div>
+    <div class="search">Search pull requests <kbd>⌘K</kbd></div>
+
+    <div class="group">
+      <h2><span>Needs a human</span><span>3</span></h2>
+      <a class="pr on" href="#"><span class="dot error"></span><span><div class="title">brand kit + sign-in page</div><div class="sub">code-whiskers · 1 high · 3 low</div></span><span class="num">#482</span></a>
+      <a class="pr" href="#"><span class="dot warning"></span><span><div class="title">throughput-routed OpenRouter</div><div class="sub">code-whiskers · 2 medium</div></span><span class="num">#481</span></a>
+      <a class="pr" href="#"><span class="dot warning"></span><span><div class="title">billing webhooks</div><div class="sub">graphya · 1 medium</div></span><span class="num">#77</span></a>
+    </div>
+    <div class="group">
+      <h2><span>Reviewing</span><span>1</span></h2>
+      <a class="pr" href="#"><span class="dot info"></span><span><div class="title">drop realtime; studio fronts whiskers</div><div class="sub">code-whiskers · 57 files · 3 of 4 chunks</div></span><span class="num">#483</span></a>
+    </div>
+    <div class="group">
+      <h2><span>Approved</span><span>10</span></h2>
+      <a class="pr" href="#"><span class="dot resolved"></span><span><div class="title">retry once on unparseable JSON</div><div class="sub">code-whiskers · no findings</div></span><span class="num">#480</span></a>
+      <a class="pr" href="#"><span class="dot resolved"></span><span><div class="title">jwks.alg + jwks.crv</div><div class="sub">code-whiskers · no findings</div></span><span class="num">#479</span></a>
+      <a class="pr" href="#"><span class="dot resolved"></span><span><div class="title">magic links through UseSend</div><div class="sub">code-whiskers · 2 low</div></span><span class="num">#478</span></a>
+    </div>
+  </section>
+
+  <section class="detail">
+    <div class="dhead">
+      <div><h1>#482 · brand kit + sign-in page</h1><div class="small mono">def1665 · 57 files · 4 chunks · 52s · z-ai/glm-5.3-flash</div></div>
+      <span class="verdict"><span class="dot error"></span>Changes requested</span>
+    </div>
+    <p class="summary">One stray benchmark script made it into the service package; everything else is polish. The backdrop renders 96 SVGs where a pattern would do, and one keyframe list violates the SMIL spec.</p>
+
+    <div class="findings">
+      <div class="finding">
+        <div class="fh"><span class="dot error"></span><span class="sev high">high</span>Temporary probe script committed<span class="where">packages/whiskers/service/probe.tmp.ts:1</span></div>
+        <div class="body">Throwaway benchmarking code with a hardcoded /tmp path and top-level await. Delete before merging.</div>
+        <div class="acts"><button class="btn primary">Apply fix</button><button class="btn outline">Open in GitHub</button><button class="btn ghost">Dismiss</button></div>
+      </div>
+      <div class="finding">
+        <div class="fh"><span class="dot warning"></span><span class="sev medium">medium</span>Blink keyTimes does not end at 1<span class="where">packages/shared/ui/src/brand/cat-parts/cat-eyes.tsx:5</span></div>
+        <div class="body">SMIL requires the last keyTime to be 1 for linear calcMode. Stricter renderers drop the animation.</div>
+        <div class="sugg"><div class="d">const BLINK_KEYTIMES = '0;0.42;0.45;0.48;0.56;0.6;0.63;0.66'</div><div class="a">const BLINK_KEYTIMES = '0;0.42;0.45;0.48;0.56;0.6;0.63;0.66;1'</div></div>
+        <div class="acts"><button class="btn primary">Apply suggestion</button><button class="btn ghost">Dismiss</button></div>
+      </div>
+      <div class="finding">
+        <div class="fh"><span class="dot warning"></span><span class="sev medium">medium</span>96 SVGs rendered behind the sign-in card<span class="where">sign-in-backdrop.tsx:9</span></div>
+        <div class="body">Recreated on every mount. A single pattern tile the GPU repeats does the same job with 16.</div>
+        <div class="acts"><button class="btn outline">Open in GitHub</button><button class="btn ghost">Dismiss</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

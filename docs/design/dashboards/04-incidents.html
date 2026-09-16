@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>04 · Incidents — errors against the deploy timeline</title>
+<link rel="stylesheet" href="_shared.css" />
+<style>
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 28px 60px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; }
+  .brand img { width: 22px; height: 22px; border-radius: 6px; }
+  nav { display: flex; gap: 18px; font-size: 13px; color: var(--muted); } nav .on { color: var(--text); font-weight: 500; }
+  h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .timeline { position: relative; margin: 40px 0 28px; padding: 14px 0 26px; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+  .tl-bars { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
+  .tl-bars i { flex: 1; background: var(--hairline); border-radius: 2px 2px 0 0; }
+  .tl-bars i.hot { background: var(--error); }
+  .tl-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ash); margin-top: 8px; }
+  .deploy { position: absolute; top: 0; bottom: 26px; border-left: 1px dashed var(--muted); }
+  .deploy span { position: absolute; top: -9px; left: -1px; transform: translateY(-100%); font-family: var(--mono); font-size: 11px; color: var(--text); background: var(--ink); padding: 0 6px 0 4px; white-space: nowrap; }
+  .deploy.bad { border-color: var(--error); } .deploy.bad span { color: var(--error); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .issue { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ih { display: flex; align-items: center; gap: 10px; }
+  .ih .name { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+  .ih .n { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--ash); }
+  .ev { font-size: 13px; color: var(--muted); }
+  .ev b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ev .mono { color: var(--text); }
+  .spark { display: flex; align-items: flex-end; gap: 2px; height: 32px; }
+  .spark i { flex: 1; background: var(--hairline); border-radius: 1px; }
+  .spark i.hot { background: var(--error); } .spark i.warm { background: var(--warning); }
+  .facts { display: flex; gap: 18px; font-size: 12px; color: var(--ash); }
+  .facts b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .acts { display: flex; gap: 8px; margin-top: 2px; }
+  .empty { padding: 40px; text-align: center; color: var(--ash); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .empty img { width: 72px; opacity: 0.8; }
+  @media (max-width: 720px) { nav { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="_cat.svg" alt="" />Code Whiskers</div>
+    <nav><a href="#">Overview</a><a href="#">Reviews</a><a class="on" href="#">Issues</a><a href="#">Logs</a><a href="#">Settings</a></nav>
+  </header>
+
+  <h1>Issues</h1>
+  <div class="small">graphya-web · production · last 6 hours · 2 open, 1 resolved</div>
+
+  <div class="timeline">
+    <div class="deploy" style="left:31%"><span>9f2c1d</span></div>
+    <div class="deploy bad" style="left:74%"><span>a41f2c · checkout</span></div>
+    <div class="tl-bars">
+      <i style="height:8%"></i><i style="height:10%"></i><i style="height:6%"></i><i style="height:9%"></i><i style="height:12%"></i><i style="height:7%"></i><i style="height:10%"></i><i style="height:9%"></i><i style="height:6%"></i><i style="height:8%"></i><i style="height:5%"></i><i style="height:7%"></i><i style="height:9%"></i><i style="height:8%"></i><i style="height:10%"></i><i style="height:12%"></i><i style="height:9%"></i><i style="height:8%"></i><i style="height:14%" class="warm"></i><i style="height:18%" class="warm"></i><i style="height:12%"></i><i style="height:9%"></i><i style="height:30%" class="hot"></i><i style="height:62%" class="hot"></i><i style="height:100%" class="hot"></i><i style="height:84%" class="hot"></i><i style="height:70%" class="hot"></i><i style="height:66%" class="hot"></i>
+    </div>
+    <div class="tl-axis"><span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span></div>
+  </div>
+
+  <div class="cards">
+    <div class="card issue">
+      <div class="ih"><span class="dot error"></span><span class="name">TypeError: cart is undefined</span><span class="n">#1207</span></div>
+      <div class="ev"><span class="mono">checkout.ts:118</span> · first seen 10 min after deploy <span class="mono">a41f2c</span>. <b>128</b> events, <b>41</b> users. Still rising.</div>
+      <div class="spark"><i style="height:6%"></i><i style="height:8%"></i><i style="height:5%"></i><i style="height:7%"></i><i style="height:6%"></i><i style="height:5%"></i><i style="height:30%" class="hot"></i><i style="height:62%" class="hot"></i><i style="height:100%" class="hot"></i><i style="height:84%" class="hot"></i></div>
+      <div class="facts"><span>release <b class="mono">a41f2c</b></span><span>last <b>12s</b> ago</span><span>linked <b class="mono">PR #482</b></span></div>
+      <div class="acts"><button class="btn primary">Open issue</button><button class="btn outline">Assign</button><button class="btn ghost">Resolve</button></div>
+    </div>
+    <div class="card issue">
+      <div class="ih"><span class="dot warning"></span><span class="name">RetryExceeded: cart-sync</span><span class="n">#1206</span></div>
+      <div class="ev"><span class="mono">worker/cart-sync.ts:41</span> · <b>14</b> events in the last hour, was 2 the hour before. Same window as #1207.</div>
+      <div class="spark"><i style="height:10%"></i><i style="height:8%"></i><i style="height:12%"></i><i style="height:10%"></i><i style="height:20%" class="warm"></i><i style="height:34%" class="warm"></i><i style="height:38%" class="warm"></i><i style="height:40%" class="warm"></i><i style="height:44%" class="warm"></i><i style="height:42%" class="warm"></i></div>
+      <div class="facts"><span>release <b class="mono">a41f2c</b></span><span>last <b>3m</b> ago</span><span>correlated <b class="mono">#1207</b></span></div>
+      <div class="acts"><button class="btn primary">Open issue</button><button class="btn outline">Assign</button><button class="btn ghost">Resolve</button></div>
+    </div>
+    <div class="card issue">
+      <div class="ih"><span class="dot resolved"></span><span class="name">AuthExpired: stale token</span><span class="n">#1198</span></div>
+      <div class="ev"><span class="mono">useAuth.ts:88</span> · stopped after deploy <span class="mono">9f2c1d</span>. <b>0</b> events in 2 hours.</div>
+      <div class="spark"><i style="height:60%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:20%"></i><i style="height:8%"></i><i style="height:0"></i><i style="height:0"></i><i style="height:0"></i><i style="height:0"></i><i style="height:0"></i></div>
+      <div class="facts"><span>resolved by <b class="mono">9f2c1d</b></span><span>closed <b>2h</b> ago</span></div>
+      <div class="acts"><button class="btn outline">View timeline</button><button class="btn ghost">Reopen</button></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
