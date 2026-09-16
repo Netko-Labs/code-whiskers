@@ -13,10 +13,10 @@ worker over Coolify's internal network. Realtime is gone.
 - [x] check-types, fmt-lint, test, studio build
 
 ## Coolify
-- [ ] studio domain → `https://whiskers.netko.dev`; `BASE_URL`/`CORS`/`TRUSTED_ORIGINS` follow;
+- [x] studio domain → `https://whiskers.netko.dev`; `BASE_URL`/`CORS`/`TRUSTED_ORIGINS` follow;
       `WHISKERS_URL=http://<whiskers uuid>:3002`; drop `VITE_REALTIME_URL`
-- [ ] whiskers: no public domain; `WEB_BASE_URL`/`CORS` → `https://whiskers.netko.dev`
-- [ ] redeploy both; GitHub App webhook URL unchanged
+- [x] whiskers: no public domain; `WEB_BASE_URL`/`CORS` → `https://whiskers.netko.dev`
+- [x] redeploy both; GitHub App webhook URL unchanged
 
 ## Acceptance
 - `https://whiskers.netko.dev/sign-in` renders; `/api/health` 200; `/v1/overview` returns whiskers data
