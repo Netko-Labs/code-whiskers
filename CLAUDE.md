@@ -18,13 +18,11 @@ they describe this repo's specific topology, scaffolding, and commands.
 - Runtime and package manager: `bun@1.4.0`
 - TypeScript 7 (native `tsc`); dev servers run through **portless** (`https://{app}.localhost`, names in `portless.json`, `PORTLESS=0` to bypass)
 - Monorepo tooling: Turborepo
-- Three apps:
-  - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). The frontend + identity provider.
-  - `apps/realtime` — a **headless** Bun/Elysia server (own process, `https://realtime.localhost`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
-  - `apps/whiskers` — the 360 code tool server (own process, `https://whiskers.localhost`): GitHub webhook -> AI PR review (AI SDK + OpenRouter, BYOK via `OPENROUTER_API_KEY`), Sentry-SDK-compatible error ingest (`/api/:projectId/envelope` + `/store`), read-only `/v1` insights. Packages: `packages/whiskers/{domain,repository,service,api}` + `packages/configs/whiskers-config`. Disposable Docker sandboxes live in `packages/shared/sandbox`.
-- Studio packages: `packages/studio/{domain,repository,service,api}` (auth only) + `packages/configs/studio-config`.
-- Realtime packages: `packages/realtime/{domain,repository,service,api}` + `packages/configs/realtime-config`.
-- Two databases: studio (auth tables) and realtime (business/realtime data).
+- Two apps:
+  - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). Owns the **public hostname** and forwards the whiskers surfaces (`/webhooks/*`, `/api/:projectId/envelope|store`, `/v1/*`) to the worker via `forwardToWhiskers` (`packages/studio/api/src/shared`), byte-for-byte so HMAC/DSN checks still happen in whiskers. `WHISKERS_URL` points at the worker (internal DNS in Coolify).
+  - `apps/whiskers` — the 360 code tool **worker** (own process, `https://whiskers.localhost` locally, no public host in prod): GitHub webhook -> AI PR review (AI SDK + OpenRouter, BYOK via `OPENROUTER_API_KEY`), Sentry-SDK-compatible error ingest, read-only `/v1` insights. Packages: `packages/whiskers/{domain,repository,service,api}` + `packages/configs/whiskers-config`. Disposable Docker sandboxes live in `packages/shared/sandbox`.
+- Studio packages: `packages/studio/{domain,repository,service,api}` (auth + forwarder) + `packages/configs/studio-config`.
+- Two databases: studio (auth tables) and whiskers (reviews, findings, issues, events).
 - Shared tooling and UI live under `packages/shared/*` (`cli`, `logger`, `ui`, `typescript-config`).
 - **Brand**: `docs/brand.md` (colors, type, voice, rules). The cat mark and expressions ship from `@code-whiskers/ui/brand` (`CatMark`, `CatExpression`); static cuts live in `apps/studio/public/`. Fonts are Inter (interface) + JetBrains Mono (evidence); brand color tokens (`ink`, `paper`, `fog`, `hairline`, `ash`, `severity-*`) are Tailwind theme colors in `globals.css`.
 
@@ -36,25 +34,23 @@ The generic layering pattern and per-layer folder structure (`domain → reposit
 ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend Layering** in
 `@docs/conventions.md`. This section records only the concrete studio-stack specifics:
 
-- `apps/studio` backend is **auth only**: better-auth is mounted at `/api/auth` (magic link + `jwt`/`jwks`). All transactional data + logic lives on the realtime server. Put `drizzle-zod` entities in the relevant `domain` package (`createInsertSchema()`/`createUpdateSchema()`/`createSelectSchema()`).
-- `apps/realtime` is a **standalone** Elysia server started with `.listen()` (NOT `.handle()`), so native WebSocket upgrades work. `packages/realtime/{domain,repository,service,api}` hold the tables/entities + WS event schemas, the DB client, business logic + an in-memory `RoomHub` + JWKS `verifyToken`, and the Elysia app (HTTP routes + the `.ws()` room). Elysia validators accept `drizzle-zod`/zod schemas directly (Standard Schema).
-- **Cross-service auth**: studio mints a JWT (`GET /api/auth/token`); the realtime server verifies it against studio's JWKS (`/api/auth/jwks`) with `jose` — no shared secret. The frontend attaches a Bearer JWT to realtime HTTP calls and passes `?token=` on the WebSocket.
-- **Elysia 2 (pre-release, `2.0.0-beta.14`)**: the whole repo type-checks under TypeScript 7's native `tsc` — Elysia 2 fixed the `.ws()` cross-package instantiation that broke on Elysia 1.x. Migration specifics worth knowing: `.ws()` requires the capability plugin (`import { websocket } from 'elysia/websocket'` + `.use(websocket())` before the routes); `@elysiajs/cors` has no Elysia-2 build yet, so realtime CORS is hand-rolled in `packages/realtime/api/src/app.ts` (a `request` hook + an `OPTIONS` preflight route); a `.ws()` route only populates `ws.query`/the message when a **schema is declared**; `ws.id` is empty and the `ws` object isn't stable across handlers, so the client supplies a unique **`?cid=`** per connection and `RoomHub` keys on it; and `ws.send` takes a **string** (events are JSON, the client `JSON.parse`s). **All routes live in the api package** — `packages/realtime/api/src/routes/{todos,chat,room}.ts` (HTTP routes **and** the `.ws()` room) — composed into the one exported `app`; the app entry (`apps/realtime`) just `.listen()`s it. The frontend consumes the WS via a native socket typed with `packages/realtime/domain` event schemas.
+- `apps/studio` backend is **auth only**: better-auth is mounted at `/api/auth` (magic link + `jwt`/`jwks`). All transactional data + logic lives in whiskers. Put `drizzle-zod` entities in the relevant `domain` package (`createInsertSchema()`/`createUpdateSchema()`/`createSelectSchema()`).
+- `apps/whiskers` is a **standalone** Elysia server started with `.listen()`. Elysia validators accept `drizzle-zod`/zod schemas directly (Standard Schema).
+- **Cross-service auth**: studio mints a JWT (`GET /api/auth/token`); whiskers verifies it against studio's JWKS (`/api/auth/jwks`) with `jose` — no shared secret.
+- **Elysia 2 (pre-release, `2.0.0-beta.14`)**: the whole repo type-checks under TypeScript 7's native `tsc`. `@elysiajs/cors` has no Elysia-2 build yet, so whiskers CORS is hand-rolled in `packages/whiskers/api/src/app.ts` (a `request` hook + an `OPTIONS` preflight route). **All routes live in the api package** — `packages/whiskers/api/src/routes/{webhooks,ingest,insights}.ts` — composed into the one exported `app`; the app entry (`apps/whiskers`) just `.listen()`s it.
 
 ## Scaffolding
 
-- **`bun run gen:app`** — Turbo generator in `turbo/generators/config.ts`. Prompts for a name and a **type** (`studio` | `realtime`), then creates the app under `apps/{name}` plus layered packages (`domain`, `repository`, `service`, `api`) and `packages/configs/{name}-config`.
+- **`bun run gen:app`** — Turbo generator in `turbo/generators/config.ts`. Prompts for a name, then creates a studio-type app under `apps/{name}` plus layered packages (`domain`, `repository`, `service`, `api`) and `packages/configs/{name}-config`.
 - **Studio template** — `turbo/generators/templates/app-tanstack/`. TanStack Start + Elysia HTTP API: `~/*` path alias, `components/core/root/` shell, Eden Treaty client under `src/integrations/eden/`, TanStack Query provider, `@code-whiskers/ui`, Nitro + Vite 8.
-- **Realtime template** — `turbo/generators/templates/app-realtime/`. A headless Elysia WebSocket server (presence + chat room) with JWKS auth; mirrors `apps/realtime`.
 - **Reference app** — treat `apps/studio` as the living example when extending a generated app. Root `CLAUDE.md` applies to all apps unless an app adds a local override.
 - **`bun run gen:lib`** — shared library under `packages/shared/{name}`.
 
 ## Commands
 
 - Studio (frontend + auth) development: `bun run repo dev --app studio` (https://studio.localhost)
-- Realtime (WebSocket server) development: `bun run repo dev --app realtime` (https://realtime.localhost)
 - Whiskers (360 code tool) development: `bun run repo dev --app whiskers` (https://whiskers.localhost)
-- Bypass portless (plain `localhost:3000` / `:3001` / `:3002`): `PORTLESS=0 bun run repo dev --app <app>`
+- Bypass portless (plain `localhost:3000` / `:3002`): `PORTLESS=0 bun run repo dev --app <app>`
 - Web production build: `bun run repo build --app studio`
 - Web preview: `bun run repo serve --app studio`
 - Docker up/down: `bun run repo docker:up --app studio` / `bun run repo docker:down --app studio`
@@ -72,7 +68,7 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 
 ## Deploy
 
-Coolify + Railpack, built from the repo root. `bun run repo build --app {app}` emits a self-contained output (`apps/studio/.output` via Nitro's bun preset, `apps/{realtime,whiskers}/dist` via `bun build --target bun`) plus `{out}/migrate/migrate.js` + the drizzle folder. `apps/{app}/railpack.json` (select per Coolify app with `RAILPACK_CONFIG_FILE=apps/{app}/railpack.json`) runs that build and ships only the output + bun into the runtime image; migrations run as the pre-deployment command `bun run {out}/migrate/migrate.js`. `db:migrate` uses the same `src/db/migrate.ts` locally. The build forces `NODE_ENV=production` (a dev value in `.env` would make Vite emit a development SSR bundle) and needs no secrets; `VITE_REALTIME_URL` is the one build-time value. Devtools are a dev-only lazy import (`components/core/root/root-devtools.tsx`) — Solid-based devtools must never reach the SSR bundle.
+Coolify + Railpack, built from the repo root. `bun run repo build --app {app}` emits a self-contained output (`apps/studio/.output` via Nitro's bun preset, `apps/whiskers/dist` via `bun build --target bun`) plus `{out}/migrate/migrate.js` + the drizzle folder. `apps/{app}/railpack.json` (select per Coolify app with `RAILPACK_CONFIG_FILE=apps/{app}/railpack.json`) runs that build and ships only the output + bun into the runtime image; migrations run as the pre-deployment command `bun run {out}/migrate/migrate.js`. `db:migrate` uses the same `src/db/migrate.ts` locally. The build forces `NODE_ENV=production` (a dev value in `.env` would make Vite emit a development SSR bundle) and needs no secrets. In prod studio serves `https://whiskers.netko.dev` and whiskers has no public host; studio reaches it at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify network. Devtools are a dev-only lazy import (`components/core/root/root-devtools.tsx`) — Solid-based devtools must never reach the SSR bundle.
 
 ## Verification
 

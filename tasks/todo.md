@@ -1,41 +1,23 @@
-# code-whiskers — 360 code tool
+# code-whiskers — two-app topology (2026-09-15)
 
-Self-hosted BYOK: AI code review (PR approval) + Sentry-SDK-compatible error tracker.
-LLM: Vercel AI SDK + @openrouter/ai-sdk-provider. Sandboxes: built from scratch
-(eve's sandbox is framework-coupled; we steal its design: Docker, /workspace, TTL reap).
+Studio owns the public host `whiskers.netko.dev` and forwards the whiskers surfaces to the
+worker over Coolify's internal network. Realtime is gone.
 
-## Phase 1 — skeleton
-- [x] Generate `whiskers` app group (headless Elysia, realtime-type)
-- [x] Install deps: ai, @openrouter/ai-sdk-provider, octokit, parse-diff
-- [x] `packages/shared/sandbox` — disposable Docker sandbox lib (from scratch)
+## Code
+- [x] delete `apps/realtime`, `packages/realtime/*`, `packages/configs/realtime-config`, the
+      realtime generator template, studio's todos/chat/home demo pages and the realtime client
+- [x] `WHISKERS_URL` in studio config; `forwardToWhiskers` in `packages/studio/api/src/shared`
+- [x] studio routes: `/webhooks/$` (POST), `/v1/$` (GET), `/api/:projectId/envelope|store`
+- [x] `/` redirects to `/sign-in`
+- [x] docs: CLAUDE.md, README, sample envs
+- [x] check-types, fmt-lint, test, studio build
 
-## Phase 2 — review vertical
-- [x] domain: review tables (repos, reviews, findings) + zod finding schema for generateObject
-- [x] service: diff → parse-diff chunks → LLM findings → verdict (approve | request_changes)
-- [x] service: octokit — fetch PR diff, post review w/ line comments, approve
-- [x] api: POST /webhooks/github (HMAC verify, async process)
-
-## Phase 3 — tracker vertical (sentry compat)
-- [x] domain: projects, issues, events tables + envelope schemas
-- [x] service: DSN key auth, envelope/store parse, fingerprint grouping
-- [x] api: POST /api/:projectId/envelope + /store, GET /v1/overview, /v1/issues
-
-## Phase 4 — verify
-- [x] bun test units (chunking, grouping, sandbox lifecycle w/ docker guard)
-- [x] e2e: @sentry/node against local server (port from old tests/sentry-sdk-e2e.ts)
-- [x] check-types + fmt-lint clean
+## Coolify
+- [ ] studio domain → `https://whiskers.netko.dev`; `BASE_URL`/`CORS`/`TRUSTED_ORIGINS` follow;
+      `WHISKERS_URL=http://<whiskers uuid>:3002`; drop `VITE_REALTIME_URL`
+- [ ] whiskers: no public domain; `WEB_BASE_URL`/`CORS` → `https://whiskers.netko.dev`
+- [ ] redeploy both; GitHub App webhook URL unchanged
 
 ## Acceptance
-- Sentry SDK captureException lands as grouped issue via envelope endpoint
-- GitHub webhook on PR → findings stored → review posted (approve when clean)
-- Sandbox: create → exec → destroy, TTL reaper, no container leaks
-- BYOK: OPENROUTER_API_KEY + model from env, never committed
-
-## Out of scope (later)
-- pg-boss queue, GitLab, dashboards in studio, SLA policies, releases/sourcemaps
-
-## Status 2026-08-27
-Phases 1–4 done. Verified: unit (11 pass), sandbox lifecycle vs real Docker,
-sentry e2e (@sentry/node -> envelope -> grouped issues, 401 on bad key),
-LLM smoke vs OpenRouter (caught planted security+bug findings).
-Unverified: postPrReview against a real GitHub PR (needs GITHUB_TOKEN + webhook).
+- `https://whiskers.netko.dev/sign-in` renders; `/api/health` 200; `/v1/overview` returns whiskers data
+- reopening a PR still produces a code-whiskers review (webhook now enters via studio)

@@ -1,7 +1,10 @@
 {
   "apps": {
-    "apps/studio": { "name": "studio" },
-    "apps/realtime": { "name": "realtime" },
-    "apps/whiskers": { "name": "whiskers" }
+    "apps/studio": {
+      "name": "studio"
+    },
+    "apps/whiskers": {
+      "name": "whiskers"
+    }
   }
 }

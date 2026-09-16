@@ -34,7 +34,6 @@
     "packages/clients/*",
     "packages/configs/*",
     "packages/studio/*",
-    "packages/realtime/*",
     "packages/whiskers/*"
   ]
 }

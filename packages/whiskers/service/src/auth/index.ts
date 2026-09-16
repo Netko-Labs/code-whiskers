@@ -4,13 +4,13 @@ import { createRemoteJWKSet, jwtVerify } from 'jose'
 const WEB = whiskersEnvConfig.app.webBaseUrl
 const jwks = createRemoteJWKSet(new URL('/api/auth/jwks', WEB))
 
-export type RealtimeUser = { id: string; name: string }
+export type StudioUser = { id: string; name: string }
 
 /**
  * Verify a JWT minted by the studio auth server against its JWKS. No shared
  * secret — trust is anchored on studio's public keys.
  */
-export async function verifyToken(token: string): Promise<RealtimeUser | null> {
+export async function verifyToken(token: string): Promise<StudioUser | null> {
   try {
     const { payload } = await jwtVerify(token, jwks, { issuer: WEB, audience: WEB })
     const id = typeof payload.sub === 'string' ? payload.sub : undefined
