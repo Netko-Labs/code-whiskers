@@ -1,13 +1,14 @@
 import { createLogger } from '@code-whiskers/logger'
 import { Elysia } from 'elysia'
 import { sessionRoutes } from './routes/session'
+import { forwardToWhiskers } from './shared'
 
 const logger = createLogger('api')
 
 /**
- * The studio API is now auth-only: better-auth is mounted separately at
- * `/api/auth`; this app exposes a same-origin session check. All transactional
- * data (todos, chat) lives on the realtime server.
+ * Studio's own API is auth-only: better-auth is mounted separately at
+ * `/api/auth`; this app exposes a same-origin session check. The Sentry-shaped
+ * ingest paths are handed to the whiskers worker untouched.
  */
 export const app = new Elysia({ prefix: '/api' })
   .error(({ path, error }) => {
@@ -17,5 +18,8 @@ export const app = new Elysia({ prefix: '/api' })
   .get('/health', () => ({ status: 'ok' }))
   // (｡•̀ᴗ-)✧ same-origin session check
   .use(sessionRoutes)
+  // (=^･ω･^=) Sentry SDKs post here; whiskers checks the DSN key
+  .post('/:projectId/envelope', ({ request }) => forwardToWhiskers(request))
+  .post('/:projectId/store', ({ request }) => forwardToWhiskers(request))
 
 export type App = typeof app

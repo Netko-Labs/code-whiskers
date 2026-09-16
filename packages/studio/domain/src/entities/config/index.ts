@@ -28,6 +28,9 @@ const _protoStudioConfigSchema = z.object({
   db: z.object({
     url: z.string(),
   }),
+  whiskers: z.object({
+    url: z.string().url(),
+  }),
   auth: z.object({
     secret: z.string().optional(),
     emailAndPassword: z.object({

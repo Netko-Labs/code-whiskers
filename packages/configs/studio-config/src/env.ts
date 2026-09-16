@@ -18,6 +18,9 @@ const studioConfig: StudioConfig = {
   db: {
     url: process.env.DATABASE_URL ?? '',
   },
+  whiskers: {
+    url: process.env.WHISKERS_URL ?? 'https://whiskers.localhost',
+  },
   auth: {
     secret: process.env.AUTH_SECRET,
     emailAndPassword: {
