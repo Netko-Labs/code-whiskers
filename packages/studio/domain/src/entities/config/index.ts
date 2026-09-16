@@ -31,6 +31,10 @@ const _protoStudioConfigSchema = z.object({
   whiskers: z.object({
     url: z.string().url(),
   }),
+  email: z.object({
+    from: z.string(),
+    usesend: z.object({ url: z.string().url(), apiKey: z.string() }).optional(),
+  }),
   auth: z.object({
     secret: z.string().optional(),
     emailAndPassword: z.object({

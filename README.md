@@ -50,8 +50,8 @@ bun run repo dev --app studio     # https://studio.localhost (WHISKERS_URL point
 ```
 
 Dev servers run through [portless](https://github.com/vercel-labs/portless); `PORTLESS=0` falls
-back to `localhost:3000` / `:3002`. Magic links log to the studio console until `RESEND_API_KEY`
-is set.
+back to `localhost:3000` / `:3002`. Magic links log to the studio console until `USESEND_URL` + `USESEND_API_KEY`
+are set.
 
 ## Reviews
 
@@ -76,7 +76,7 @@ is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify netw
 skips the pre-deployment command (no running container yet), so deploy twice.
 
 Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`,
-`WHISKERS_URL`, optional `GITHUB_CLIENT_ID`/`SECRET`, `RESEND_API_KEY`/`EMAIL_FROM`. Whiskers env:
+`WHISKERS_URL`, optional `GITHUB_CLIENT_ID`/`SECRET`, `USESEND_URL`/`USESEND_API_KEY`/`EMAIL_FROM`. Whiskers env:
 `DATABASE_URL`, `WEB_BASE_URL`, `CORS`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`,
 `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`, `OPENROUTER_API_KEY`, `REVIEW_MODEL`.
 
