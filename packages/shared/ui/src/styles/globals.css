@@ -60,24 +60,20 @@
   --color-ink-removed: #404040;
   --color-ink-muted: #a3a3a3;
   --color-ink-text: #fafafa;
-  --color-severity-error: #ff4d4d;
-  --color-severity-warning: #ffb020;
-  --color-severity-resolved: #2ee59d;
-  --color-severity-info: #5b9bff;
+  --color-severity-error: var(--severity-error);
+  --color-severity-warning: var(--severity-warning);
+  --color-severity-resolved: var(--severity-resolved);
+  --color-severity-info: var(--severity-info);
+  --color-severity-error-ink: var(--severity-error-ink);
+  --color-severity-warning-ink: var(--severity-warning-ink);
+  --color-severity-resolved-ink: var(--severity-resolved-ink);
+  --color-severity-info-ink: var(--severity-info-ink);
   --color-surface-alt: var(--surface-alt);
   --color-surface-subtle: var(--surface-subtle);
   --color-rule-soft: var(--rule-soft);
   --color-rule-strong: var(--rule-strong);
   --color-faint: var(--faint);
   --color-body: var(--body);
-  --color-sev-critical: #e7000b;
-  --color-sev-warning: #f59e0b;
-  --color-sev-ok: #16a34a;
-  --color-sev-info: #2b7fff;
-  --color-sev-critical-ink: var(--sev-critical-ink);
-  --color-sev-warning-ink: var(--sev-warning-ink);
-  --color-sev-ok-ink: var(--sev-ok-ink);
-  --color-sev-info-ink: var(--sev-info-ink);
 }
 
 :root {
@@ -119,10 +115,14 @@
   --rule-strong: #d4d4d8;
   --faint: #a3a3a3;
   --body: #3f3f46;
-  --sev-critical-ink: #b91c1c;
-  --sev-warning-ink: #92400e;
-  --sev-ok-ink: #166534;
-  --sev-info-ink: #1e40af;
+  --severity-error: #e7000b;
+  --severity-warning: #f59e0b;
+  --severity-resolved: #16a34a;
+  --severity-info: #2b7fff;
+  --severity-error-ink: #b91c1c;
+  --severity-warning-ink: #92400e;
+  --severity-resolved-ink: #166534;
+  --severity-info-ink: #1e40af;
 }
 
 .dark {
@@ -163,10 +163,14 @@
   --rule-strong: #3f3f46;
   --faint: #71717a;
   --body: #d4d4d8;
-  --sev-critical-ink: #fca5a5;
-  --sev-warning-ink: #fcd34d;
-  --sev-ok-ink: #4ade80;
-  --sev-info-ink: #93c5fd;
+  --severity-error: #ff4d4d;
+  --severity-warning: #ffb020;
+  --severity-resolved: #2ee59d;
+  --severity-info: #5b9bff;
+  --severity-error-ink: #fca5a5;
+  --severity-warning-ink: #fcd34d;
+  --severity-resolved-ink: #4ade80;
+  --severity-info-ink: #93c5fd;
 }
 
 @layer base {

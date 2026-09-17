@@ -8,7 +8,7 @@ import { SignInShowcase } from './sign-in-showcase'
 
 export function SignInPage() {
   return (
-    <div className="relative flex min-h-screen flex-col bg-ink font-sans text-ink-text">
+    <div className="dark relative flex min-h-screen flex-col bg-ink font-sans text-ink-text">
       <SignInBackdrop />
       <div className="relative mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
         <SignInNav />

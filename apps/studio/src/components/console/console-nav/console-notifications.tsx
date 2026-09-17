@@ -27,7 +27,7 @@ export function ConsoleNotifications({ className }: { className?: string }) {
       <PopoverTrigger className={cn('relative', className)} aria-label="Notifications">
         <IconBell className="size-[15px]" stroke={1.75} />
         {unread && (
-          <span className="absolute top-1 right-1 size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-sev-critical" />
+          <span className="absolute top-1 right-1 size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
         )}
       </PopoverTrigger>
 

@@ -2,8 +2,8 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import type { CodeHunkProps } from './lib'
 
 const SIGN_STYLE = {
-  '+': { row: 'bg-sev-ok/10', sign: 'text-sev-ok' },
-  '-': { row: 'bg-sev-critical/10', sign: 'text-sev-critical' },
+  '+': { row: 'bg-severity-resolved/10', sign: 'text-severity-resolved' },
+  '-': { row: 'bg-severity-error/10', sign: 'text-severity-error' },
   '': { row: '', sign: 'text-faint' },
 } as const
 

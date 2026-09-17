@@ -5,50 +5,50 @@ export const TONE_TEXT: Record<ConsoleTone, string> = {
   body: 'text-body',
   muted: 'text-muted-foreground',
   faint: 'text-faint',
-  bad: 'text-sev-critical-ink',
-  warn: 'text-sev-warning-ink',
-  ok: 'text-sev-ok-ink',
-  info: 'text-sev-info-ink',
+  bad: 'text-severity-error-ink',
+  warn: 'text-severity-warning-ink',
+  ok: 'text-severity-resolved-ink',
+  info: 'text-severity-info-ink',
 }
 
 export const SEVERITY_BG: Record<ConsoleSeverity, string> = {
-  critical: 'bg-sev-critical',
-  warning: 'bg-sev-warning',
-  info: 'bg-sev-info',
-  ok: 'bg-sev-ok',
+  critical: 'bg-severity-error',
+  warning: 'bg-severity-warning',
+  info: 'bg-severity-info',
+  ok: 'bg-severity-resolved',
   idle: 'bg-faint',
 }
 
 export const SEVERITY_TEXT: Record<ConsoleSeverity, string> = {
-  critical: 'text-sev-critical',
-  warning: 'text-sev-warning',
-  info: 'text-sev-info',
-  ok: 'text-sev-ok',
+  critical: 'text-severity-error',
+  warning: 'text-severity-warning',
+  info: 'text-severity-info',
+  ok: 'text-severity-resolved',
   idle: 'text-muted-foreground',
 }
 
 export const PILL_TONE: Record<PillTone, string> = {
-  ok: 'text-sev-ok-ink bg-sev-ok/10',
-  warn: 'text-sev-warning-ink bg-sev-warning/10',
-  bad: 'text-sev-critical-ink bg-sev-critical/10',
-  info: 'text-sev-info-ink bg-sev-info/10',
+  ok: 'text-severity-resolved-ink bg-severity-resolved/10',
+  warn: 'text-severity-warning-ink bg-severity-warning/10',
+  bad: 'text-severity-error-ink bg-severity-error/10',
+  info: 'text-severity-info-ink bg-severity-info/10',
   neutral: 'text-body bg-muted',
 }
 
 export const BAR_TONE: Record<PillTone, string> = {
-  ok: 'bg-sev-ok',
-  warn: 'bg-sev-warning',
-  bad: 'bg-sev-critical',
-  info: 'bg-sev-info',
+  ok: 'bg-severity-resolved',
+  warn: 'bg-severity-warning',
+  bad: 'bg-severity-error',
+  info: 'bg-severity-info',
   neutral: 'bg-rule-strong',
 }
 
-/** Log panes always render on the ink ground, so these are fixed rather than themed. */
+/** Log panes carry `dark`, so these resolve to the dark-ground severity column in both themes. */
 export const LOG_LEVEL_TEXT: Record<LogLevel, string> = {
-  ERROR: 'text-sev-critical',
-  WARN: 'text-sev-warning',
+  ERROR: 'text-severity-error',
+  WARN: 'text-severity-warning',
   INFO: 'text-zinc-600',
-  OK: 'text-sev-ok',
+  OK: 'text-severity-resolved',
 }
 
 export const STACK_TONE = {

@@ -2,9 +2,15 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import type { DetailBannerProps } from '../lib'
 
 const TONE = {
-  ok: { wrap: 'bg-sev-ok/[0.07] text-sev-ok-ink', dot: 'bg-sev-ok' },
-  info: { wrap: 'bg-sev-info/[0.07] text-sev-info-ink', dot: 'bg-sev-info' },
-  warn: { wrap: 'bg-sev-warning/[0.08] text-sev-warning-ink', dot: 'bg-sev-warning' },
+  ok: {
+    wrap: 'bg-severity-resolved/[0.07] text-severity-resolved-ink',
+    dot: 'bg-severity-resolved',
+  },
+  info: { wrap: 'bg-severity-info/[0.07] text-severity-info-ink', dot: 'bg-severity-info' },
+  warn: {
+    wrap: 'bg-severity-warning/[0.08] text-severity-warning-ink',
+    dot: 'bg-severity-warning',
+  },
 } as const
 
 export function DetailBanner({ banner }: DetailBannerProps) {

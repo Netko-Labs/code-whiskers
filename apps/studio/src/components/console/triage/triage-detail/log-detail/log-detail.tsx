@@ -15,14 +15,14 @@ export function LogDetail({ item }: { item: ConsoleItem }) {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-bold font-mono text-[22px]">{item.metric}</span>
-            <span className="text-sev-warning text-xs">{item.metricDelta}</span>
+            <span className="text-severity-warning text-xs">{item.metricDelta}</span>
           </div>
         </div>
         <div className="flex h-24 items-end gap-1 border-border border-b pb-0.5">
           {(item.bars ?? []).map((bar, index) => (
             <div
               key={`${index}-${bar.percent}`}
-              className={cn('flex-1 rounded-[1px]', bar.hot ? 'bg-sev-warning' : 'bg-border')}
+              className={cn('flex-1 rounded-[1px]', bar.hot ? 'bg-severity-warning' : 'bg-border')}
               style={{ height: `${bar.percent}%` }}
             />
           ))}

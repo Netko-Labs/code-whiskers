@@ -3,7 +3,7 @@ import { LOG_LEVEL_TEXT, type LogLinesProps } from './lib'
 
 export function LogLines({ lines, className }: LogLinesProps) {
   return (
-    <div className={cn('bg-zinc-950 px-4 py-3 font-mono text-xs leading-[19px]', className)}>
+    <div className={cn('dark bg-zinc-950 px-4 py-3 font-mono text-xs leading-[19px]', className)}>
       {lines.map((line) => (
         <div
           key={`${line.time}-${line.message}`}

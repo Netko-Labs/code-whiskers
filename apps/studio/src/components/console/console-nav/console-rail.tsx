@@ -13,7 +13,7 @@ export function ConsoleRail() {
   const openNav = useConsoleStore((s) => s.openNav)
 
   return (
-    <nav className="flex w-14 shrink-0 flex-col items-center gap-3.5 bg-zinc-950 py-3.5">
+    <nav className="dark flex w-14 shrink-0 flex-col items-center gap-3.5 bg-zinc-950 py-3.5">
       <button type="button" onClick={openNav} title="Open sidebar">
         <CatMark cut="favicon" tone="dark" background={false} size={24} label="Open sidebar" />
       </button>
@@ -26,7 +26,7 @@ export function ConsoleRail() {
           className={cn(RAIL_BUTTON, 'relative')}
         >
           <IconBell className="size-4" stroke={1.75} />
-          <span className="absolute top-[7px] right-[7px] size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-sev-critical" />
+          <span className="absolute top-[7px] right-[7px] size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
         </button>
         <button
           type="button"

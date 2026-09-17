@@ -20,7 +20,7 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
         </div>
         <div className={CARD}>
           <span className="text-[11px] text-muted-foreground">Checks</span>
-          <span className="font-semibold text-sev-ok text-sm">{item.checks}</span>
+          <span className="font-semibold text-severity-resolved text-sm">{item.checks}</span>
         </div>
         <div className={CARD}>
           <span className="text-[11px] text-muted-foreground">Author</span>
@@ -32,7 +32,7 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
         <div className="overflow-hidden rounded-2xl border border-border">
           <div className="flex items-center gap-2 border-border border-b bg-surface-subtle px-3.5 py-2.5">
             <span className="font-medium font-mono text-xs">{item.blockerFile}</span>
-            <span className="rounded-md bg-sev-critical/10 px-1.5 py-0.5 font-semibold text-[10px] text-sev-critical">
+            <span className="rounded-md bg-severity-error/10 px-1.5 py-0.5 font-semibold text-[10px] text-severity-error">
               {item.blockerKind}
             </span>
             <span className="ml-auto text-[11px] text-muted-foreground">flagged by Whiskers</span>

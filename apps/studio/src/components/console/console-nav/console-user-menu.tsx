@@ -60,14 +60,14 @@ export function ConsoleUserMenu() {
               <Icon
                 className={cn(
                   'size-[15px] shrink-0',
-                  entry.danger ? 'text-sev-critical' : 'text-body',
+                  entry.danger ? 'text-severity-error' : 'text-body',
                 )}
                 stroke={1.75}
               />
               <span
                 className={cn(
                   'flex-1 text-[13px]',
-                  entry.danger ? 'text-sev-critical' : 'text-body',
+                  entry.danger ? 'text-severity-error' : 'text-body',
                 )}
               >
                 {entry.label}

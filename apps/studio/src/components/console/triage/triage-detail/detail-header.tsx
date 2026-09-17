@@ -5,8 +5,8 @@ import { type DetailPaneProps, primaryLabel, secondaryLabel } from '../lib'
 import { AssignMenu } from './assign-menu'
 
 const BADGE2_TONE: Record<string, string> = {
-  'NO FINDINGS': 'text-sev-ok-ink bg-sev-ok/10',
-  '1 BLOCKER': 'text-sev-info-ink bg-sev-info/10',
+  'NO FINDINGS': 'text-severity-resolved-ink bg-severity-resolved/10',
+  '1 BLOCKER': 'text-severity-info-ink bg-severity-info/10',
 }
 
 export function DetailHeader({ item, status, actions }: DetailPaneProps) {
@@ -20,7 +20,7 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
           <span
             className={cn(
               'rounded-md px-[7px] py-[3px] font-semibold text-[10px] text-zinc-50',
-              done ? 'bg-sev-ok' : SEVERITY_BG[item.severity],
+              done ? 'bg-severity-resolved' : SEVERITY_BG[item.severity],
             )}
           >
             {badge}
@@ -29,7 +29,7 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
             <span
               className={cn(
                 'rounded-md px-[7px] py-[3px] font-semibold text-[10px]',
-                BADGE2_TONE[item.badge2] ?? 'text-sev-critical-ink bg-sev-critical/10',
+                BADGE2_TONE[item.badge2] ?? 'text-severity-error-ink bg-severity-error/10',
               )}
             >
               {item.badge2}

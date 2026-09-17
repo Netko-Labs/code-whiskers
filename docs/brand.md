@@ -26,8 +26,9 @@ cuts, all ink or white, never colored, never gradient, never 3D.
 | Favicon | below 64px: tabs, sidebar header, wordmark lockup. Bigger eyes, no mouth, one `+` row | `<CatMark cut="favicon" />` | `apps/studio/public/favicon.svg` |
 | Round | bot avatar on GitHub, Slack, in-app comments; white on ink or ink on fog | `<CatMark cut="round" tone="dark" />` inside a circle | `apps/studio/public/avatar.svg` |
 
-Wordmark is Inter 600, two words, capital C and W: **Code Whiskers**. Never "CodeWhiskers" in prose,
-never all-caps, never a custom letterform, never stacked with a tagline in-app. In terminals the cat
+Wordmark is Inter 600, capital C and W. Two words in prose and on marketing surfaces: **Code
+Whiskers**. One word beside the mark in the app chrome — the console sidebar reads **CodeWhiskers**.
+Never all-caps, never a custom letterform, never stacked with a tagline in-app. In terminals the cat
 is text: `=^.^=`. CLI name: `whiskers`.
 
 ## Color
@@ -41,14 +42,27 @@ Ink and paper. Chromatic color means severity or data, nothing else.
 | Fog | `#F5F5F5` | `fog` | muted fills, hover, code chips |
 | Hairline | `#E5E5E5` | `hairline` | every border, removed diff lines |
 | Ash | `#737373` | `ash` | secondary text, timestamps |
-| Error | `#FF4D4D` | `severity-error` | blockers, unhandled exceptions, failing checks |
-| Warning | `#FFB020` | `severity-warning` | review suggestions, degraded, rate spikes |
-| Resolved | `#2EE59D` | `severity-resolved` | approved, fixed, healthy; once per screen at most |
-| Info | `#5B9BFF` | `severity-info` | links in logs, informational badges |
+
+Severity is one name per meaning, two values per ground — the original palette was tuned for ink and
+washes out on paper, so the light column is the console's. Tokens resolve by theme; nothing in code
+picks a hex.
+
+| Token | Light ground | Dark ground | Tailwind | Use |
+| --- | --- | --- | --- | --- |
+| Error | `#E7000B` | `#FF4D4D` | `severity-error` | blockers, unhandled exceptions, failing checks |
+| Warning | `#F59E0B` | `#FFB020` | `severity-warning` | review suggestions, degraded, rate spikes |
+| Resolved | `#16A34A` | `#2EE59D` | `severity-resolved` | approved, fixed, healthy; once per screen at most |
+| Info | `#2B7FFF` | `#5B9BFF` | `severity-info` | links in logs, informational badges |
+
+The fill values above are for dots, rules and bars. Severity *text* needs more contrast than a dot,
+so it has its own token — `severity-{name}-ink`, `#B91C1C`/`#92400E`/`#166534`/`#1E40AF` on light
+and `#FCA5A5`/`#FCD34D`/`#4ADE80`/`#93C5FD` on dark.
 
 Dark ground (CLI, log views, the sign-in page): background `ink`, card/code `ink-card` `#171717`,
 hairline `ink-hairline` `#262626`, removed line `ink-removed` `#404040`, muted text `ink-muted`
-`#A3A3A3`, text `ink-text` `#FAFAFA`. Severity colors don't move between modes.
+`#A3A3A3`, text `ink-text` `#FAFAFA`. A surface that is dark regardless of the app theme carries the
+`dark` class so its severity tokens resolve to the dark column — the sign-in page, the console's
+sidebar, and its log, trace and toast panes all do.
 
 Severity is a dot or a 1px left rule on a row, never a filled card. Badge text stays ink; the color
 sits in the dot. Blue is never branding, only focus and data. Charts use the five system blues; an

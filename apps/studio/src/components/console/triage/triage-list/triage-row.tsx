@@ -35,7 +35,7 @@ export function TriageRow({ bucket, item, active }: TriageRowProps) {
       <span
         className={cn(
           'font-mono text-[11px]',
-          status.done ? 'text-sev-ok' : 'text-muted-foreground',
+          status.done ? 'text-severity-resolved' : 'text-muted-foreground',
         )}
       >
         {owner ? `assigned to ${owner}` : item.meta}
