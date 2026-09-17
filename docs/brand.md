@@ -1,7 +1,7 @@
-# Code Whiskers brand
+# CodeWhiskers brand
 
 Source of truth: the Claude Design project
-[Code Whiskers](https://claude.ai/design/p/741c426a-5850-4698-bb48-ec9e5407aef6) (Brand Guidelines,
+[CodeWhiskers](https://claude.ai/design/p/741c426a-5850-4698-bb48-ec9e5407aef6) (Brand Guidelines,
 Logo, Expressions, Login). This file is the working summary; the code lives in
 `packages/shared/ui/src/brand` and ships as `@code-whiskers/ui/brand`.
 
@@ -26,10 +26,10 @@ cuts, all ink or white, never colored, never gradient, never 3D.
 | Favicon | below 64px: tabs, sidebar header, wordmark lockup. Bigger eyes, no mouth, one `+` row | `<CatMark cut="favicon" />` | `apps/studio/public/favicon.svg` |
 | Round | bot avatar on GitHub, Slack, in-app comments; white on ink or ink on fog | `<CatMark cut="round" tone="dark" />` inside a circle | `apps/studio/public/avatar.svg` |
 
-Wordmark is Inter 600, capital C and W. Two words in prose and on marketing surfaces: **Code
-Whiskers**. One word beside the mark in the app chrome — the console sidebar reads **CodeWhiskers**.
+Wordmark is Inter 600, one word, capital C and W: **CodeWhiskers** — everywhere, prose included.
 Never all-caps, never a custom letterform, never stacked with a tagline in-app. In terminals the cat
-is text: `=^.^=`. CLI name: `whiskers`.
+is text: `=^.^=`. CLI name: `whiskers`. Package scope and repository stay kebab-case
+(`@code-whiskers/*`) — those are identifiers, not the wordmark.
 
 ## Color
 

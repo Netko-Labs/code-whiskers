@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { CatMarkProps } from './lib'
 import {
+  BRAND_NAME,
   CAT_BODY_EARS,
   CAT_FAV_PLUS_SIGN,
   CAT_FAV_PLUS_TEXT,
@@ -75,7 +76,7 @@ export function CatMark({
   background = cut !== 'round',
   className,
   style,
-  label = 'Code Whiskers',
+  label = BRAND_NAME,
 }: CatMarkProps) {
   const inkColor = ink ?? (tone === 'light' ? CAT_INK : CAT_PAPER)
   const paperColor = paper ?? (tone === 'light' ? CAT_PAPER : CAT_INK)

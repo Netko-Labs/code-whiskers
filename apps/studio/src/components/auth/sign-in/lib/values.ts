@@ -1,6 +1,5 @@
 import type { BackdropTile, FooterLink, NavLink } from './types'
 
-export const BRAND_NAME = 'Code Whiskers'
 export const SIGN_IN_HEADLINE = 'Three tools, one reviewer that never gets loud.'
 export const SIGN_IN_COPYRIGHT = '© 2026 Netko Labs'
 

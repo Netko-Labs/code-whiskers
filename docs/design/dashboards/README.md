@@ -1,6 +1,6 @@
 # Dashboard directions
 
-Five throwaway HTML prototypes for the Code Whiskers dashboard. Open any file directly in a browser
+Five throwaway HTML prototypes for the CodeWhiskers dashboard. Open any file directly in a browser
 (they share `_shared.css` + `_cat.svg`, no build). Each one answers the same question — *what did
 the cat do, what needs me* — with a different spine.
 

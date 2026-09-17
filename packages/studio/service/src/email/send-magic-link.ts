@@ -28,7 +28,7 @@ export async function sendMagicLinkEmail({
     body: JSON.stringify({
       from,
       to: email,
-      subject: 'Your Code Whiskers sign-in link',
+      subject: 'Your CodeWhiskers sign-in link',
       html: renderMagicLinkEmail(url),
     }),
   })

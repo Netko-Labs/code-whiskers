@@ -13,6 +13,6 @@ function ConsoleLayout() {
 }
 
 export const Route = createFileRoute('/console')({
-  head: () => ({ meta: [{ title: 'Console · Code Whiskers' }] }),
+  head: () => ({ meta: [{ title: 'Console · CodeWhiskers' }] }),
   component: ConsoleLayout,
 })

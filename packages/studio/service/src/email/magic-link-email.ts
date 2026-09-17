@@ -8,7 +8,7 @@ export function renderMagicLinkEmail(url: string): string {
   <body style="margin:0;padding:24px;background:#f5f5f5;font-family:Inter,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#09090b;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background:#ffffff;border:1px solid #e5e5e5;border-radius:14px;">
       <tr><td style="padding:32px;">
-        <p style="margin:0 0 20px;font-size:13px;font-weight:600;letter-spacing:-0.01em;">Code Whiskers</p>
+        <p style="margin:0 0 20px;font-size:13px;font-weight:600;letter-spacing:-0.01em;">CodeWhiskers</p>
         <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;letter-spacing:-0.02em;">Sign in</h1>
         <p style="margin:0 0 24px;color:#737373;font-size:14px;line-height:20px;">
           This link signs you in once and expires in 10 minutes.

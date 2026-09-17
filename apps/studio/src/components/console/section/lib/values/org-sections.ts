@@ -73,7 +73,7 @@ export const MEMBERS_SECTION: SectionDefinition = {
 
 export const INTEGRATIONS_SECTION: SectionDefinition = {
   title: 'Integrations',
-  subtitle: 'Where Code Whiskers reads code and sends signal',
+  subtitle: 'Where CodeWhiskers reads code and sends signal',
   actions: [
     { label: 'Webhook logs', variant: 'outline' },
     { label: 'Browse integrations', variant: 'solid' },

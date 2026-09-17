@@ -43,13 +43,13 @@ try {
     environment: 'e2e',
     release: 'code-whiskers-e2e@1.0.0',
   })
-  Sentry.captureException(new Error('Code Whiskers SDK compatibility smoke error'))
-  Sentry.captureMessage('Code Whiskers SDK compatibility smoke message', 'warning')
+  Sentry.captureException(new Error('CodeWhiskers SDK compatibility smoke error'))
+  Sentry.captureMessage('CodeWhiskers SDK compatibility smoke message', 'warning')
   const flushed = await Sentry.flush(5000)
   assert(flushed, 'Sentry SDK did not flush')
 
   // captureException twice more with the same error — must group into one issue
-  Sentry.captureException(new Error('Code Whiskers SDK compatibility smoke error'))
+  Sentry.captureException(new Error('CodeWhiskers SDK compatibility smoke error'))
   await Sentry.flush(5000)
 
   const overview = (await (await fetch(`${apiBaseUrl}/v1/overview`)).json()) as {

@@ -1,6 +1,6 @@
-import { CatMark } from '@code-whiskers/ui/brand'
+import { BRAND_NAME, CatMark } from '@code-whiskers/ui/brand'
 import { Link } from '@tanstack/react-router'
-import { BRAND_NAME, NAV_LINKS } from '../lib'
+import { NAV_LINKS } from '../lib'
 
 export function SignInNav() {
   return (

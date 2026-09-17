@@ -1,4 +1,4 @@
-import { CatMark } from '@code-whiskers/ui/brand'
+import { BRAND_NAME, CatMark } from '@code-whiskers/ui/brand'
 import { IconRefresh, IconSearch } from '@tabler/icons-react'
 import { NAV_GROUPS } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
@@ -15,10 +15,10 @@ export function ConsoleNav() {
     <nav className="dark relative flex min-w-[196px] shrink basis-[244px] flex-col gap-3.5 bg-zinc-950 px-3 py-3.5">
       <div className="relative flex h-[30px] items-center gap-[7px] px-0.5">
         <button type="button" onClick={closeNav} title="Collapse sidebar" className="shrink-0">
-          <CatMark cut="favicon" tone="dark" background={false} size={22} label="CodeWhiskers" />
+          <CatMark cut="favicon" tone="dark" background={false} size={22} />
         </button>
         <span className="min-w-0 flex-1 truncate font-semibold text-[14px] text-zinc-50 tracking-[-0.015em]">
-          CodeWhiskers
+          {BRAND_NAME}
         </span>
         <ConsoleNotifications className={NAV_ICON_BUTTON} />
         <button
