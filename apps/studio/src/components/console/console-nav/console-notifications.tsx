@@ -6,15 +6,17 @@ import { useState } from 'react'
 import { NOTIFICATIONS } from '../shared/console-data'
 import { SeverityDot } from '../shared/console-ui'
 import { useConsoleStore } from '../use-console-store'
+import { useUnreadNotifications } from './lib'
 
 export function ConsoleNotifications({ className }: { className?: string }) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
-  const readAll = useConsoleStore((s) => s.readAll)
-  const unread = !readAll && NOTIFICATIONS.some((note) => note.unread)
+  const unread = useUnreadNotifications()
+  const unreadIds = new Set(unread.map((note) => note.itemId))
 
   function openItem(itemId: string) {
     setOpen(false)
+    useConsoleStore.getState().markRead(itemId)
     navigate({
       to: '/console/triage/$bucket',
       params: { bucket: 'inbox' },
@@ -26,7 +28,7 @@ export function ConsoleNotifications({ className }: { className?: string }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className={cn('relative', className)} aria-label="Notifications">
         <IconBell className="size-[15px]" stroke={1.75} />
-        {unread && (
+        {unread.length > 0 && (
           <span className="absolute top-1 right-1 size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
         )}
       </PopoverTrigger>
@@ -39,7 +41,7 @@ export function ConsoleNotifications({ className }: { className?: string }) {
             onClick={() => {
               setOpen(false)
               const { markAllRead, flash } = useConsoleStore.getState()
-              markAllRead()
+              markAllRead(NOTIFICATIONS.map((note) => note.itemId))
               flash('All notifications marked as read')
             }}
             className="text-[11px] text-body underline"
@@ -47,27 +49,34 @@ export function ConsoleNotifications({ className }: { className?: string }) {
             Mark all as read
           </button>
         </div>
-        {NOTIFICATIONS.map((note) => (
-          <button
-            type="button"
-            key={note.title}
-            onClick={() => openItem(note.itemId)}
-            className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-rule-soft"
-          >
-            <SeverityDot severity={readAll ? 'idle' : note.severity} size="sm" className="mt-1.5" />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span
-                className={cn(
-                  'text-[13px] leading-[18px] text-pretty',
-                  readAll || !note.unread ? 'font-normal' : 'font-semibold',
-                )}
-              >
-                {note.title}
-              </span>
-              <span className="text-[11px] text-muted-foreground">{note.when}</span>
-            </div>
-          </button>
-        ))}
+        {NOTIFICATIONS.map((note) => {
+          const isUnread = unreadIds.has(note.itemId)
+          return (
+            <button
+              type="button"
+              key={note.title}
+              onClick={() => openItem(note.itemId)}
+              className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-rule-soft"
+            >
+              <SeverityDot
+                severity={isUnread ? note.severity : 'idle'}
+                size="sm"
+                className="mt-1.5"
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span
+                  className={cn(
+                    'text-[13px] leading-[18px] text-pretty',
+                    isUnread ? 'font-semibold' : 'font-normal',
+                  )}
+                >
+                  {note.title}
+                </span>
+                <span className="text-[11px] text-muted-foreground">{note.when}</span>
+              </div>
+            </button>
+          )
+        })}
       </PopoverContent>
     </Popover>
   )

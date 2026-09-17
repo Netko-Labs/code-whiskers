@@ -45,6 +45,8 @@ export const REVIEW_FANOUT: ConsoleItem = {
     file: 'src/webhooks/fanout.ts',
     cta: 'Commit to this branch',
     hunk: [
+      { no: '83', sign: '-', text: '  const res = await post(target, payload);' },
+      { no: '83', sign: '+', text: '  let res = await post(target, payload);' },
       { no: '84', sign: '-', text: '  while (!res.ok) await post(target, payload);' },
       { no: '84', sign: '+', text: '  let attempt = 0;' },
       { no: '85', sign: '+', text: '  while (!res.ok && attempt < LIMITS.fanoutRetries) {' },

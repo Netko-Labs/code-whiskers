@@ -1,10 +1,16 @@
 import type { ZodType } from 'zod'
 import { WHISKERS_BASE_PATH } from './lib'
 
-/** Studio fronts whiskers, so `/v1` is same-origin in the browser and absolute on the server. */
+/**
+ * Studio fronts whiskers, so `/v1` is same-origin. These queries are browser-only: on the server
+ * the deployed origin is not knowable from client-bundled code, and guessing one silently fetches
+ * the wrong host. Prefetch through a route loader with the server config instead.
+ */
 function resolve(path: string): string {
-  const base = typeof window === 'undefined' ? 'http://localhost:3000' : window.location.origin
-  return new URL(`${WHISKERS_BASE_PATH}${path}`, base).toString()
+  if (typeof window === 'undefined') {
+    throw new Error(`whiskers ${path} was requested on the server; these queries are client-only`)
+  }
+  return new URL(`${WHISKERS_BASE_PATH}${path}`, window.location.origin).toString()
 }
 
 export async function fetchWhiskers<T>(path: string, schema: ZodType<T>): Promise<T> {

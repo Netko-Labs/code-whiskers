@@ -37,8 +37,8 @@ export function FixDrawer({ item, actions }: { item: ConsoleItem; actions: Detai
 
         <div className="flex flex-col gap-2">
           <span className="font-semibold text-xs">Whiskers will also</span>
-          {fix.steps.map((step) => (
-            <div key={step} className="flex items-start gap-2.5">
+          {fix.steps.map((step, index) => (
+            <div key={`${index}-${step}`} className="flex items-start gap-2.5">
               <span className="mt-[7px] size-[5px] shrink-0 rounded-full bg-faint" />
               <span className="text-[13px] text-body leading-[19px]">{step}</span>
             </div>

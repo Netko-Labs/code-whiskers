@@ -12,7 +12,7 @@ export function TriageRow({ bucket, item, active }: TriageRowProps) {
     <Link
       to="/console/triage/$bucket"
       params={{ bucket }}
-      search={{ sel: item.id }}
+      search={(prev) => ({ ...prev, sel: item.id })}
       className={cn(
         'flex cursor-pointer flex-col gap-[5px] border-rule-soft border-b border-l-2 px-[18px] py-[13px]',
         active ? 'border-l-foreground bg-surface-subtle' : 'border-l-transparent bg-background',

@@ -19,24 +19,33 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
   return useMemo(() => {
     const store = () => useConsoleStore.getState()
 
+    const setApproved = (value: boolean) => store().setApproved(item.id, value)
+    const setResolved = (value: boolean) => store().setResolved(item.id, value)
+    const setTracked = (value: boolean) => store().setTracked(item.id, value)
+    const setDismissed = (value: boolean) => store().setDismissed(item.id, value)
+
     return {
       onPrimary: () => {
-        const { toggleApproved, toggleResolved, setTracked, flash } = store()
+        const { approved, resolved, flash } = store()
         if (item.kind === 'review') {
-          const approved = toggleApproved(item.id)
+          const next = !approved[item.id]
+          setApproved(next)
           flash(
-            approved ? `Approved ${item.id} — Jamie notified` : `${item.id} approval withdrawn`,
-            approved,
+            next ? `Approved ${item.id} — Jamie notified` : `${item.id} approval withdrawn`,
+            () => setApproved(!next),
           )
           return
         }
         if (item.kind === 'log') {
-          setTracked(item.id)
-          flash('Created CW-2048 from this pattern', true)
+          setTracked(true)
+          flash('Created CW-2048 from this pattern', () => setTracked(false))
           return
         }
-        const resolved = toggleResolved(item.id)
-        flash(resolved ? `Resolved ${item.id} — quiet window started` : `${item.id} reopened`, true)
+        const next = !resolved[item.id]
+        setResolved(next)
+        flash(next ? `Resolved ${item.id} — quiet window started` : `${item.id} reopened`, () =>
+          setResolved(!next),
+        )
       },
 
       onSecondary: () => {
@@ -49,37 +58,45 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
       onEvidence: () => store().flash(`${item.evidenceLabel} — opened in a side panel`),
 
       onDismissBlocker: () => {
-        const { setDismissed, flash } = store()
-        setDismissed(item.id)
-        flash(`Blocker dismissed on ${item.id}`, true)
+        setDismissed(true)
+        store().flash(`Blocker dismissed on ${item.id}`, () => setDismissed(false))
       },
 
-      openFix: () => store().setFixOpen(true),
-      closeFix: () => store().setFixOpen(false),
+      openFix: () => store().openFix(item.id),
+      closeFix: () => store().closeFix(),
 
       commitFix: () => {
-        const { setFixOpen, setTracked, flash } = store()
-        setFixOpen(false)
-        if (item.kind === 'review') flash(`Committed to ${item.id} — checks re-running`, true)
+        const { closeFix, flash } = store()
+        closeFix()
+        if (item.kind === 'review') flash(`Committed to ${item.id} — checks re-running`)
         else if (item.kind === 'log') {
-          setTracked(item.id)
-          flash('Created CW-2048 with this alert condition', true)
-        } else flash('PR #4472 opened — Whiskers pushed the fix', true)
+          setTracked(true)
+          flash('Created CW-2048 with this alert condition', () => setTracked(false))
+        } else flash('PR #4472 opened — Whiskers pushed the fix')
       },
 
       assignTo: (name: string) => {
-        const { assign, flash } = store()
+        const { assignee, assign, flash } = store()
+        const previous = assignee[item.id]
         assign(item.id, name)
-        flash(`Assigned ${item.id} to ${name}`, true)
+        flash(`Assigned ${item.id} to ${name}`, () => assign(item.id, previous))
       },
 
       postComment: () => {
-        const { postComment, flash } = store()
-        if (!postComment(VIEWER.initials, VIEWER.name)) {
+        const { draft, addComment, removeLastComment, flash } = store()
+        const body = draft.trim()
+        if (!body) {
           flash('Nothing to post yet')
           return
         }
-        flash(`Comment posted to ${item.id}`, true)
+        addComment({
+          initials: VIEWER.initials,
+          who: VIEWER.name,
+          when: 'just now',
+          body,
+          self: true,
+        })
+        flash(`Comment posted to ${item.id}`, removeLastComment)
       },
     }
   }, [item])
