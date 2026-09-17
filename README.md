@@ -1,4 +1,4 @@
-# Code Whiskers
+# CodeWhiskers
 
 Code review, error tracking and logs for teams who'd rather ship. A GitHub App reviews every pull
 request with an LLM of your choice (BYOK via OpenRouter), a Sentry-compatible endpoint ingests

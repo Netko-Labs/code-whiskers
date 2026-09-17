@@ -16,6 +16,12 @@
     "db:seed": "bun run repo db:seed --app studio"
   },
   "dependencies": {
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/studio-api": "workspace:*",
+    "@code-whiskers/studio-domain": "workspace:*",
+    "@code-whiskers/studio-repository": "workspace:*",
+    "@code-whiskers/studio-service": "workspace:*",
+    "@code-whiskers/ui": "workspace:*",
     "@tabler/icons-react": "^3.46.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-devtools": "^0.10.12",
@@ -23,19 +29,15 @@
     "@tanstack/react-router": "^1.170.36",
     "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-start": "^1.168.53",
-    "@code-whiskers/logger": "workspace:*",
-    "@code-whiskers/studio-api": "workspace:*",
-    "@code-whiskers/studio-domain": "workspace:*",
-    "@code-whiskers/studio-repository": "workspace:*",
-    "@code-whiskers/studio-service": "workspace:*",
-    "@code-whiskers/ui": "workspace:*",
     "better-auth": "^1.7.4",
     "elysia": "2.0.0-beta.14",
     "nitro": "3.0.260903-beta",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "zod": "^4.6.5",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

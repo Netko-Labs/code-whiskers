@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import type { KeydownHandler, VisibilityHandler } from '../types'
+import type { KeydownHandler, ResizeHandler, VisibilityHandler } from '../types'
 
 export function useDocumentKeydown(handler: KeydownHandler, enabled = true) {
   useEffect(() => {
@@ -25,6 +25,19 @@ export function useSyncOnVisible(handler: VisibilityHandler, enabled = true) {
     document.addEventListener('visibilitychange', onVisibilityChange)
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [enabled, handler])
+}
+
+/** Viewport width has no document-level event; this is the one place `window` is the API. */
+export function useWindowResize(handler: ResizeHandler, enabled = true) {
+  useEffect(() => {
+    if (!enabled) return
+
+    handler()
+    window.addEventListener('resize', handler)
+    return () => {
+      window.removeEventListener('resize', handler)
     }
   }, [enabled, handler])
 }

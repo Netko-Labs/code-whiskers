@@ -10,16 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConsoleRouteImport } from './routes/console'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ConsoleIndexRouteImport } from './routes/console/index'
+import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsoleRoute = ConsoleRouteImport.update({
+  id: '/console',
+  path: '/console',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -37,6 +46,16 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsoleIndexRoute = ConsoleIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleSectionRoute = ConsoleSectionRouteImport.update({
+  id: '/$section',
+  path: '/$section',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const V1SplatRoute = V1SplatRouteImport.update({
   id: '/v1/$',
   path: '/v1/$',
@@ -52,67 +71,95 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsoleTriageBucketRoute = ConsoleTriageBucketRouteImport.update({
+  id: '/triage/$bucket',
+  path: '/triage/$bucket',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/console': typeof ConsoleRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/console/$section': typeof ConsoleSectionRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
+  '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/console/$section': typeof ConsoleSectionRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
+  '/console': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/console': typeof ConsoleRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/console/$section': typeof ConsoleSectionRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
+  '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/console'
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/console/$section'
     | '/v1/$'
     | '/webhooks/$'
+    | '/console/'
     | '/api/auth/$'
+    | '/console/triage/$bucket'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/console/$section'
     | '/v1/$'
     | '/webhooks/$'
+    | '/console'
     | '/api/auth/$'
+    | '/console/triage/$bucket'
   id:
     | '__root__'
     | '/'
+    | '/console'
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/console/$section'
     | '/v1/$'
     | '/webhooks/$'
+    | '/console/'
     | '/api/auth/$'
+    | '/console/triage/$bucket'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConsoleRoute: typeof ConsoleRouteWithChildren
   SignInRoute: typeof SignInRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiHealthRoute: typeof ApiHealthRoute
@@ -128,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/console': {
+      id: '/console'
+      path: '/console'
+      fullPath: '/console'
+      preLoaderRoute: typeof ConsoleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -151,6 +205,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/console/': {
+      id: '/console/'
+      path: '/'
+      fullPath: '/console/'
+      preLoaderRoute: typeof ConsoleIndexRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/$section': {
+      id: '/console/$section'
+      path: '/$section'
+      fullPath: '/console/$section'
+      preLoaderRoute: typeof ConsoleSectionRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/v1/$': {
       id: '/v1/$'
       path: '/v1/$'
@@ -172,11 +240,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/console/triage/$bucket': {
+      id: '/console/triage/$bucket'
+      path: '/triage/$bucket'
+      fullPath: '/console/triage/$bucket'
+      preLoaderRoute: typeof ConsoleTriageBucketRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
   }
 }
 
+interface ConsoleRouteChildren {
+  ConsoleSectionRoute: typeof ConsoleSectionRoute
+  ConsoleIndexRoute: typeof ConsoleIndexRoute
+  ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
+}
+
+const ConsoleRouteChildren: ConsoleRouteChildren = {
+  ConsoleSectionRoute: ConsoleSectionRoute,
+  ConsoleIndexRoute: ConsoleIndexRoute,
+  ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
+}
+
+const ConsoleRouteWithChildren =
+  ConsoleRoute._addFileChildren(ConsoleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConsoleRoute: ConsoleRouteWithChildren,
   SignInRoute: SignInRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiHealthRoute: ApiHealthRoute,

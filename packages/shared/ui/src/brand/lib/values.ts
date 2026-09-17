@@ -1,5 +1,7 @@
 import type { CatExpressionName, CatExpressionSpec } from './types'
 
+export const BRAND_NAME = 'CodeWhiskers'
+
 export const CAT_VIEWBOX = '0 0 1024 1024'
 // Same drawing with the tail cropped off the frame; pairs with overflow-visible
 export const CAT_VIEWBOX_CROP = '128 214 720 620'

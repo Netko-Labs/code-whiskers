@@ -8,13 +8,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Code Whiskers' },
+      { title: 'CodeWhiskers' },
       {
         name: 'description',
         content: 'Code review, error tracking and logs for teams who would rather ship.',
       },
       { name: 'theme-color', content: '#09090b' },
-      { name: 'color-scheme', content: 'dark' },
+      { name: 'color-scheme', content: 'light dark' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

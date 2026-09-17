@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { CatEyes, CatMarks, CatMouth, CatRow, CatTail } from './cat-parts'
 import type { CatExpressionName, CatExpressionProps } from './lib'
 import {
+  BRAND_NAME,
   CAT_BODY_EARS,
   CAT_BODY_FLAT,
   CAT_EXPRESSIONS,
@@ -112,7 +113,7 @@ export function CatExpression({
       width={size}
       height={height}
       role="img"
-      aria-label={label ?? `Code Whiskers cat, ${expression}`}
+      aria-label={label ?? `${BRAND_NAME} cat, ${expression}`}
       className={className}
       style={
         {
