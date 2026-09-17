@@ -113,6 +113,8 @@
       "!**/routeTree.gen.ts",
       "!**/public",
       "!docs/design",
+      "!ds-bundle",
+      "!.design-sync",
       "!**/generated",
       "!**/dist",
       "!**/src/components/ui",

@@ -1,0 +1,168 @@
+import type { SectionDefinition } from '../../../shared/console-model'
+
+export const LIVE_LOGS_SECTION: SectionDefinition = {
+  title: 'Live logs',
+  subtitle: 'OTel log stream · api-gateway · tailing 4,120 lines/s',
+  actions: [
+    { label: 'Pause', variant: 'outline' },
+    { label: 'Save as query', variant: 'solid' },
+  ],
+  stats: [
+    { label: 'ERROR', value: '2,104', note: 'last 15m' },
+    { label: 'WARN', value: '18,440', note: 'last 15m' },
+    { label: 'INFO', value: '1.18M', note: 'last 15m' },
+    { label: 'Retention', value: '30d', note: '1.2M/day' },
+  ],
+  tabs: ['All levels', 'Errors', 'Warnings', 'My services'],
+  table: {
+    grid: '110px 90px 150px 1fr 100px',
+    columns: [
+      { label: 'Time' },
+      { label: 'Level' },
+      { label: 'Service' },
+      { label: 'Message' },
+      { label: 'Trace', align: 'end' },
+    ],
+    rows: [
+      [
+        { kind: 'text', text: '09:41:02.118', mono: true },
+        { kind: 'pill', text: 'ERROR', tone: 'bad' },
+        { kind: 'text', text: 'auth/session', mono: true },
+        { kind: 'text', text: "cannot read 'sessionId' of undefined req=7f21ac", mono: true },
+        { kind: 'text', text: '7f21ac', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:02.119', mono: true },
+        { kind: 'pill', text: 'ERROR', tone: 'bad' },
+        { kind: 'text', text: 'webhooks/verify', mono: true },
+        { kind: 'text', text: 'verifyWebhook failed after 1 attempt status=500', mono: true },
+        { kind: 'text', text: '7f21ac', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:02.402', mono: true },
+        { kind: 'pill', text: 'WARN', tone: 'warn' },
+        { kind: 'text', text: 'http/ingest', mono: true },
+        { kind: 'text', text: 'p95 latency 812ms exceeds 500ms region=eu-west-1', mono: true },
+        { kind: 'text', text: '9a04c1', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:02.556', mono: true },
+        { kind: 'pill', text: 'INFO', tone: 'neutral' },
+        { kind: 'text', text: 'queue/drain', mono: true },
+        { kind: 'text', text: 'drained 412 messages in 88ms', mono: true },
+        { kind: 'text', text: '9a04c2', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:03.004', mono: true },
+        { kind: 'pill', text: 'ERROR', tone: 'bad' },
+        { kind: 'text', text: 'auth/session', mono: true },
+        { kind: 'text', text: "cannot read 'sessionId' of undefined req=7f21b0", mono: true },
+        { kind: 'text', text: '7f21b0', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:03.219', mono: true },
+        { kind: 'pill', text: 'WARN', tone: 'warn' },
+        { kind: 'text', text: 'core/deprecate', mono: true },
+        {
+          kind: 'text',
+          text: 'parseLegacyCursor() is deprecated callsite=db/cursor.ts:44',
+          mono: true,
+        },
+        { kind: 'text', text: '9a04c9', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:03.662', mono: true },
+        { kind: 'pill', text: 'ERROR', tone: 'bad' },
+        { kind: 'text', text: 'billing/client', mono: true },
+        { kind: 'text', text: 'TimeoutError: upstream billing service after=5000ms', mono: true },
+        { kind: 'text', text: 'b1e402', mono: true, tone: 'info', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '09:41:04.117', mono: true },
+        { kind: 'pill', text: 'OK', tone: 'ok' },
+        { kind: 'text', text: 'releases', mono: true },
+        { kind: 'text', text: 'v4.18.2 healthy for 6h crash_free=99.1%', mono: true },
+        { kind: 'text', text: '—', tone: 'muted', align: 'end' },
+      ],
+    ],
+    footer: 'Every line carries its trace id — click one to open the span waterfall',
+  },
+}
+
+export const TRACES_SECTION: SectionDefinition = {
+  title: 'Traces',
+  subtitle: 'Slowest and failing traces · last 15 minutes',
+  actions: [
+    { label: 'Query builder', variant: 'outline' },
+    { label: 'Compare traces', variant: 'solid' },
+  ],
+  stats: [
+    { label: 'Traces 15m', value: '184K', note: '0.4% sampled' },
+    { label: 'p95 duration', value: '812ms', note: '+62% vs 24h' },
+    { label: 'Error traces', value: '2,104', note: '1.1% of total' },
+    { label: 'Slowest span', value: '5,004ms', note: 'billing.charge' },
+  ],
+  tabs: ['Slowest', 'Errors', 'All'],
+  table: {
+    grid: '120px 1fr 1fr 90px 90px 90px',
+    columns: [
+      { label: 'Trace' },
+      { label: 'Root span' },
+      { label: 'Duration' },
+      { label: 'Spans' },
+      { label: 'Errors' },
+      { label: 'When', align: 'end' },
+    ],
+    rows: [
+      [
+        { kind: 'text', text: 'b1e402', mono: true, tone: 'info' },
+        { kind: 'text', text: 'POST /v1/subscriptions/renew', mono: true },
+        { kind: 'bar', percent: 100, tone: 'bad', note: '5,004ms' },
+        { kind: 'text', text: '42', mono: true },
+        { kind: 'text', text: '2', mono: true, tone: 'bad' },
+        { kind: 'text', text: '1m', tone: 'muted', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '7f21ac', mono: true, tone: 'info' },
+        { kind: 'text', text: 'POST /webhooks/stripe', mono: true },
+        { kind: 'bar', percent: 18, tone: 'bad', note: '904ms' },
+        { kind: 'text', text: '18', mono: true },
+        { kind: 'text', text: '2', mono: true, tone: 'bad' },
+        { kind: 'text', text: '1m', tone: 'muted', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '9a04c1', mono: true, tone: 'info' },
+        { kind: 'text', text: 'POST /v2/ingest', mono: true },
+        { kind: 'bar', percent: 17, tone: 'warn', note: '844ms' },
+        { kind: 'text', text: '26', mono: true },
+        { kind: 'text', text: '0', tone: 'muted' },
+        { kind: 'text', text: '2m', tone: 'muted', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '9a04c2', mono: true, tone: 'info' },
+        { kind: 'text', text: 'GET /v2/events', mono: true },
+        { kind: 'bar', percent: 9, tone: 'neutral', note: '442ms' },
+        { kind: 'text', text: '12', mono: true },
+        { kind: 'text', text: '0', tone: 'muted' },
+        { kind: 'text', text: '2m', tone: 'muted', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '7f21b0', mono: true, tone: 'info' },
+        { kind: 'text', text: 'POST /webhooks/stripe', mono: true },
+        { kind: 'bar', percent: 16, tone: 'bad', note: '812ms' },
+        { kind: 'text', text: '18', mono: true },
+        { kind: 'text', text: '1', mono: true, tone: 'bad' },
+        { kind: 'text', text: '3m', tone: 'muted', align: 'end' },
+      ],
+      [
+        { kind: 'text', text: '4c9d11', mono: true, tone: 'info' },
+        { kind: 'text', text: 'cron reindexBatch', mono: true },
+        { kind: 'bar', percent: 6, tone: 'neutral', note: '288ms' },
+        { kind: 'text', text: '9', mono: true },
+        { kind: 'text', text: '0', tone: 'muted' },
+        { kind: 'text', text: '4m', tone: 'muted', align: 'end' },
+      ],
+    ],
+    footer: 'Bars are drawn against the slowest trace in the window',
+  },
+}

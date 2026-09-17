@@ -14,7 +14,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: 'Code review, error tracking and logs for teams who would rather ship.',
       },
       { name: 'theme-color', content: '#09090b' },
-      { name: 'color-scheme', content: 'dark' },
+      { name: 'color-scheme', content: 'light dark' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@code-whiskers/ui/components/theme'
 import { HeadContent, Scripts } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
 import * as TanstackQuery from '@/integrations/tanstack-query/root-provider'
@@ -13,17 +14,20 @@ export function RootDocument({ children }: RootDocumentProps) {
 
   return (
     <TanstackQuery.Provider {...rqContext}>
-      <html lang="en" className="dark">
+      {/* next-themes writes the class before paint; the mismatch it causes is expected. */}
+      <html lang="en" suppressHydrationWarning>
         <head>
           <HeadContent />
         </head>
         <body>
-          {children}
-          {RootDevtools && (
-            <Suspense>
-              <RootDevtools />
-            </Suspense>
-          )}
+          <ThemeProvider defaultTheme="system">
+            {children}
+            {RootDevtools && (
+              <Suspense>
+                <RootDevtools />
+              </Suspense>
+            )}
+          </ThemeProvider>
           <Scripts />
         </body>
       </html>
