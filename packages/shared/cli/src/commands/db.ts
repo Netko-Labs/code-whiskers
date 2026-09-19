@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import * as path from 'node:path'
 import {
   getAppDir,
@@ -15,6 +15,16 @@ import { getRootDir, loadEnvFile, run } from '../utils/shell'
  *
  * Drizzle database commands per app (◕‿◕✿)
  */
+
+/** A worker app shares another app's database and owns no migrations of its own. */
+function hasDbScript(appName: string, script: string): boolean {
+  const manifest = path.join(getRepositoryDir(appName), 'package.json')
+  if (!existsSync(manifest)) return false
+  const { scripts } = JSON.parse(readFileSync(manifest, 'utf-8')) as {
+    scripts?: Record<string, string>
+  }
+  return Boolean(scripts?.[script])
+}
 
 /**
  * Run Drizzle migrations for an app
@@ -37,6 +47,11 @@ export async function dbMigrate(args: string[]) {
   const appDir = getAppDir(appName)
   const repoDir = getRepositoryDir(appName)
   const envFile = path.join(appDir, '.env')
+
+  if (!hasDbScript(appName, 'db:migrate')) {
+    console.log(`⏭️  ${appName} has no migrations of its own — skipping.`)
+    return
+  }
 
   console.log(`🗃️  Running migrations for ${appName}...`)
 
@@ -63,6 +78,11 @@ export async function dbGenerate(args: string[]) {
     console.error(`❌ App "${appName}" not found`)
     console.log(`Available apps: ${getAvailableApps().join(', ')}`)
     process.exit(1)
+  }
+
+  if (!hasDbScript(appName, 'db:generate')) {
+    console.log(`⏭️  ${appName} has no schema of its own — skipping.`)
+    return
   }
 
   console.log(`🗃️  Generating schema for ${appName}...`)
