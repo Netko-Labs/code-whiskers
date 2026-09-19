@@ -19,7 +19,6 @@
     "@code-whiskers/whiskers-api": "workspace:*",
     "@code-whiskers/whiskers-config": "workspace:*",
     "@code-whiskers/whiskers-domain": "workspace:*",
-    "@code-whiskers/whiskers-repository": "workspace:*",
     "@code-whiskers/whiskers-service": "workspace:*",
     "elysia": "2.0.0-beta.14"
   },
