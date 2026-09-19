@@ -69,5 +69,9 @@ async function bundleMigrations(appName: string, outDir: string) {
   const migrateOut = path.join(outDir, 'migrate')
   console.log(`🗃️  Bundling migrations into ${path.relative(process.cwd(), migrateOut)}...`)
   await run(['bun', 'build', entry, '--outdir', migrateOut, '--target', 'bun'])
-  fs.cpSync(path.join(dbDir, 'drizzle'), path.join(migrateOut, 'drizzle'), { recursive: true })
+
+  const drizzleDir = path.join(dbDir, 'drizzle')
+  fs.cpSync(drizzleDir, path.join(migrateOut, 'drizzle'), { recursive: true })
+  // An app that migrates on startup resolves the folder next to its own bundle.
+  fs.cpSync(drizzleDir, path.join(outDir, 'drizzle'), { recursive: true })
 }
