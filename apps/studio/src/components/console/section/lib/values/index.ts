@@ -1,6 +1,9 @@
 import type { SectionDefinition, SectionView } from '../../../shared/console-model'
 import { BILLING_SECTION, USAGE_SECTION } from './billing-sections'
 import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
+
+export { PULL_REQUESTS_SECTION }
+
 import { CODEBASE_MAP_SECTION } from './codebase-map-section'
 import { ISSUES_SECTION, REGRESSIONS_SECTION } from './error-sections'
 import { API_KEYS_SECTION, INTEGRATIONS_SECTION, MEMBERS_SECTION } from './org-sections'

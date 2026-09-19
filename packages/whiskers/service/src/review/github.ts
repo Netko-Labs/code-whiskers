@@ -36,6 +36,10 @@ export interface PrHead {
   branch: string
   sameRepo: boolean
   state: string
+  title: string
+  author: string | null
+  additions: number
+  deletions: number
 }
 
 export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrHead> {
@@ -50,6 +54,10 @@ export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrH
     branch: data.head.ref,
     sameRepo: data.head.repo?.full_name === data.base.repo.full_name,
     state: data.state,
+    title: data.title,
+    author: data.user?.login ?? null,
+    additions: data.additions,
+    deletions: data.deletions,
   }
 }
 
@@ -302,6 +310,13 @@ function findingBody(finding: LlmFinding): string {
  * One PR review: inline comments for findings with commentable lines, the rest
  * folded into the review body. Verdict maps straight onto GitHub's event.
  */
+/** Cheap models drop `summary`; a review body still has to say what happened. */
+function reviewFallbackBody(review: LlmReview): string {
+  const count = review.findings.length
+  if (count === 0) return 'No findings.'
+  return `${count} finding${count === 1 ? '' : 's'} below.`
+}
+
 export async function postPrReview(
   ref: PrRef,
   headSha: string,
@@ -324,7 +339,7 @@ export async function postPrReview(
     repo: ref.repo,
     pull_number: ref.prNumber,
     commit_id: headSha,
-    body: `${review.summary}${orphanSection}`,
+    body: `${review.summary || reviewFallbackBody(review)}${orphanSection}`,
     comments: inline.map((f) => ({
       path: f.file,
       // SAFETY: filter above guarantees line is non-null for inline findings
