@@ -15,6 +15,13 @@
       "when": 1789521545946,
       "tag": "0001_magenta_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789835633766,
+      "tag": "0002_useful_shape",
+      "breakpoints": true
     }
   ]
 }
