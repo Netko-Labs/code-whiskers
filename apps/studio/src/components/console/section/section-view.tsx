@@ -2,13 +2,13 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { useConsoleStore } from '../use-console-store'
-import { type SectionViewProps, useSectionDefinition } from './lib'
+import { SECTIONS, type SectionViewProps } from './lib'
 import { SectionTable } from './section-table'
 
 const TABLE_MIN_WIDTH = 1060
 
 export function SectionView({ section, tab }: SectionViewProps) {
-  const definition = useSectionDefinition(section, tab)
+  const definition = SECTIONS[section]
   const table = typeof definition.table === 'function' ? definition.table(tab) : definition.table
 
   return (

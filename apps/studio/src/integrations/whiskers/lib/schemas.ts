@@ -22,17 +22,12 @@ export const whiskersReviewSchema = z.object({
   repo: z.string(),
   prNumber: z.number(),
   headSha: z.string(),
-  title: z.string().nullable().default(null),
-  author: z.string().nullable().default(null),
-  additions: z.number().nullable().default(null),
-  deletions: z.number().nullable().default(null),
   status: z.enum(['pending', 'running', 'completed', 'failed']),
   verdict: z.enum(['approve', 'request_changes', 'comment']).nullable(),
   summary: z.string().nullable(),
   model: z.string().nullable(),
   createdAt: z.coerce.date(),
   completedAt: z.coerce.date().nullable(),
-  findingCount: z.number().default(0),
 })
 
 export const whiskersFindingSchema = z.object({

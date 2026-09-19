@@ -8,10 +8,6 @@ export const reviewTable = pgTable('review', {
   repo: text('repo').notNull(),
   prNumber: integer('pr_number').notNull(),
   headSha: text('head_sha').notNull(),
-  title: text('title'),
-  author: text('author'),
-  additions: integer('additions'),
-  deletions: integer('deletions'),
   status: text('status', { enum: ['pending', 'running', 'completed', 'failed'] })
     .notNull()
     .default('pending'),

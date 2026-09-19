@@ -7,7 +7,7 @@ import { chunkDiff, commentableLines } from './chunk'
 import {
   completeCheckRun,
   fetchPrDiff,
-  fetchPrHead,
+  fetchPrHeadSha,
   type PrRef,
   postPrComment,
   postPrReview,
@@ -50,17 +50,12 @@ async function reviewChunkWithRetry(chunk: string): ReturnType<typeof reviewChun
 
 /** The whole pipeline: diff -> chunks -> LLM -> persist -> PR review on GitHub. */
 export async function runReview(ref: PrRef): Promise<Review | undefined> {
-  const head = await fetchPrHead(ref)
-  const headSha = head.sha
+  const headSha = await fetchPrHeadSha(ref)
   const review = await createReview({
     owner: ref.owner,
     repo: ref.repo,
     prNumber: ref.prNumber,
     headSha,
-    title: head.title,
-    author: head.author,
-    additions: head.additions,
-    deletions: head.deletions,
     status: 'running',
     model: whiskersEnvConfig.openrouter.model,
   })
