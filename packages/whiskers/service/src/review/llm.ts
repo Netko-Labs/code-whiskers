@@ -9,6 +9,8 @@ security holes, performance traps, broken contracts. Do not pad with nitpicks;
 an empty findings list is a valid, good review. Line numbers must reference the
 NEW side of the diff. Verdict: "request_changes" when any high/critical finding
 exists, otherwise "approve" — non-blocking nitpicks do not block a merge.
+Always fill "summary" with one or two sentences on what the diff does and how it
+reads, even when you find nothing; a clean review still needs to say so.
 Respond with the JSON object only, no markdown fences, no prose.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])

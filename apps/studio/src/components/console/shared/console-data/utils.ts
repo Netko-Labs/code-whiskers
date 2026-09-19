@@ -62,27 +62,36 @@ export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
 }
 
 export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
-  const severity = review.verdict ? (VERDICT_SEVERITY[review.verdict] ?? 'info') : 'info'
+  const failed = review.status === 'failed'
+  const severity = failed
+    ? 'critical'
+    : review.verdict
+      ? (VERDICT_SEVERITY[review.verdict] ?? 'info')
+      : 'info'
   const slug = `${review.owner}/${review.repo}`
+  const findings = review.findingCount
+  // Cheap models drop `summary`, so it arrives as an empty string rather than null.
+  const summary = review.summary?.trim()
 
   return {
     id: `#${review.prNumber}`,
     kind: 'review',
-    label: `Review · #${review.prNumber}`,
+    label: failed ? 'Review failed' : `Review · #${review.prNumber}`,
     severity,
     age: formatAge(review.completedAt ?? review.createdAt),
-    title: review.summary ?? `${slug}#${review.prNumber}`,
+    title:
+      review.title ?? (summary ? (summary.split('\n')[0] ?? slug) : `${slug}#${review.prNumber}`),
     subtitle: `${slug} · ${review.headSha.slice(0, 7)}`,
-    meta: review.status === 'completed' ? (review.verdict ?? 'reviewed') : review.status,
-    badge: 'REVIEW',
-    badge2: review.verdict === 'approve' ? 'NO FINDINGS' : '',
+    meta: failed ? 'review failed' : findings === 0 ? 'no findings' : `${findings} findings`,
+    badge: failed ? 'FAILED' : 'REVIEW',
+    badge2: findings === 0 ? 'NO FINDINGS' : `${findings} FINDING${findings === 1 ? '' : 'S'}`,
     confidence: review.model ?? 'whiskers',
-    read: review.summary ?? NO_READ,
-    fixLabel: 'Apply suggestion',
+    read: summary ?? NO_READ,
+    fixLabel: 'Open on GitHub',
     evidenceLabel: 'Show findings',
-    author: review.owner,
+    author: review.author ?? review.owner,
     fileCount: '—',
-    diff: '—',
+    diff: formatDiff(review),
     checks: review.status,
     files: [],
     hunk: [],
@@ -96,4 +105,9 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
       steps: ['review the inline comments', 'resolve or dismiss each finding'],
     },
   }
+}
+
+export function formatDiff(review: WhiskersReview): string {
+  if (review.additions === null && review.deletions === null) return '—'
+  return `+${(review.additions ?? 0).toLocaleString()} −${(review.deletions ?? 0).toLocaleString()}`
 }
