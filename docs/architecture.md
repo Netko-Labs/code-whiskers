@@ -11,6 +11,19 @@ something?* Yes → studio. It just re-accumulates → whiskers.
 Studio is the source of truth. Whiskers is a worker: webhooks, LLM reviews, ingest,
 rollups, scheduled jobs. They talk over HTTP, never over each other's tables.
 
+**CodeWhiskers is a self-hosted tool, not a service.** One team runs one instance against
+their own GitHub installations. That is a design constraint, not a footnote:
+
+- **There is no billing, no plan, no seat count, no quota tier.** Limits are operator
+  settings, not entitlements.
+- **Footprint is a feature.** The whole thing must run on a modest box next to its own
+  Postgres. A design that needs a ClickHouse cluster to show a log chart is a design
+  that does not get installed.
+- **Defaults matter more than ceilings.** Tune for a team of ten with a handful of
+  repos; make the numbers configurable for anyone larger.
+- **`installation_id` is a dimension, not a tenant.** An instance may watch several
+  GitHub orgs; it is not multi-tenant isolation and should not be built like it.
+
 ## Boundary contract
 
 1. **No foreign keys across databases.** Whiskers stores `installation_id`,
@@ -30,7 +43,7 @@ rollups, scheduled jobs. They talk over HTTP, never over each other's tables.
                  ┌──────────────────────────┐            ┌────────────────────┐
   human ────────▶│ identity, connections,   │──/v1/*────▶│ reviews, findings, │
                  │ rules, projects, triage, │◀─internal──│ issues, events,    │
-                 │ keys, billing            │            │ logs, spans, jobs  │
+                 │ keys, settings           │            │ logs, spans, jobs  │
                  └──────────────────────────┘            └────────────────────┘
                           studio-db                            whiskers-db
 ```
@@ -140,18 +153,21 @@ Whiskers caches `(id, public_key)` — ingest cannot round-trip per event.
 
 Unique on `(installation_id, item_kind, item_ref)`.
 
-### Commercial
+### Instance settings
 
-**`subscription`** — `installation_id` PK, `plan`, `seats_used`, `seats_included`,
-`renews_at`, `payment_ref`, `status`.
+No billing tables. A self-hosted instance has an operator, not a customer.
 
-**`usage_counter`** — `(installation_id, meter, period_start)` PK, `meter`
-(`events` \| `log_lines` \| `spans` \| `reviews`), `used`, `included`, `updated_at`.
+**`setting`** — `key` PK, `value` jsonb, `updated_by`, `updated_at`. One row per knob:
+raw log retention days, rollup retention days, ingest rate cap, review concurrency,
+default review model. These are the things a plan tier would have decided for you.
 
-**Decision: whiskers pushes rollups into studio.** Billing stays readable and correct
-when whiskers is down, the console reads quota alongside everything else it reads from
-studio, and the write cost is one row per meter per period per installation — trivial.
-Whiskers keeps raw counts locally and pushes a rollup on a schedule.
+**`usage_rollup`** — `(meter, period_start)` PK, `meter`
+(`events` \| `log_lines` \| `spans` \| `reviews`), `count`, `bytes`, `updated_at`.
+
+**Decision: whiskers pushes rollups into studio.** Not for billing — so the operator can
+see ingest volume against their configured retention and disk, and so that view still
+works when the worker is wedged. Cost is one row per meter per period. Whiskers keeps
+raw counts locally and pushes on a schedule.
 
 ## whiskers-db
 
@@ -204,6 +220,10 @@ The design's own numbers: **1.2M events/day** and **18.4M log lines/day**. At ~2
 a row that is ~3.7 GB/day of raw logs. Postgres handles this — but only if the hot path
 never scans raw data and the indexes stay small.
 
+Self-hosting makes this a hard constraint rather than a cost optimisation: the operator
+installing this has one box and one Postgres, and every extra service is a reason not to
+install. Everything below stays inside the database they already run.
+
 **Four rules, all vanilla Postgres:**
 
 1. **Daily partitions** on `log_line`, `span` and `event`. Retention is
@@ -245,11 +265,13 @@ Timescale is the natural first move because nothing above the driver changes.
 | Members | `user` `organization_member` | — |
 | Integrations | `integration` | — |
 | API keys | `api_key` | — |
-| Usage & quota | `usage_counter` | raw counts, pushed |
-| Billing | `subscription` | — |
+| Usage & quota → **Instance** | `setting` `usage_rollup` | raw counts, pushed |
+| ~~Billing~~ | removed — self-hosted | — |
 
 ## Migration path from today
 
+0. Drop the billing and quota surfaces from the console — `Billing` goes, `Usage & quota`
+   becomes an instance-health view over `setting` and `usage_rollup`.
 1. `project` moves studio-ward; whiskers keeps a cached copy for ingest.
 2. `issue.status` drops in favour of `triage_state`.
 3. Whiskers gains `installation_id` and `repository_id` on `review`.
