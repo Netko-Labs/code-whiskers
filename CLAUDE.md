@@ -22,7 +22,7 @@ they describe this repo's specific topology, scaffolding, and commands.
   - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). Owns the **public hostname** and forwards the whiskers surfaces (`/webhooks/*`, `/api/:projectId/envelope|store`, `/v1/*`) to the worker via `forwardToWhiskers` (`packages/studio/api/src/shared`), byte-for-byte so HMAC/DSN checks still happen in whiskers. `WHISKERS_URL` points at the worker (internal DNS in Coolify).
   - `apps/whiskers` — the 360 code tool **worker** (own process, `https://whiskers.localhost` locally, no public host in prod): GitHub webhook -> AI PR review (AI SDK + OpenRouter, BYOK via `OPENROUTER_API_KEY`), Sentry-SDK-compatible error ingest, read-only `/v1` insights. Packages: `packages/whiskers/{domain,repository,service,api}` + `packages/configs/whiskers-config`. Disposable Docker sandboxes live in `packages/shared/sandbox`.
 - Studio packages: `packages/studio/{domain,repository,service,api}` (auth + forwarder) + `packages/configs/studio-config`.
-- **One database.** Studio and whiskers share it: studio's auth tables plus whiskers' reviews, findings, issues and events. Table definitions stay in each app's own `domain` package, but `packages/studio/repository` owns the single migration journal — its `drizzle.config.ts` lists both schemas, and studio's Coolify pre-deployment command applies them. Whiskers has no `drizzle.config.ts`, no migration folder and no `db:*` scripts; it is a worker against the shared store, so `db:generate`/`db:migrate --app whiskers` report that it has none and skip.
+- Two databases: studio (auth tables) and whiskers (reviews, findings, issues, events).
 - Shared tooling and UI live under `packages/shared/*` (`cli`, `logger`, `ui`, `typescript-config`).
 - **Brand**: `docs/brand.md` (colors, type, voice, rules). The cat mark and expressions ship from `@code-whiskers/ui/brand` (`CatMark`, `CatExpression`); static cuts live in `apps/studio/public/`. Fonts are Inter (interface) + JetBrains Mono (evidence); brand color tokens (`ink`, `paper`, `fog`, `hairline`, `ash`, `severity-*`) are Tailwind theme colors in `globals.css`.
 
@@ -49,7 +49,7 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 ## Commands
 
 - Studio (frontend + auth) development: `bun run repo dev --app studio` (https://studio.localhost)
-- Whiskers (360 code tool) development: `bun run repo dev --app whiskers` (https://whiskers.localhost) — point its `DATABASE_URL` at studio's database
+- Whiskers (360 code tool) development: `bun run repo dev --app whiskers` (https://whiskers.localhost)
 - Bypass portless (plain `localhost:3000` / `:3002`): `PORTLESS=0 bun run repo dev --app <app>`
 - Web production build: `bun run repo build --app studio`
 - Web preview: `bun run repo serve --app studio`
