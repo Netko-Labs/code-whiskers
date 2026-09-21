@@ -1,11 +1,13 @@
 import type { Finding } from '@code-whiskers/whiskers-domain'
 import { isBotLogin } from '../fix/utils'
 import type { PrConversation } from './github'
+import type { Suppression } from './suppressions'
 
 export interface PrContextInput {
   reviewCount: number
   previous?: { headSha: string; verdict: string | null; findings: Finding[] }
   conversation: PrConversation
+  suppressions?: Suppression[]
   botHandle: string
 }
 
@@ -78,10 +80,11 @@ function section(title: string, lines: string[], limit: number): string {
  */
 export function buildPrContext(input: PrContextInput): string {
   const { reviewCount, previous, conversation, botHandle } = input
+  const suppressions = input.suppressions ?? []
   const notes = humanNotes(conversation, botHandle)
   const openFindings = previous?.findings ?? []
 
-  if (reviewCount === 0 && notes.length === 0) return ''
+  if (reviewCount === 0 && notes.length === 0 && suppressions.length === 0) return ''
 
   const times = reviewCount === 1 ? 'once' : `${reviewCount} times`
   const header =
@@ -90,9 +93,14 @@ export function buildPrContext(input: PrContextInput): string {
         (previous ? ` on ${previous.headSha.slice(0, 7)}.` : '.')
       : 'Not reviewed before.'
 
+  const silenced = suppressions.map((s) =>
+    s.note ? `- ${s.itemRef} — ${condense(s.note)}` : `- ${s.itemRef} (${s.status})`,
+  )
+
   let body =
     section('Findings I raised last time', openFindings.map(findingLine), MAX_FINDINGS) +
-    section('What humans have asked for', notes, MAX_COMMENTS)
+    section('What humans have asked for', notes, MAX_COMMENTS) +
+    section('Already settled — do not raise again', silenced, MAX_COMMENTS)
 
   // Trim the longest section first until the preamble fits its budget.
   let findingLimit = MAX_FINDINGS
@@ -102,7 +110,8 @@ export function buildPrContext(input: PrContextInput): string {
     else commentLimit -= 1
     body =
       section('Findings I raised last time', openFindings.map(findingLine), findingLimit) +
-      section('What humans have asked for', notes, commentLimit)
+      section('What humans have asked for', notes, commentLimit) +
+      section('Already settled — do not raise again', silenced, commentLimit)
   }
 
   return `## Where this PR already stands — context, not part of the diff

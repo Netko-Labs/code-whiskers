@@ -32,9 +32,12 @@ their own GitHub installations. That is a design constraint, not a footnote:
    reaped by a job, not by a constraint.
 2. **Neither app opens the other's connection.** Studio reads whiskers through
    `/v1/*`. Whiskers reads studio through `/api/internal/*`.
-3. **Auth is the existing JWT/JWKS handshake.** Studio mints at `GET /api/auth/token`;
-   whiskers verifies against `/api/auth/jwks` with `jose`. No shared secret. The
-   whiskers→studio direction uses a service token minted the same way.
+3. **Auth differs by direction.** Studio→whiskers is the existing JWT/JWKS handshake:
+   studio mints at `GET /api/auth/token`, whiskers verifies against `/api/auth/jwks`
+   with `jose`, no shared secret. Whiskers→studio is a shared `INTERNAL_TOKEN`,
+   compared in constant time — whiskers has no keypair studio could verify against,
+   and minting one for a single-operator tool is ceremony without a threat behind it.
+   An unset token leaves `/api/internal/*` closed rather than open.
 4. **Whiskers caches studio config** (watched repos, review rules, project keys) with a
    short TTL. A webhook must not block on a studio round trip per event.
 
@@ -277,4 +280,7 @@ Timescale is the natural first move because nothing above the driver changes.
 2. `issue.status` drops in favour of `triage_state`.
 3. Whiskers gains `installation_id` and `repository_id` on `review`.
 4. Studio gains the GitHub, rules, access, triage and commercial tables.
-5. `/api/internal/*` appears on studio for the whiskers→studio direction.
+5. ~~`/api/internal/*` appears on studio.~~ Done: `GET /api/internal/suppressions?scope=`
+   returns what a human dismissed, resolved or snoozed; whiskers caches it for 60s and
+   feeds it into the review preamble. An unreachable studio degrades to "nothing
+   suppressed" rather than failing the review.

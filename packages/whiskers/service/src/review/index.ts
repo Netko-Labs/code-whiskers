@@ -17,10 +17,12 @@ import {
   startCheckRun,
 } from './github'
 import { mergeReviews, reviewChunk } from './llm'
+import { fetchSuppressions } from './suppressions'
 
 export * from './chunk'
 export * from './github'
 export * from './llm'
+export * from './suppressions'
 
 const logger = createLogger('whiskers-review')
 
@@ -108,11 +110,12 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   const checkRunId = await startCheckRun(ref, headSha).catch(() => null)
 
   try {
-    const [diff, conversation, previous, reviewCount] = await Promise.all([
+    const [diff, conversation, previous, reviewCount, suppressions] = await Promise.all([
       fetchPrDiff(ref),
       fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
       getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
       countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+      fetchSuppressions(`${ref.owner}/${ref.repo}`),
     ])
 
     const context = buildPrContext({
@@ -123,6 +126,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
         findings: previous.findings,
       },
       conversation,
+      suppressions,
       botHandle: whiskersEnvConfig.github.botHandle,
     })
     if (context) logger.info({ ...ref, contextChars: context.length }, 'review has prior context')

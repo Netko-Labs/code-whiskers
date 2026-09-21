@@ -93,3 +93,35 @@ describe('buildPrContext', () => {
     expect(out).toContain('and 3')
   })
 })
+
+describe('buildPrContext suppressions', () => {
+  test('tells the model what a human already settled', () => {
+    const out = buildPrContext({
+      reviewCount: 0,
+      conversation: EMPTY,
+      botHandle: 'cw',
+      suppressions: [
+        {
+          itemKind: 'finding',
+          itemRef: 'src/log/shipper.ts',
+          status: 'dismissed',
+          note: 'intentional',
+        },
+        { itemKind: 'finding', itemRef: 'src/a.ts', status: 'resolved', note: null },
+      ],
+    })
+    expect(out).toContain('Already settled')
+    expect(out).toContain('src/log/shipper.ts — intentional')
+    expect(out).toContain('src/a.ts (resolved)')
+  })
+
+  test('suppressions alone are enough to earn a preamble', () => {
+    const out = buildPrContext({
+      reviewCount: 0,
+      conversation: EMPTY,
+      botHandle: 'cw',
+      suppressions: [{ itemKind: 'finding', itemRef: 'x.ts', status: 'dismissed', note: null }],
+    })
+    expect(out).not.toBe('')
+  })
+})

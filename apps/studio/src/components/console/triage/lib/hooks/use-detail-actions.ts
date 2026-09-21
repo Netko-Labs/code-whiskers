@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { recordTriage, type TriageDecision } from '@/integrations/studio-api'
 import { VIEWER } from '../../../shared/console-data'
 import type { ConsoleItem } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
@@ -19,6 +20,22 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
   return useMemo(() => {
     const store = () => useConsoleStore.getState()
 
+    /**
+     * The store keeps the UI honest immediately; this makes the decision
+     * durable and, for a dismissal, tells the reviewer to stop raising it. A
+     * failed write must not undo what the user just saw happen.
+     */
+    const remember = (status: TriageDecision['status'], note?: string) => {
+      const scope = item.subtitle.split(' · ')[0] ?? item.id
+      void recordTriage({
+        scope,
+        itemKind: item.kind === 'error' ? 'issue' : item.kind,
+        itemRef: item.id,
+        status,
+        note,
+      }).catch(() => undefined)
+    }
+
     const setApproved = (value: boolean) => store().setApproved(item.id, value)
     const setResolved = (value: boolean) => store().setResolved(item.id, value)
     const setTracked = (value: boolean) => store().setTracked(item.id, value)
@@ -30,6 +47,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         if (item.kind === 'review') {
           const next = !approved[item.id]
           setApproved(next)
+          remember(next ? 'approved' : 'open')
           flash(
             next ? `Approved ${item.id} — Jamie notified` : `${item.id} approval withdrawn`,
             () => setApproved(!next),
@@ -38,11 +56,13 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         }
         if (item.kind === 'log') {
           setTracked(true)
+          remember('tracked')
           flash('Created CW-2048 from this pattern', () => setTracked(false))
           return
         }
         const next = !resolved[item.id]
         setResolved(next)
+        remember(next ? 'resolved' : 'open')
         flash(next ? `Resolved ${item.id} — quiet window started` : `${item.id} reopened`, () =>
           setResolved(!next),
         )
@@ -59,6 +79,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
 
       onDismissBlocker: () => {
         setDismissed(true)
+        remember('dismissed', `dismissed in the console by ${VIEWER.name}`)
         store().flash(`Blocker dismissed on ${item.id}`, () => setDismissed(false))
       },
 

@@ -1,2 +1,8 @@
 export * from './lib'
-export { organizationsQuery, repositoriesQuery, syncGithub } from './queries'
+export type { TriageDecision } from './queries'
+export {
+  organizationsQuery,
+  recordTriage,
+  repositoriesQuery,
+  syncGithub,
+} from './queries'

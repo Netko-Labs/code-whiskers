@@ -1,7 +1,9 @@
 import { createLogger } from '@code-whiskers/logger'
 import { Elysia } from 'elysia'
 import { githubRoutes } from './routes/github'
+import { internalRoutes } from './routes/internal'
 import { sessionRoutes } from './routes/session'
+import { triageRoutes } from './routes/triage'
 import { forwardToWhiskers } from './shared'
 
 const logger = createLogger('api')
@@ -21,6 +23,10 @@ export const app = new Elysia({ prefix: '/api' })
   .use(sessionRoutes)
   // (ᵔᴥᵔ) installations and repositories, synced from GitHub
   .use(githubRoutes)
+  // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided
+  .use(internalRoutes)
+  // (•̀ᴗ•́) resolve, approve, dismiss — durable, not just in the browser
+  .use(triageRoutes)
   // (=^･ω･^=) Sentry SDKs post here; whiskers checks the DSN key
   .post('/:projectId/envelope', ({ request }) => forwardToWhiskers(request))
   .post('/:projectId/store', ({ request }) => forwardToWhiskers(request))

@@ -20,6 +20,8 @@ const studioConfig: StudioConfig = {
   },
   whiskers: {
     url: process.env.WHISKERS_URL ?? 'https://whiskers.localhost',
+    // Accepted on /api/internal/*; empty means the surface stays closed.
+    internalToken: process.env.INTERNAL_TOKEN ?? '',
   },
   email: {
     from: process.env.EMAIL_FROM ?? 'CodeWhiskers <hello@netko.dev>',

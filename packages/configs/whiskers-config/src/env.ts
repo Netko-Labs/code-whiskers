@@ -6,6 +6,8 @@ const whiskersConfig: WhiskersConfig = {
     port: Number(process.env.PORT ?? 3002),
     cors: process.env.CORS?.split(',') ?? ['https://studio.localhost', 'http://localhost:3000'],
     webBaseUrl: process.env.WEB_BASE_URL ?? 'https://studio.localhost',
+    // Presented to studio's /api/internal/*; empty disables the call entirely.
+    internalToken: process.env.INTERNAL_TOKEN ?? '',
   },
   db: {
     url: process.env.DATABASE_URL ?? '',
