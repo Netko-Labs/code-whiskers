@@ -32,10 +32,6 @@ const _protoStudioConfigSchema = z.object({
     url: z.string().url(),
     internalToken: z.string().default(''),
   }),
-  email: z.object({
-    from: z.string(),
-    usesend: z.object({ url: z.string().url(), apiKey: z.string() }).optional(),
-  }),
   auth: z.object({
     secret: z.string().optional(),
     emailAndPassword: z.object({

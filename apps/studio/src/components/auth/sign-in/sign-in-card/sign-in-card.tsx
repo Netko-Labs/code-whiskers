@@ -3,7 +3,7 @@ import { IconBrandGithub } from '@tabler/icons-react'
 import {
   SIGN_IN_DESCRIPTION,
   SIGN_IN_GITHUB,
-  SIGN_IN_OR,
+  SIGN_IN_HINT,
   SIGN_IN_PRIVACY,
   SIGN_IN_TERMS,
   SIGN_IN_TERMS_JOIN,
@@ -12,11 +12,10 @@ import {
   useRedirectWhenSignedIn,
   useSignIn,
 } from './lib'
-import { SignInEmailForm } from './sign-in-email-form'
 
 export function SignInCard() {
   useRedirectWhenSignedIn()
-  const { email, setEmail, isLoading, message, submitEmail, continueWithGithub } = useSignIn()
+  const { isLoading, message, continueWithGithub } = useSignIn()
 
   return (
     <section className="flex w-full min-w-0 flex-col gap-5 px-1 md:max-w-[400px] md:flex-[1_1_320px] md:rounded-[14px] md:bg-paper md:p-8 md:text-ink md:shadow-[0_30px_60px_-24px_rgba(0,0,0,0.7)]">
@@ -37,19 +36,14 @@ export function SignInCard() {
         {SIGN_IN_GITHUB}
       </Button>
 
-      <div className="flex items-center gap-3 text-xs text-ash">
-        <div className="h-px flex-1 bg-ink-hairline md:bg-hairline" />
-        {SIGN_IN_OR}
-        <div className="h-px flex-1 bg-ink-hairline md:bg-hairline" />
-      </div>
-
-      <SignInEmailForm
-        email={email}
-        isLoading={isLoading}
-        message={message}
-        onEmailChange={setEmail}
-        onSubmit={submitEmail}
-      />
+      <p
+        role="status"
+        className={`m-0 min-h-4 text-center text-xs ${
+          message?.type === 'error' ? 'text-severity-error' : 'text-ink-muted md:text-ash'
+        }`}
+      >
+        {message?.text ?? SIGN_IN_HINT}
+      </p>
 
       <p className="m-0 border-t border-ink-hairline pt-4 text-center text-xs leading-4 text-ink-muted text-pretty md:border-hairline md:text-ash">
         {SIGN_IN_TERMS_PREFIX}

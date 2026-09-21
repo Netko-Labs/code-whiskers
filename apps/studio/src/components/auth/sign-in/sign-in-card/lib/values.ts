@@ -1,14 +1,7 @@
 export const SIGN_IN_TITLE = 'Sign in or create an account'
+export const SIGN_IN_HINT = 'CodeWhiskers reads your repositories through the GitHub App.'
 export const SIGN_IN_DESCRIPTION = 'Code review, error tracking and log ingestion for your repos.'
 export const SIGN_IN_GITHUB = 'Continue with GitHub'
-export const SIGN_IN_OR = 'or'
-export const SIGN_IN_EMAIL_LABEL = 'Work email'
-export const SIGN_IN_EMAIL_PLACEHOLDER = 'you@company.com'
-export const SIGN_IN_EMAIL_SUBMIT = 'Continue with email'
-export const SIGN_IN_EMAIL_SENDING = 'Sending link…'
-export const SIGN_IN_EMAIL_HINT = "We'll email you a sign-in link. No password."
-export const SIGN_IN_EMAIL_SENT = 'Check your inbox for a sign-in link.'
-export const SIGN_IN_EMAIL_FAILED = "Couldn't send the link. Try again."
 export const SIGN_IN_GITHUB_FAILED = "Couldn't reach GitHub. Try again."
 export const SIGN_IN_TERMS_PREFIX = 'By continuing you agree to our '
 export const SIGN_IN_TERMS = 'Terms'

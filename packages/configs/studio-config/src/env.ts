@@ -23,12 +23,6 @@ const studioConfig: StudioConfig = {
     // Accepted on /api/internal/*; empty means the surface stays closed.
     internalToken: process.env.INTERNAL_TOKEN ?? '',
   },
-  email: {
-    from: process.env.EMAIL_FROM ?? 'CodeWhiskers <hello@netko.dev>',
-    usesend: isEnabled([process.env.USESEND_URL, process.env.USESEND_API_KEY])
-      ? { url: process.env.USESEND_URL ?? '', apiKey: process.env.USESEND_API_KEY ?? '' }
-      : undefined,
-  },
   auth: {
     secret: process.env.AUTH_SECRET,
     emailAndPassword: {

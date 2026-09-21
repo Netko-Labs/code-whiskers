@@ -3,9 +3,12 @@ import { account, jwks, session, user, verification } from '@code-whiskers/studi
 import { db } from '@code-whiskers/studio-repository'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { jwt, lastLoginMethod, magicLink } from 'better-auth/plugins'
-import { sendMagicLinkEmail } from '../email'
+import { jwt, lastLoginMethod } from 'better-auth/plugins'
 
+/**
+ * GitHub only. The sync needs a GitHub token to read installations, so an
+ * account that arrived another way could sign in and see nothing.
+ */
 export const auth = betterAuth({
   appName: 'Studio',
   baseURL: studioEnvConfig.app.baseUrl,
@@ -34,12 +37,6 @@ export const auth = betterAuth({
     jwt({
       jwt: {
         expirationTime: '1d',
-      },
-    }),
-    magicLink({
-      expiresIn: 60 * 10, // 10 minutes
-      sendMagicLink: async ({ email, url }) => {
-        await sendMagicLinkEmail({ email, url })
       },
     }),
     lastLoginMethod(),
