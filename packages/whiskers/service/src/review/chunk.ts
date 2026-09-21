@@ -110,3 +110,27 @@ export function commentableLines(diff: string): Map<string, Set<number>> {
   }
   return map
 }
+
+/**
+ * Halve a chunk on file boundaries. A chunk that times out is usually just too
+ * much for the model to answer inside the window, and two smaller prompts
+ * almost always land where a retry of the same one would time out again.
+ * Returns `[chunk]` when there is nothing to split on.
+ */
+export function splitChunk(chunk: string): string[] {
+  const sections = chunk.split(/^(?=diff --git )/m).filter((s) => s.trim().length > 0)
+  if (sections.length < 2) return [chunk]
+
+  const half = chunk.length / 2
+  let taken = 0
+  let cut = 0
+  for (const [index, section] of sections.entries()) {
+    taken += section.length
+    cut = index + 1
+    if (taken >= half) break
+  }
+  // A single section larger than half would otherwise claim every one of them.
+  if (cut >= sections.length) cut = sections.length - 1
+
+  return [sections.slice(0, cut).join(''), sections.slice(cut).join('')]
+}

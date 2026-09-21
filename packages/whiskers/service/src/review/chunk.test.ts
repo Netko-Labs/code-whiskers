@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { chunkDiff } from './chunk'
+import { chunkDiff, splitChunk } from './chunk'
 
 const section = (file: string, body = '+x\n') =>
   `diff --git a/${file} b/${file}\n--- a/${file}\n+++ b/${file}\n@@ -0,0 +1 @@\n${body}`
@@ -62,5 +62,28 @@ describe('chunkDiff', () => {
     const big = section('src/big.ts', `+${'y'.repeat(50)}\n`)
     const chunks = chunkDiff(big + big + big, big.length * 2)
     expect(chunks).toHaveLength(2)
+  })
+})
+
+describe('splitChunk', () => {
+  test('halves on file boundaries', () => {
+    const chunk = section('a.ts') + section('b.ts') + section('c.ts') + section('d.ts')
+    const halves = splitChunk(chunk)
+    expect(halves).toHaveLength(2)
+    expect(halves.join('')).toBe(chunk)
+    expect(halves[0]).toContain('a.ts')
+    expect(halves[1]).toContain('d.ts')
+  })
+
+  test('leaves a single-file chunk alone', () => {
+    const chunk = section('only.ts', `+${'x'.repeat(500)}\n`)
+    expect(splitChunk(chunk)).toEqual([chunk])
+  })
+
+  test('never returns an empty half when one file dominates', () => {
+    const chunk = section('huge.ts', `+${'x'.repeat(5_000)}\n`) + section('tiny.ts')
+    const halves = splitChunk(chunk)
+    expect(halves).toHaveLength(2)
+    expect(halves.every((h) => h.trim().length > 0)).toBe(true)
   })
 })
