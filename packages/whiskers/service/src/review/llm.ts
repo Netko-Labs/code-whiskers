@@ -16,8 +16,14 @@ treat it as history, never as code to review.
 Respond with the JSON object only, no markdown fences, no prose.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
-// A stuck provider socket must surface as a failed review, never a silent hang.
-const LLM_TIMEOUT_MS = 180_000
+/**
+ * Measured on 30 production reviews: the latency distribution is bimodal — a
+ * chunk either answers in tens of seconds or stalls outright. 180s nursed every
+ * stall for three minutes before the single retry stalled for three more, which
+ * is why 7 of 9 failures landed at ~363s. Abandon a stall fast; the caller has
+ * three attempts and splits the chunk on the first timeout.
+ */
+const LLM_TIMEOUT_MS = 90_000
 
 /**
  * The verdict the LLM emits per chunk is advisory only — the review posted to

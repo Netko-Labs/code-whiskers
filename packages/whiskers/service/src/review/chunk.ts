@@ -40,8 +40,12 @@ const SKIP_PATTERNS = [
   /(^|\/)LICENSE(\.[a-z]+)?$/i,
 ]
 
-// Small enough that a flash-tier model answers inside the per-chunk timeout
-const MAX_CHUNK_CHARS = 24_000
+/**
+ * Smaller than it looks like it should be, on purpose: per-chunk latency tracks
+ * prompt size, and a chunk that answers well inside the timeout never reaches
+ * the retry path at all. More chunks is cheap — they run concurrently.
+ */
+const MAX_CHUNK_CHARS = 14_000
 /**
  * One file big enough to eat a whole chunk is almost always machine-written
  * something we have no pattern for. Note it and move on rather than drop it
