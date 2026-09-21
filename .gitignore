@@ -45,3 +45,4 @@ generated
 # Nitro build output
 .output
 .nitro
+ds-bundle/
