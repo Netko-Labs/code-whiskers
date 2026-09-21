@@ -61,12 +61,28 @@ export async function build(args: string[]) {
   console.log(`✅ Build for ${appName} completed!`)
 }
 
+/**
+ * Always emits `{out}/migrate/migrate.js`, even for an app that owns no
+ * migrations. Coolify's pre-deployment command runs inside the *previous*
+ * container, so an app that stops shipping this file strands the hook: every
+ * later deploy dies on `Module not found` before it can build the container
+ * that would have fixed it. A no-op costs nothing and breaks that cycle.
+ */
 async function bundleMigrations(appName: string, outDir: string) {
   const dbDir = path.join(getRepositoryDir(appName), 'src', 'db')
   const entry = path.join(dbDir, 'migrate.ts')
-  if (!fs.existsSync(entry)) return
-
   const migrateOut = path.join(outDir, 'migrate')
+
+  if (!fs.existsSync(entry)) {
+    fs.mkdirSync(migrateOut, { recursive: true })
+    fs.writeFileSync(
+      path.join(migrateOut, 'migrate.js'),
+      `console.log('${appName} owns no migrations — nothing to apply.')\n`,
+    )
+    console.log(`🗃️  ${appName} owns no migrations — wrote a no-op migrate entry.`)
+    return
+  }
+
   console.log(`🗃️  Bundling migrations into ${path.relative(process.cwd(), migrateOut)}...`)
   await run(['bun', 'build', entry, '--outdir', migrateOut, '--target', 'bun'])
   fs.cpSync(path.join(dbDir, 'drizzle'), path.join(migrateOut, 'drizzle'), { recursive: true })
