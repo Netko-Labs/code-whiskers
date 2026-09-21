@@ -1,6 +1,6 @@
 import type { SectionDefinition, SectionView } from '../../../shared/console-model'
-import { BILLING_SECTION, USAGE_SECTION } from './billing-sections'
 import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
+import { INSTANCE_SECTION } from './instance-section'
 
 export { PULL_REQUESTS_SECTION }
 
@@ -27,8 +27,7 @@ export const SECTIONS: Record<SectionView, SectionDefinition> = {
   members: MEMBERS_SECTION,
   integrations: INTEGRATIONS_SECTION,
   'api-keys': API_KEYS_SECTION,
-  usage: USAGE_SECTION,
-  billing: BILLING_SECTION,
+  instance: INSTANCE_SECTION,
 }
 
 export const SECTION_VIEWS = Object.keys(SECTIONS) as SectionView[]

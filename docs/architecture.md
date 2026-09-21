@@ -265,13 +265,14 @@ Timescale is the natural first move because nothing above the driver changes.
 | Members | `user` `organization_member` | — |
 | Integrations | `integration` | — |
 | API keys | `api_key` | — |
-| Usage & quota → **Instance** | `setting` `usage_rollup` | raw counts, pushed |
-| ~~Billing~~ | removed — self-hosted | — |
+| Instance | `setting` `usage_rollup` | raw counts, pushed |
 
 ## Migration path from today
 
-0. Drop the billing and quota surfaces from the console — `Billing` goes, `Usage & quota`
-   becomes an instance-health view over `setting` and `usage_rollup`.
+0. ~~Drop the billing and quota surfaces from the console.~~ Done: `Billing` deleted,
+   `Usage & quota` is now `Instance`. Sixteen sections, and the numbers on it are disk,
+   retention, ingest rate and queue depth — still fixtures until `setting` and `usage_rollup`
+   exist.
 1. `project` moves studio-ward; whiskers keeps a cached copy for ingest.
 2. `issue.status` drops in favour of `triage_state`.
 3. Whiskers gains `installation_id` and `repository_id` on `review`.

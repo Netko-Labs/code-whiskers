@@ -80,5 +80,4 @@ export type SectionView =
   | 'members'
   | 'integrations'
   | 'api-keys'
-  | 'usage'
-  | 'billing'
+  | 'instance'
