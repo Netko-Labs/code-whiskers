@@ -85,6 +85,67 @@ export async function pushToken(owner: string, repo: string): Promise<string> {
   return data.token
 }
 
+export interface PrConversation {
+  /** Latest state per human reviewer, e.g. `CHANGES_REQUESTED`. */
+  verdicts: { author: string; state: string; body: string }[]
+  /** Top-level PR comments. */
+  discussion: { author: string; body: string }[]
+  /** Inline thread comments, newest last. */
+  inline: { author: string; path: string; line: number | null; body: string }[]
+}
+
+/**
+ * Everything humans have said on this PR. Fetched in parallel and capped — a
+ * long-running PR can carry hundreds of comments and none of them are worth a
+ * timeout.
+ */
+export async function fetchPrConversation({
+  owner,
+  repo,
+  prNumber,
+}: PrRef): Promise<PrConversation> {
+  const octokit = await octokitFor(owner, repo)
+  const args = { owner, repo, pull_number: prNumber, per_page: 100 }
+
+  const [reviews, discussion, inline] = await Promise.all([
+    octokit
+      .request('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', args)
+      .then((r) => r.data)
+      .catch(() => []),
+    octokit
+      .request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner,
+        repo,
+        issue_number: prNumber,
+        per_page: 100,
+      })
+      .then((r) => r.data)
+      .catch(() => []),
+    octokit
+      .request('GET /repos/{owner}/{repo}/pulls/{pull_number}/comments', args)
+      .then((r) => r.data)
+      .catch(() => []),
+  ])
+
+  return {
+    verdicts: reviews.map((r) => ({
+      author: r.user?.login ?? 'unknown',
+      state: r.state ?? '',
+      body: r.body ?? '',
+    })),
+    discussion: discussion.map((c) => ({
+      author: c.user?.login ?? 'unknown',
+      body: c.body ?? '',
+    })),
+    inline: inline.map((c) => ({
+      author: c.user?.login ?? 'unknown',
+      path: c.path,
+      line: c.line ?? c.original_line ?? null,
+      body: c.body ?? '',
+    })),
+  }
+}
+
 export async function fetchPrDiff({ owner, repo, prNumber }: PrRef): Promise<string> {
   const octokit = await octokitFor(owner, repo)
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {

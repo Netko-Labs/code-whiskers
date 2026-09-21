@@ -11,6 +11,8 @@ NEW side of the diff. Verdict: "request_changes" when any high/critical finding
 exists, otherwise "approve" — non-blocking nitpicks do not block a merge.
 Always fill "summary" with one or two sentences on what the diff does and how it
 reads, even when you find nothing; a clean review still needs to say so.
+A re-review may be handed a preamble describing where the PR already stands;
+treat it as history, never as code to review.
 Respond with the JSON object only, no markdown fences, no prose.`
 
 const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
@@ -27,12 +29,13 @@ export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
   return findings.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
 }
 
-export async function reviewChunk(diff: string): Promise<LlmReview> {
+export async function reviewChunk(diff: string, context = ''): Promise<LlmReview> {
+  const preamble = context ? `${context}\n\n` : ''
   const { object } = await generateObject({
     model: openrouterModel(),
     schema: LlmReviewSchema,
     system: SYSTEM,
-    prompt: `Review this diff:\n\n${diff}`,
+    prompt: `${preamble}Review this diff:\n\n${diff}`,
     abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     repairText: repairReviewText,
   })

@@ -1,30 +1,80 @@
 import parseDiff from 'parse-diff'
 
+/**
+ * Files a reviewer has nothing useful to say about: machine-written, vendored,
+ * binary, or mechanically translated. Reviewing them burns tokens and buries
+ * the findings that matter.
+ *
+ * Deliberately NOT here: migrations (`drizzle/*.sql`) and CI workflows. Both are
+ * generated or boilerplate-ish, and both are exactly where a destructive change
+ * hides.
+ */
 const SKIP_PATTERNS = [
+  // Dependency manifests resolved by a tool
   /\.lock$/,
   /^bun\.lock/,
   /-lock\.(json|yaml)$/,
+  /(^|\/)go\.sum$/,
+  // Build products and bundles
   /\.min\.(js|css)$/,
   /\.map$/,
-  /\.gen\.(ts|tsx|js)$/,
-  /\.(svg|png|jpe?g|gif|ico|webp|woff2?|ttf)$/,
-  /(^|\/)(dist|\.output|build|generated|__generated__|__snapshots__)\//,
+  /(^|\/)(dist|\.output|\.next|\.nuxt|\.turbo|build|out|target|coverage)\//,
+  // Generated source
+  /\.gen\.(ts|tsx|js|jsx)$/,
+  /\.generated\./,
+  /\.pb\.go$/,
+  /_pb2\.pyi?$/,
+  /\.g\.dart$/,
+  /(^|\/)(generated|__generated__|__snapshots__)\//,
   /\.snap$/,
+  // Vendored trees
+  /(^|\/)(node_modules|vendor|third_party|\.venv)\//,
+  // Binary and media
+  /\.(svg|png|jpe?g|gif|ico|webp|avif|woff2?|ttf|otf|eot)$/,
+  /\.(pdf|zip|gz|tar|wasm|mp4|mov|mp3|wav)$/,
+  // Bulk data and translations
+  /\.(csv|tsv|parquet|sqlite|db)$/,
+  /\.(po|mo|xliff|strings)$/,
+  // Release plumbing
+  /(^|\/)CHANGELOG\.md$/,
+  /(^|\/)LICENSE(\.[a-z]+)?$/i,
 ]
+
 // Small enough that a flash-tier model answers inside the per-chunk timeout
 const MAX_CHUNK_CHARS = 24_000
+/**
+ * One file big enough to eat a whole chunk is almost always machine-written
+ * something we have no pattern for. Note it and move on rather than drop it
+ * silently — the model should know it was there.
+ */
+const MAX_FILE_CHARS = 12_000
 
 function reviewable(fileName: string): boolean {
   return !SKIP_PATTERNS.some((pattern) => pattern.test(fileName))
 }
 
+function fileNameOf(section: string): string | undefined {
+  return section.match(/^diff --git a\/.+ b\/(.+)$/m)?.[1]
+}
+
+function elide(section: string, file: string): string {
+  const lines = section.split('\n').length
+  return (
+    `diff --git a/${file} b/${file}\n` +
+    `[${lines} lines, ${section.length} chars — too large to review inline; ` +
+    'skipped. Flag it only if its filename suggests a risk.]\n'
+  )
+}
+
 /** Split a unified diff on file boundaries, drop noise files, pack greedily. */
 export function chunkDiff(diff: string, maxChars = MAX_CHUNK_CHARS): string[] {
   const sections = diff.split(/^(?=diff --git )/m).filter((s) => s.trim().length > 0)
-  const kept = sections.filter((section) => {
-    const file = section.match(/^diff --git a\/.+ b\/(.+)$/m)?.[1]
-    return file ? reviewable(file) : true
-  })
+  const kept: string[] = []
+  for (const section of sections) {
+    const file = fileNameOf(section)
+    if (file && !reviewable(file)) continue
+    kept.push(file && section.length > MAX_FILE_CHARS ? elide(section, file) : section)
+  }
 
   const chunks: string[] = []
   let current = ''

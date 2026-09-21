@@ -2,10 +2,13 @@ import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
+import { countReviews, getPreviousReview } from '../queries'
 import { mapWithConcurrency } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
+import { buildPrContext } from './context'
 import {
   completeCheckRun,
+  fetchPrConversation,
   fetchPrDiff,
   fetchPrHead,
   type PrRef,
@@ -36,15 +39,18 @@ const FAILURE_NOTIFIED_CAP = 1_000
  * provider 5xx, a malformed sample) with a short pause — a 4xx would just fail
  * again, and the original error stays visible in the log.
  */
-async function reviewChunkWithRetry(chunk: string): ReturnType<typeof reviewChunk> {
+async function reviewChunkWithRetry(
+  chunk: string,
+  context: string,
+): ReturnType<typeof reviewChunk> {
   try {
-    return await reviewChunk(chunk)
+    return await reviewChunk(chunk, context)
   } catch (error) {
     const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
     if (!TRANSIENT_ERROR.test(message)) throw error
     logger.warn({ err: message }, 'transient chunk failure — retrying once')
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
-    return reviewChunk(chunk)
+    return reviewChunk(chunk, context)
   }
 }
 
@@ -70,9 +76,29 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   const checkRunId = await startCheckRun(ref, headSha).catch(() => null)
 
   try {
-    const diff = await fetchPrDiff(ref)
+    const [diff, conversation, previous, reviewCount] = await Promise.all([
+      fetchPrDiff(ref),
+      fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
+      getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+      countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+    ])
+
+    const context = buildPrContext({
+      reviewCount,
+      previous: previous && {
+        headSha: previous.review.headSha,
+        verdict: previous.review.verdict,
+        findings: previous.findings,
+      },
+      conversation,
+      botHandle: whiskersEnvConfig.github.botHandle,
+    })
+    if (context) logger.info({ ...ref, contextChars: context.length }, 'review has prior context')
+
     const chunks = chunkDiff(diff)
-    const results = await mapWithConcurrency(chunks, reviewChunkWithRetry)
+    const results = await mapWithConcurrency(chunks, (chunk) =>
+      reviewChunkWithRetry(chunk, context),
+    )
     const merged = mergeReviews(results)
 
     await createFindings(
