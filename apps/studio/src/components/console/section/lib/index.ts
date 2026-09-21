@@ -1,4 +1,5 @@
 export { usePullRequestsSection } from './hooks/use-pull-requests-section'
+export { useRepositoriesSection } from './hooks/use-repositories-section'
 export { useSectionDefinition } from './hooks/use-section-definition'
 export type * from './types'
 export * from './utils'

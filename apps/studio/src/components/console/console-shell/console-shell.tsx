@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useWindowResize } from '@/shared/dom-events'
 import { ConsoleNav, ConsoleRail } from '../console-nav'
+import { useGithubSync } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
 import { ConsoleToast } from './console-toast'
 import type { ConsoleShellProps } from './lib'
@@ -9,6 +10,7 @@ export function ConsoleShell({ children }: ConsoleShellProps) {
   const navOpen = useConsoleStore((s) => s.navOpen)
   const collapse = useCallback(() => useConsoleStore.getState().collapseNavOnNarrow(), [])
   useWindowResize(collapse)
+  useGithubSync()
 
   return (
     <div className="relative flex h-dvh overflow-hidden bg-background font-sans text-foreground">

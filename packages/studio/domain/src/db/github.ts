@@ -44,6 +44,8 @@ export const repository = pgTable(
     owner: text('owner').notNull(),
     name: text('name').notNull(),
     isPrivate: boolean('is_private').default(false).notNull(),
+    // Whiskers only reviews a watched repository; the sync never flips this.
+    isWatched: boolean('is_watched').default(true).notNull(),
     language: text('language'),
     defaultBranch: text('default_branch'),
     pushedAt: timestamp('pushed_at'),

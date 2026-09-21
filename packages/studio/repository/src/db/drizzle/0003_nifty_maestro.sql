@@ -1,0 +1,1 @@
+ALTER TABLE "repository" ADD COLUMN "is_watched" boolean DEFAULT true NOT NULL;

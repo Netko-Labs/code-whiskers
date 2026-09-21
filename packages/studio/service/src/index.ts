@@ -1,3 +1,6 @@
 export * from './auth'
 export * from './email'
+export * from './github'
+export * from './mutations'
+export * from './queries'
 export * from './shared'

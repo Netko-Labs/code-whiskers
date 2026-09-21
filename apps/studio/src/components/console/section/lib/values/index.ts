@@ -2,7 +2,7 @@ import type { SectionDefinition, SectionView } from '../../../shared/console-mod
 import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
 import { INSTANCE_SECTION } from './instance-section'
 
-export { PULL_REQUESTS_SECTION }
+export { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION }
 
 import { CODEBASE_MAP_SECTION } from './codebase-map-section'
 import { ISSUES_SECTION, REGRESSIONS_SECTION } from './error-sections'

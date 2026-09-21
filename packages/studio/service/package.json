@@ -14,7 +14,8 @@
     "@code-whiskers/typescript-config": "workspace:*",
     "better-auth": "^1.7.4",
     "drizzle-orm": "^0.45.2",
-    "jose": "^6.2.12"
+    "jose": "^6.2.12",
+    "octokit": "^5.0.5"
   },
   "scripts": {
     "check-types": "tsc --noEmit"

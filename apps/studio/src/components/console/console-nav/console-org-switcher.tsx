@@ -1,19 +1,20 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/components/popover'
 import { useState } from 'react'
-import { ORGS } from '../shared/console-data'
+import { useOrganizations } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
 
 export function ConsoleOrgSwitcher() {
   const [open, setOpen] = useState(false)
   const orgIndex = useConsoleStore((s) => s.orgIndex)
-  const org = ORGS[orgIndex] ?? ORGS[0]
+  const { orgs } = useOrganizations()
+  const org = orgs[orgIndex] ?? orgs[0]
 
   function pick(index: number) {
     const { pickOrg, flash } = useConsoleStore.getState()
     setOpen(false)
     if (index === orgIndex) return
     pickOrg(index)
-    flash(`Switched to ${ORGS[index]?.name}`)
+    flash(`Switched to ${orgs[index]?.name}`)
   }
 
   if (!org) return null
@@ -37,7 +38,7 @@ export function ConsoleOrgSwitcher() {
         <span className="px-2.5 pt-[7px] pb-[5px] text-[11px] text-muted-foreground">
           Organizations
         </span>
-        {ORGS.map((candidate, index) => (
+        {orgs.map((candidate, index) => (
           <button
             type="button"
             key={candidate.name}
