@@ -3,7 +3,7 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { LlmReview, Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
-import { mapWithConcurrency } from '../shared/llm'
+import { createTokenTally, mapWithConcurrency, type TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines, splitChunk } from './chunk'
 import { buildPrContext } from './context'
 import {
@@ -56,11 +56,12 @@ const FAILURE_NOTIFIED_CAP = 1_000
 async function reviewChunkWithRetry(
   chunk: string,
   context: string,
+  tokens: TokenTally,
   depth = 0,
 ): Promise<LlmReview | null> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      return await reviewChunk(chunk, context)
+      return await reviewChunk(chunk, context, tokens)
     } catch (error) {
       const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
       const last = attempt === MAX_ATTEMPTS
@@ -74,7 +75,7 @@ async function reviewChunkWithRetry(
         if (halves.length > 1) {
           logger.warn({ attempt, depth, chars: chunk.length }, 'chunk timed out — splitting')
           const results = await Promise.all(
-            halves.map((half) => reviewChunkWithRetry(half, context, depth + 1)),
+            halves.map((half) => reviewChunkWithRetry(half, context, tokens, depth + 1)),
           )
           const usable = results.filter((r): r is LlmReview => r !== null)
           return usable.length > 0 ? mergeReviews(usable) : null
@@ -108,6 +109,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   logger.info({ ...ref, headSha, reviewId: review.id }, 'review started')
   // The visible face in the PR's checks section — App auth only, null under PAT.
   const checkRunId = await startCheckRun(ref, headSha).catch(() => null)
+  const tokens = createTokenTally()
 
   try {
     const [diff, conversation, previous, reviewCount, suppressions] = await Promise.all([
@@ -133,7 +135,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
 
     const chunks = chunkDiff(diff)
     const results = await mapWithConcurrency(chunks, (chunk) =>
-      reviewChunkWithRetry(chunk, context),
+      reviewChunkWithRetry(chunk, context, tokens),
     )
     const reviewed = results.filter((r): r is LlmReview => r !== null)
     const skipped = results.length - reviewed.length
@@ -171,7 +173,14 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       )
     })
     logger.info(
-      { ...ref, reviewId: review.id, verdict: merged.verdict, findings: merged.findings.length },
+      {
+        ...ref,
+        reviewId: review.id,
+        verdict: merged.verdict,
+        findings: merged.findings.length,
+        chunks: chunks.length,
+        tokens,
+      },
       'review completed',
     )
     return await completeReview(review.id, {
@@ -182,7 +191,7 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    logger.error({ err: message }, 'review failed')
+    logger.error({ err: message, tokens }, 'review failed')
     await completeCheckRun(ref, checkRunId, { error: message }).catch(() => {})
     const failureKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
     if (!failureNotified.has(failureKey)) {

@@ -1,6 +1,6 @@
 import { type LlmFinding, type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
 import { generateObject } from 'ai'
-import { openrouterModel } from '../shared/llm'
+import { addUsage, openrouterModel, type TokenTally } from '../shared/llm'
 import { repairReviewText } from './repair'
 
 const SYSTEM = `You are a senior code reviewer for pull requests.
@@ -35,9 +35,13 @@ export function resolveVerdict(findings: LlmFinding[]): LlmReview['verdict'] {
   return findings.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
 }
 
-export async function reviewChunk(diff: string, context = ''): Promise<LlmReview> {
+export async function reviewChunk(
+  diff: string,
+  context: string,
+  tokens: TokenTally,
+): Promise<LlmReview> {
   const preamble = context ? `${context}\n\n` : ''
-  const { object } = await generateObject({
+  const { object, usage } = await generateObject({
     model: openrouterModel(),
     schema: LlmReviewSchema,
     system: SYSTEM,
@@ -45,6 +49,7 @@ export async function reviewChunk(diff: string, context = ''): Promise<LlmReview
     abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     repairText: repairReviewText,
   })
+  addUsage(tokens, usage)
   return object
 }
 

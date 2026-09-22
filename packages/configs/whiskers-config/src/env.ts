@@ -23,7 +23,7 @@ const whiskersConfig: WhiskersConfig = {
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
-    model: process.env.REVIEW_MODEL ?? 'anthropic/claude-sonnet-4.5',
+    model: process.env.REVIEW_MODEL ?? 'openai/gpt-6-luna',
   },
   fix: {
     maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),

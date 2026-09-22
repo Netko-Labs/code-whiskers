@@ -57,10 +57,12 @@ are set.
 
 Install the GitHub App on the organization with **Pull request**, **Issue comment** and **Pull
 request review comment** events, webhook URL `https://whiskers.netko.dev/webhooks/github`. On every
-PR the worker chunks the diff (24k chars, generated and binary files skipped), reviews chunks in
-parallel on the `REVIEW_MODEL` with OpenRouter routed for throughput, and posts a review plus a
-check run. Mentioning the bot on a review thread queues a fix. Cheap models are expected: malformed
-JSON is repaired, missing fields default, and one unparseable sample gets a fresh retry.
+PR the worker chunks the diff (14k chars, generated, vendored and binary files skipped), reviews
+chunks in parallel on the `REVIEW_MODEL` (default `openai/gpt-6-luna`, medium reasoning) with
+OpenRouter routed for throughput, and posts a review plus a check run. Mentioning the bot on a review
+thread queues a fix. Cheap models are expected: malformed JSON is repaired, missing fields default,
+and a failing chunk gets three jittered attempts (a timeout splits it) before it is skipped. Each
+`review completed` log line carries the review's token tally.
 
 ## Error tracking
 
@@ -76,9 +78,9 @@ is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify netw
 skips the pre-deployment command (no running container yet), so deploy twice.
 
 Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`,
-`WHISKERS_URL`, optional `GITHUB_CLIENT_ID`/`SECRET`, `USESEND_URL`/`USESEND_API_KEY`/`EMAIL_FROM`. Whiskers env:
-`DATABASE_URL`, `WEB_BASE_URL`, `CORS`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`,
-`GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`, `OPENROUTER_API_KEY`, `REVIEW_MODEL`.
+`WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`,
+`WEB_BASE_URL`, `CORS`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`,
+`GITHUB_BOT_HANDLE`, `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN`.
 
 ## Verify
 
