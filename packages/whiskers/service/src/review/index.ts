@@ -17,11 +17,13 @@ import {
   startCheckRun,
 } from './github'
 import { mergeReviews, reviewChunk } from './llm'
+import { type ReviewReport, renderFailureComment } from './render'
 import { fetchSuppressions } from './suppressions'
 
 export * from './chunk'
 export * from './github'
 export * from './llm'
+export * from './render'
 export * from './suppressions'
 
 const logger = createLogger('whiskers-review')
@@ -147,10 +149,11 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     }
 
     const merged = mergeReviews(reviewed)
-    if (skipped > 0) {
-      logger.warn({ ...ref, skipped, total: results.length }, 'partial review')
-      const note = `_${skipped} of ${results.length} sections could not be reviewed (provider timed out); everything below covers the rest._`
-      merged.summary = merged.summary ? `${merged.summary}\n\n${note}` : note
+    if (skipped > 0) logger.warn({ ...ref, skipped, total: results.length }, 'partial review')
+    const report: ReviewReport = {
+      review: merged,
+      model: review.model ?? whiskersEnvConfig.openrouter.model,
+      coverage: { reviewed: reviewed.length, total: results.length },
     }
 
     await createFindings(
@@ -165,8 +168,8 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
         suggestion: f.suggestion,
       })),
     )
-    await postPrReview(ref, headSha, merged, commentableLines(diff))
-    await completeCheckRun(ref, checkRunId, { review: merged }).catch((error) => {
+    await postPrReview(ref, headSha, report, commentableLines(diff))
+    await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
       logger.warn(
         { err: error instanceof Error ? error.message : String(error) },
         'check run update failed',
@@ -192,15 +195,12 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     logger.error({ err: message, tokens }, 'review failed')
-    await completeCheckRun(ref, checkRunId, { error: message }).catch(() => {})
+    await completeCheckRun(ref, headSha, checkRunId, { error: message }).catch(() => {})
     const failureKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
     if (!failureNotified.has(failureKey)) {
       if (failureNotified.size >= FAILURE_NOTIFIED_CAP) failureNotified.clear()
       failureNotified.add(failureKey)
-      await postPrComment(
-        ref,
-        `⚠️ **code-whiskers review failed** on \`${headSha.slice(0, 7)}\`\n\n> ${message.slice(0, 500)}\n\nThis is usually a transient provider error — push a new commit to trigger another review.`,
-      ).catch((commentError) => {
+      await postPrComment(ref, renderFailureComment(headSha, message)).catch((commentError) => {
         logger.warn(
           {
             err: commentError instanceof Error ? commentError.message : String(commentError),

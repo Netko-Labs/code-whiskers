@@ -1,6 +1,12 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
 import { App, Octokit } from 'octokit'
+import {
+  type ReviewReport,
+  type ReviewTarget,
+  renderAnnotation,
+  renderFinding,
+  renderReviewBody,
+} from './render'
 
 const { appId, appPrivateKey, token } = whiskersEnvConfig.github
 const githubApp = appId && appPrivateKey ? new App({ appId, privateKey: appPrivateKey }) : null
@@ -275,8 +281,9 @@ export interface CheckOutput {
   }>
 }
 
-/** The check-run face of a review: verdict headline, summary, findings as annotations. */
-export function buildCheckOutput(review: LlmReview): CheckOutput {
+/** The check-run face of a review: verdict headline, the review body, findings as annotations. */
+export function buildCheckOutput(report: ReviewReport, target: ReviewTarget): CheckOutput {
+  const { review } = report
   const counts = review.findings.reduce<Record<string, number>>((acc, f) => {
     acc[f.severity] = (acc[f.severity] ?? 0) + 1
     return acc
@@ -289,7 +296,7 @@ export function buildCheckOutput(review: LlmReview): CheckOutput {
   return {
     title:
       review.findings.length === 0 ? `${headline} — no findings` : `${headline} — ${breakdown}`,
-    summary: review.summary || 'No summary.',
+    summary: renderReviewBody(report, target),
     annotations: review.findings
       .filter((f) => f.line !== null)
       .slice(0, MAX_ANNOTATIONS)
@@ -299,7 +306,7 @@ export function buildCheckOutput(review: LlmReview): CheckOutput {
         start_line: f.line as number,
         end_line: f.line as number,
         annotation_level: ANNOTATION_LEVEL[f.severity],
-        message: `[${f.severity}/${f.category}] ${f.title}\n\n${f.body}`.slice(0, 4_000),
+        message: renderAnnotation(f).slice(0, 4_000),
       })),
   }
 }
@@ -324,17 +331,20 @@ export async function startCheckRun(ref: PrRef, headSha: string): Promise<number
  */
 export async function completeCheckRun(
   ref: PrRef,
+  headSha: string,
   checkRunId: number | null,
-  result: { review: LlmReview } | { error: string },
+  result: { report: ReviewReport } | { error: string },
 ): Promise<void> {
   if (checkRunId === null) return
   const octokit = await octokitFor(ref.owner, ref.repo)
   const done =
-    'review' in result
+    'report' in result
       ? {
           conclusion:
-            result.review.verdict === 'approve' ? ('success' as const) : ('failure' as const),
-          output: buildCheckOutput(result.review),
+            result.report.review.verdict === 'approve'
+              ? ('success' as const)
+              : ('failure' as const),
+          output: buildCheckOutput(result.report, { owner: ref.owner, repo: ref.repo, headSha }),
         }
       : {
           conclusion: 'neutral' as const,
@@ -362,51 +372,36 @@ export async function completeCheckRun(
   }
 }
 
-function findingBody(finding: LlmFinding): string {
-  const suggestion = finding.suggestion ? `\n\n**Suggestion:** ${finding.suggestion}` : ''
-  return `**[${finding.severity}/${finding.category}] ${finding.title}**\n\n${finding.body}${suggestion}`
-}
-
 /**
  * One PR review: inline comments for findings with commentable lines, the rest
  * folded into the review body. Verdict maps straight onto GitHub's event.
  */
-/** Cheap models drop `summary`; a review body still has to say what happened. */
-function reviewFallbackBody(review: LlmReview): string {
-  const count = review.findings.length
-  if (count === 0) return 'No findings.'
-  return `${count} finding${count === 1 ? '' : 's'} below.`
-}
-
 export async function postPrReview(
   ref: PrRef,
   headSha: string,
-  review: LlmReview,
+  report: ReviewReport,
   commentable: Map<string, Set<number>>,
 ): Promise<void> {
   const octokit = await octokitFor(ref.owner, ref.repo)
+  const { review } = report
   const inline = review.findings.filter(
     (f) => f.line !== null && commentable.get(f.file)?.has(f.line),
   )
-  const orphaned = review.findings.filter((f) => !inline.includes(f))
-
-  const orphanSection =
-    orphaned.length > 0
-      ? `\n\n---\n${orphaned.map((f) => `- ${f.file}${f.line ? `:${f.line}` : ''} — ${findingBody(f)}`).join('\n')}`
-      : ''
+  const unanchored = review.findings.filter((f) => !inline.includes(f))
+  const target = { owner: ref.owner, repo: ref.repo, headSha }
 
   const payload = {
     owner: ref.owner,
     repo: ref.repo,
     pull_number: ref.prNumber,
     commit_id: headSha,
-    body: `${review.summary || reviewFallbackBody(review)}${orphanSection}`,
+    body: renderReviewBody(report, target, unanchored),
     comments: inline.map((f) => ({
       path: f.file,
       // SAFETY: filter above guarantees line is non-null for inline findings
       line: f.line as number,
       side: 'RIGHT' as const,
-      body: findingBody(f),
+      body: renderFinding(f),
     })),
   }
   try {

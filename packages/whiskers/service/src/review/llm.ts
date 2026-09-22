@@ -1,6 +1,7 @@
 import { type LlmFinding, type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
 import { generateObject } from 'ai'
 import { addUsage, openrouterModel, type TokenTally } from '../shared/llm'
+import { BLOCKING_SEVERITIES } from './render'
 import { repairReviewText } from './repair'
 
 const SYSTEM = `You are a senior code reviewer for pull requests.
@@ -9,13 +10,18 @@ security holes, performance traps, broken contracts. Do not pad with nitpicks;
 an empty findings list is a valid, good review. Line numbers must reference the
 NEW side of the diff. Verdict: "request_changes" when any high/critical finding
 exists, otherwise "approve" — non-blocking nitpicks do not block a merge.
-Always fill "summary" with one or two sentences on what the diff does and how it
-reads, even when you find nothing; a clean review still needs to say so.
+"summary": exactly one sentence on what this diff changes in behaviour, not a
+file list and not a verdict. Fill it even when you find nothing.
+Each finding is rendered as a table row and a short comment, so keep it tight:
+"title" states the problem, not the fix ("Pagination stops at 100 installations",
+not "Fetch all pages"), under 80 characters, sentence case, no trailing period; "body" at most
+two sentences — what breaks and when; "suggestion" the concrete fix in one
+sentence or a short code snippet, or null. Plain statements, no "I noticed",
+no "potential issue" hedging, no emoji.
 A re-review may be handed a preamble describing where the PR already stands;
 treat it as history, never as code to review.
 Respond with the JSON object only, no markdown fences, no prose.`
 
-const BLOCKING_SEVERITIES: ReadonlySet<LlmFinding['severity']> = new Set(['high', 'critical'])
 /**
  * Measured on 30 production reviews: the latency distribution is bimodal — a
  * chunk either answers in tens of seconds or stalls outright. 180s nursed every
@@ -53,7 +59,7 @@ export async function reviewChunk(
   return object
 }
 
-/** Findings and summaries concatenate; the verdict derives from the merged findings. */
+/** Findings concatenate, summaries stack one per line; the verdict derives from the merged findings. */
 export function mergeReviews(reviews: LlmReview[]): LlmReview {
   const findings = reviews.flatMap((r) => r.findings)
   return {
@@ -61,7 +67,7 @@ export function mergeReviews(reviews: LlmReview[]): LlmReview {
     summary: reviews
       .map((r) => r.summary)
       .filter(Boolean)
-      .join('\n\n'),
+      .join('\n'),
     verdict: resolveVerdict(findings),
   }
 }
