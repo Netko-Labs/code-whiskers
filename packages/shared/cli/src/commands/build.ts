@@ -83,7 +83,27 @@ async function bundleMigrations(appName: string, outDir: string) {
     return
   }
 
+  const drizzleDir = path.join(dbDir, 'drizzle')
+  assertJournalComplete(drizzleDir)
+
   console.log(`🗃️  Bundling migrations into ${path.relative(process.cwd(), migrateOut)}...`)
   await run(['bun', 'build', entry, '--outdir', migrateOut, '--target', 'bun'])
-  fs.cpSync(path.join(dbDir, 'drizzle'), path.join(migrateOut, 'drizzle'), { recursive: true })
+  fs.cpSync(drizzleDir, path.join(migrateOut, 'drizzle'), { recursive: true })
+}
+
+/**
+ * A journal entry without its .sql builds fine and only fails in the pre-deployment
+ * hook — which then runs inside that image on every later deploy. Fail the build instead.
+ */
+function assertJournalComplete(drizzleDir: string) {
+  const journal = JSON.parse(
+    fs.readFileSync(path.join(drizzleDir, 'meta', '_journal.json'), 'utf8'),
+  ) as { entries: { tag: string }[] }
+  const missing = journal.entries
+    .map((entry) => `${entry.tag}.sql`)
+    .filter((file) => !fs.existsSync(path.join(drizzleDir, file)))
+  if (missing.length === 0) return
+
+  console.error(`❌ Migration journal lists files that do not exist: ${missing.join(', ')}`)
+  process.exit(1)
 }
