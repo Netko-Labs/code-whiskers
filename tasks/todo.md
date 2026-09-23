@@ -16,7 +16,7 @@ fallbacks go away as each lands.
 - [x] Issues ← `/v1/issues`
 - [x] Members ← `organization_member` + `user` (`GET /api/members`)
 - [x] Codebase map ← findings grouped by directory (`/v1/hotspots`)
-- [ ] Instance ← `/v1/overview` counts, database sizes, review latency
+- [x] Instance ← `/v1/instance` + `/api/instance/storage`: both databases, activity, latency
 
 ## B · Studio-owned configuration, with forms (~1 day)
 
@@ -40,6 +40,7 @@ fallbacks go away as each lands.
 
 ## Known gaps
 
+- `/v1/reviews` stops at the newest 100 rows; Pull requests, triage and counts inherit the cap.
 - Issues are triaged under `project:<id>` by any signed-in user until projects gain an owner (B).
 
 ## Open questions

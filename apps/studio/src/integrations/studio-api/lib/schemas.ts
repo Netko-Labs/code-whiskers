@@ -85,3 +85,15 @@ export const createdSchema = z.object({ id: z.string() })
 export const instanceSchema = z.object({
   githubApp: z.object({ slug: z.string(), url: z.string(), installUrl: z.string() }),
 })
+
+export const studioStorageSchema = z.object({
+  databaseBytes: z.number(),
+  stores: z.array(
+    z.object({
+      table: z.string(),
+      bytes: z.number(),
+      rows: z.number(),
+      oldest: z.coerce.date().nullable(),
+    }),
+  ),
+})

@@ -68,3 +68,25 @@ export const whiskersHotspotSchema = z.object({
   lastSeen: z.coerce.date(),
 })
 export const whiskersHotspotListSchema = z.array(whiskersHotspotSchema)
+
+export const whiskersInstanceSchema = z.object({
+  databaseBytes: z.number(),
+  stores: z.array(
+    z.object({
+      table: z.string(),
+      bytes: z.number(),
+      rows: z.number(),
+      isEstimate: z.boolean(),
+      oldest: z.coerce.date().nullable(),
+    }),
+  ),
+  activity: z.object({
+    reviews24h: z.number(),
+    reviews7d: z.number(),
+    failed7d: z.number(),
+    inFlight: z.number(),
+    medianReviewSeconds: z.number().nullable(),
+    events24h: z.number(),
+    events7d: z.number(),
+  }),
+})

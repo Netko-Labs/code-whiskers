@@ -3,6 +3,7 @@ import { fetchWhiskers } from './client'
 import {
   WHISKERS_QUERY_KEY,
   whiskersHotspotListSchema,
+  whiskersInstanceSchema,
   whiskersIssueListSchema,
   whiskersOverviewSchema,
   whiskersReviewDetailSchema,
@@ -41,4 +42,10 @@ export const whiskersHotspotsQuery = () =>
   queryOptions({
     queryKey: [WHISKERS_QUERY_KEY, 'hotspots'],
     queryFn: () => fetchWhiskers('/hotspots', whiskersHotspotListSchema),
+  })
+
+export const whiskersInstanceQuery = () =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'instance'],
+    queryFn: () => fetchWhiskers('/instance', whiskersInstanceSchema),
   })

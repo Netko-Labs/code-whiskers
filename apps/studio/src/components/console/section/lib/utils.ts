@@ -1,7 +1,12 @@
 import type { WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
-import type { ConsoleSeverity, PillTone, SectionCell } from '../../shared/console-model'
+import type {
+  ConsoleSeverity,
+  PillTone,
+  SectionCell,
+  SectionTextCell,
+} from '../../shared/console-model'
 
 export type PullRequestRow = {
   review: WhiskersReview
@@ -60,4 +65,30 @@ export function issueDot(level: string): ConsoleSeverity {
   if (level === 'fatal' || level === 'error') return 'critical'
   if (level === 'warning') return 'warning'
   return 'info'
+}
+
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'] as const
+
+export function formatBytes(bytes: number): string {
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  return `${value >= 10 || unit === 0 ? Math.round(value) : value.toFixed(1)} ${BYTE_UNITS[unit]}`
+}
+
+export function formatSeconds(seconds: number | null): string {
+  if (seconds === null) return '—'
+  if (seconds < 90) return `${Math.round(seconds)}s`
+  if (seconds < 5400) return `${Math.round(seconds / 60)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
+}
+
+export function textCell(
+  value: string,
+  extra: Partial<Omit<SectionTextCell, 'kind' | 'text'>> = {},
+): SectionCell {
+  return { kind: 'text', text: value, ...extra }
 }

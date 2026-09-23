@@ -4,6 +4,7 @@ import type {
   memberSchema,
   organizationSchema,
   repositorySchema,
+  studioStorageSchema,
   syncResultSchema,
   TRIAGE_ITEM_KINDS,
   TRIAGE_STATUSES,
@@ -34,3 +35,4 @@ export type TriageDecision = TriageItemRef & {
   note?: string
   snoozedUntil?: Date
 }
+export type StudioStorage = z.infer<typeof studioStorageSchema>

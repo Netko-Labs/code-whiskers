@@ -1,5 +1,6 @@
 import {
   getHotspots,
+  getInstanceStats,
   getIssues,
   getOverview,
   getReview,
@@ -16,6 +17,8 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   .get('/issues', { query: z.object({ projectId: z.string().optional() }) }, ({ query }) =>
     getIssues(query.projectId),
   )
+  // (￣ー￣) what the worker holds and whether it keeps up
+  .get('/instance', () => getInstanceStats())
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())
   // ʕ•ᴥ•ʔ every review the cat has done

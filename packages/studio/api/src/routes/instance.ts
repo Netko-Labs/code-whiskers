@@ -1,4 +1,5 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
+import { getStudioStorage } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 import { authPlugin } from '../setup'
 
@@ -14,3 +15,5 @@ export const instanceRoutes = new Elysia({ name: 'instance', prefix: '/instance'
       installUrl: `https://github.com/apps/${appSlug}/installations/new`,
     },
   }))
+  // (￣ー￣) studio's side of the storage picture; whiskers answers /v1/instance for its own
+  .get('/storage', { auth: true }, () => getStudioStorage())

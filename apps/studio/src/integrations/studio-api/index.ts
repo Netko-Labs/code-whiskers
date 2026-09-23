@@ -8,6 +8,7 @@ export {
   recordTriage,
   repositoriesQuery,
   STUDIO_QUERY_KEY,
+  studioStorageQuery,
   syncGithub,
   triageCommentsQuery,
   triageQuery,

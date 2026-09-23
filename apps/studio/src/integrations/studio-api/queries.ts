@@ -7,6 +7,7 @@ import {
   okSchema,
   organizationListSchema,
   repositoryListSchema,
+  studioStorageSchema,
   syncResultSchema,
   type TriageDecision,
   type TriageItemRef,
@@ -50,6 +51,12 @@ export const instanceQuery = () =>
     queryKey: [STUDIO_QUERY_KEY, 'instance'],
     queryFn: () => fetchStudio('/instance', instanceSchema),
     staleTime: Number.POSITIVE_INFINITY,
+  })
+
+export const studioStorageQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance', 'storage'],
+    queryFn: () => fetchStudio('/instance/storage', studioStorageSchema),
   })
 
 export const organizationsQuery = () =>

@@ -32,3 +32,11 @@ export type SectionActionsProps = {
   actions: SectionAction[]
   sample: boolean
 }
+
+export type StoreRow = {
+  table: string
+  database: string
+  bytes: number
+  rows: string
+  oldest: Date | null
+}
