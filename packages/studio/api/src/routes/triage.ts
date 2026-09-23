@@ -1,4 +1,4 @@
-import { setTriageState } from '@code-whiskers/studio-service'
+import { recordTriageDecision } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 import { authPlugin } from '../setup'
@@ -16,7 +16,8 @@ const triageBody = z.object({
 export const triageRoutes = new Elysia({ name: 'triage' })
   .use(authPlugin)
   // (•̀ᴗ•́) a human's call on something whiskers said — survives the reload
-  .post('/triage', { auth: true, body: triageBody }, async ({ body, user }) => {
-    await setTriageState({ ...body, updatedBy: user.id })
+  .post('/triage', { auth: true, body: triageBody }, async ({ body, user, status }) => {
+    const isRecorded = await recordTriageDecision(user.id, body)
+    if (!isRecorded) return status(403, 'Forbidden')
     return { ok: true }
   })
