@@ -1,4 +1,5 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
+import { auth } from '@code-whiskers/studio-service'
 
 const HOP_BY_HOP = ['host', 'connection', 'content-length', 'transfer-encoding']
 
@@ -22,4 +23,17 @@ export async function forwardToWhiskers(request: Request): Promise<Response> {
     body: hasBody ? await request.arrayBuffer() : undefined,
     redirect: 'manual',
   })
+}
+
+/**
+ * `/v1` returns review findings (which quote private code) and error events, so it is never
+ * forwarded anonymously. The worker has no public host; this is its only door.
+ */
+export async function forwardSignedInToWhiskers(request: Request): Promise<Response> {
+  const signedIn = await auth.api.getSession({ headers: request.headers })
+  if (!signedIn?.user) return Response.json({ error: 'unauthorized' }, { status: 401 })
+
+  const headers = new Headers(request.headers)
+  headers.delete('cookie')
+  return forwardToWhiskers(new Request(request, { headers }))
 }

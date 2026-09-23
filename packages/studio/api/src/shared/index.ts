@@ -1,1 +1,1 @@
-export { forwardToWhiskers } from './whiskers-proxy'
+export { forwardSignedInToWhiskers, forwardToWhiskers } from './whiskers-proxy'
