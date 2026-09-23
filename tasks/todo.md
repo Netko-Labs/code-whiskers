@@ -14,7 +14,7 @@ fallbacks go away as each lands.
       with per-finding dismiss, real viewer, notifications from live items, ⌘K, j/k, filter
 - [x] Nav counts from live data, not constants
 - [x] Issues ← `/v1/issues`
-- [ ] Members ← `organization_member` + `user` (`GET /api/members`)
+- [x] Members ← `organization_member` + `user` (`GET /api/members`)
 - [ ] Codebase map ← findings grouped by directory (`/v1/hotspots`)
 - [ ] Instance ← `/v1/overview` counts, database sizes, review latency
 

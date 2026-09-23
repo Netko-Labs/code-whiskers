@@ -1,19 +1,16 @@
 import type { SectionDefinition } from '../../../shared/console-model'
 
 export const MEMBERS_SECTION: SectionDefinition = {
-  title: 'Organization',
-  subtitle: 'Netko Labs · 9 members, 11 of 15 seats used',
-  actions: [
-    { label: 'Roles and access', variant: 'outline' },
-    { label: 'Invite members', variant: 'solid' },
-  ],
+  title: 'Members',
+  subtitle: 'Netko Labs · 9 signed in',
+  actions: [{ label: 'Install on another account', variant: 'outline' }],
   stats: [
-    { label: 'Members', value: '9', note: '2 invites pending' },
-    { label: 'Seats', value: '11 / 15', note: 'Team plan' },
-    { label: 'Admins', value: '3', note: 'incl. you' },
-    { label: 'SSO', value: 'Off', note: 'available on Team' },
+    { label: 'Members', value: '9', note: 'have signed in' },
+    { label: 'Installations', value: '2', note: 'shared with you' },
+    { label: 'Assigned, open', value: '14', note: 'across everyone' },
+    { label: 'Yours', value: '3', note: 'assigned to you' },
   ],
-  tabs: ['Members', 'Invites', 'Teams'],
+  tabs: ['Members'],
   table: {
     grid: '1fr 1fr 130px 110px 110px',
     columns: [

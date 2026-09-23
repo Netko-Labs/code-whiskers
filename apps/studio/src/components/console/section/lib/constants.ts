@@ -1,5 +1,6 @@
 import type { SectionView } from '../../shared/console-model'
 import { useIssuesSection } from './hooks/use-issues-section'
+import { useMembersSection } from './hooks/use-members-section'
 import { usePullRequestsSection } from './hooks/use-pull-requests-section'
 import { useRepositoriesSection } from './hooks/use-repositories-section'
 import type { SectionHook } from './types'
@@ -23,7 +24,7 @@ export const SECTION_HOOKS: Record<SectionView, SectionHook> = {
   traces: sampleOf('traces'),
   services: sampleOf('services'),
   'saved-queries': sampleOf('saved-queries'),
-  members: sampleOf('members'),
+  members: useMembersSection,
   integrations: sampleOf('integrations'),
   'api-keys': sampleOf('api-keys'),
   instance: sampleOf('instance'),
