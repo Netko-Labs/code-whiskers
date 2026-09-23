@@ -124,3 +124,14 @@ export type ConsoleOrg = {
 export type TriageBucket = 'inbox' | 'assigned' | 'snoozed'
 export type TriageFilter = 'all' | 'errors' | 'reviews' | 'logs'
 export type ErrorTab = 'stack' | 'crumbs' | 'logs' | 'tags'
+
+export type TriageStatus = {
+  resolved: boolean
+  approved: boolean
+  tracked: boolean
+  /** Set only while the snooze is still running; an expired one reads as open. */
+  snoozedUntil: Date | null
+  assigneeUserId: string | null
+  decidedAt: Date | null
+  done: boolean
+}

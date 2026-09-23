@@ -1,7 +1,7 @@
-import type { TriageItemRef } from '@/integrations/studio-api'
+import type { TriageItemRef, TriageRecord } from '@/integrations/studio-api'
 import type { WhiskersIssue, WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
-import type { ConsoleItem, ConsoleSeverity } from '../console-model'
+import type { ConsoleItem, ConsoleSeverity, TriageBucket, TriageStatus } from '../console-model'
 
 const ISSUE_SEVERITY: Record<string, ConsoleSeverity> = {
   fatal: 'critical',
@@ -136,4 +136,48 @@ export function initialsOf(name: string): string {
     .map((part) => part?.[0] ?? '')
     .join('')
     .toUpperCase()
+}
+
+const UNDECIDED: TriageStatus = {
+  resolved: false,
+  approved: false,
+  tracked: false,
+  snoozedUntil: null,
+  assigneeUserId: null,
+  decidedAt: null,
+  done: false,
+}
+
+export function statusFor(
+  item: ConsoleItem,
+  records: Map<string, TriageRecord>,
+  now = new Date(),
+): TriageStatus {
+  const record = item.triage ? records.get(triageKey(item.triage)) : undefined
+  if (!record) return UNDECIDED
+  const resolved = record.status === 'resolved'
+  const approved = record.status === 'approved'
+  const tracked = record.status === 'tracked'
+  const isSnoozing =
+    record.status === 'snoozed' && record.snoozedUntil !== null && record.snoozedUntil > now
+  return {
+    resolved,
+    approved,
+    tracked,
+    snoozedUntil: isSnoozing ? record.snoozedUntil : null,
+    assigneeUserId: record.assigneeUserId,
+    decidedAt: record.updatedAt,
+    done: resolved || approved || tracked,
+  }
+}
+
+/** Inbox hides running snoozes; Assigned is the viewer's; Snoozed is only running snoozes. */
+export function inBucket(
+  status: TriageStatus,
+  bucket: TriageBucket,
+  viewerId: string | undefined,
+): boolean {
+  if (bucket === 'assigned') return !!viewerId && status.assigneeUserId === viewerId
+  if (bucket === 'snoozed') return status.snoozedUntil !== null
+  return status.snoozedUntil === null
 }

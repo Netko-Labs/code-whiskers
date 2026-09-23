@@ -5,7 +5,6 @@ import type { TriageBucket } from './types'
 export type ConsoleNavItem = {
   label: string
   icon: Icon
-  count: string
   to: string
   params?: { bucket: TriageBucket } | { section: SectionView }
 }

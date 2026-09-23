@@ -1,8 +1,14 @@
 import { useMemo } from 'react'
-import { useConsoleItems, useTriageRecords, useViewer } from '../../../shared/console-data'
+import {
+  inBucket,
+  statusFor,
+  useConsoleItems,
+  useTriageRecords,
+  useViewer,
+} from '../../../shared/console-data'
 import type { ConsoleItem, TriageBucket, TriageFilter } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
-import { matchesFilter, statusFor } from '../utils'
+import { matchesFilter } from '../utils'
 
 export type TriageItemsResult = {
   items: ConsoleItem[]
@@ -16,7 +22,6 @@ function inOrganization(item: ConsoleItem, orgLogin: string | null): boolean {
   return item.triage.scope.toLowerCase().startsWith(`${orgLogin.toLowerCase()}/`)
 }
 
-/** Inbox hides running snoozes; Assigned is the viewer's; Snoozed is only running snoozes. */
 export function useTriageItems(
   bucket: TriageBucket,
   filter: TriageFilter,
@@ -30,11 +35,11 @@ export function useTriageItems(
   return useMemo(() => {
     const now = new Date()
     const visible = items.filter((item) => {
-      const status = statusFor(item, records, now)
-      if (bucket === 'assigned' && (!viewer || status.assigneeUserId !== viewer.id)) return false
-      if (bucket === 'snoozed' && !status.snoozedUntil) return false
-      if (bucket === 'inbox' && status.snoozedUntil) return false
-      return inOrganization(item, orgLogin) && matchesFilter(item, filter)
+      return (
+        inBucket(statusFor(item, records, now), bucket, viewer?.id) &&
+        inOrganization(item, orgLogin) &&
+        matchesFilter(item, filter)
+      )
     })
 
     const selected = visible.find((item) => item.id === selectedId) ?? visible[0]

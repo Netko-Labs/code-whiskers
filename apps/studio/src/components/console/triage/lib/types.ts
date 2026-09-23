@@ -1,17 +1,11 @@
 import type { Member } from '@/integrations/studio-api'
 import type { WhiskersFinding } from '@/integrations/whiskers'
-import type { ConsoleItem, TriageBucket, TriageFilter } from '../../shared/console-model'
-
-export type TriageStatus = {
-  resolved: boolean
-  approved: boolean
-  tracked: boolean
-  /** Set only while the snooze is still running; an expired one reads as open. */
-  snoozedUntil: Date | null
-  assigneeUserId: string | null
-  decidedAt: Date | null
-  done: boolean
-}
+import type {
+  ConsoleItem,
+  TriageBucket,
+  TriageFilter,
+  TriageStatus,
+} from '../../shared/console-model'
 
 export type TriageBanner = {
   message: string
@@ -82,3 +76,5 @@ export type ItemThreadProps = {
   item: ConsoleItem
   onPost: () => void
 }
+
+export type { TriageStatus }

@@ -12,16 +12,6 @@ const FILTER_KIND: Record<Exclude<TriageFilter, 'all'>, ConsoleItem['kind']> = {
   logs: 'log',
 }
 
-const UNDECIDED: TriageStatus = {
-  resolved: false,
-  approved: false,
-  tracked: false,
-  snoozedUntil: null,
-  assigneeUserId: null,
-  decidedAt: null,
-  done: false,
-}
-
 export function matchesFilter(item: ConsoleItem, filter: TriageFilter) {
   return filter === 'all' || item.kind === FILTER_KIND[filter]
 }
@@ -29,29 +19,6 @@ export function matchesFilter(item: ConsoleItem, filter: TriageFilter) {
 export function matchesQuery(item: ConsoleItem, query: string): boolean {
   const needle = query.trim().toLowerCase()
   return `${item.handle} ${item.title} ${item.subtitle}`.toLowerCase().includes(needle)
-}
-
-export function statusFor(
-  item: ConsoleItem,
-  records: Map<string, TriageRecord>,
-  now = new Date(),
-): TriageStatus {
-  const record = item.triage ? records.get(triageKey(item.triage)) : undefined
-  if (!record) return UNDECIDED
-  const resolved = record.status === 'resolved'
-  const approved = record.status === 'approved'
-  const tracked = record.status === 'tracked'
-  const isSnoozing =
-    record.status === 'snoozed' && record.snoozedUntil !== null && record.snoozedUntil > now
-  return {
-    resolved,
-    approved,
-    tracked,
-    snoozedUntil: isSnoozing ? record.snoozedUntil : null,
-    assigneeUserId: record.assigneeUserId,
-    decidedAt: record.updatedAt,
-    done: resolved || approved || tracked,
-  }
 }
 
 export function rowLabel(item: ConsoleItem, status: TriageStatus) {

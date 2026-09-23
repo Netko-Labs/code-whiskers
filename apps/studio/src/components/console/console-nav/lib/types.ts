@@ -7,10 +7,12 @@ import type {
 
 export type ConsoleNavItemProps = {
   item: ConsoleNavItem
+  count: string
 }
 
 export type ConsoleNavGroupProps = {
   group: NavGroup
+  counts: Record<string, number>
 }
 
 export type ConsoleNavProps = {

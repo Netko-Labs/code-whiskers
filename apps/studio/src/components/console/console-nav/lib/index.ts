@@ -1,5 +1,7 @@
+export { countFor, useNavCounts } from './hooks/use-nav-counts'
 export { useNotifications } from './hooks/use-notifications'
 export { useOrgChoices } from './hooks/use-org-choices'
 export type * from './types'
 export * from './user-menu-values'
+export * from './utils'
 export * from './values'

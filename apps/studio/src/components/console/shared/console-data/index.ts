@@ -7,10 +7,12 @@ export { useViewer } from './hooks/use-viewer'
 export {
   findingRef,
   formatDiff,
+  inBucket,
   initialsOf,
   issueToConsoleItem,
   latestReviewPerPullRequest,
   reviewToConsoleItem,
+  statusFor,
   triageKey,
 } from './utils'
 export * from './values'

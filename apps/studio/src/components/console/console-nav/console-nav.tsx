@@ -6,10 +6,11 @@ import { ConsoleNavGroup } from './console-nav-group'
 import { ConsoleNotifications } from './console-notifications'
 import { ConsoleOrgSwitcher } from './console-org-switcher'
 import { ConsoleUserMenu } from './console-user-menu'
-import { NAV_ICON_BUTTON, NAV_SEARCH_HINT } from './lib'
+import { NAV_ICON_BUTTON, NAV_SEARCH_HINT, useNavCounts } from './lib'
 
 export function ConsoleNav() {
   const closeNav = useConsoleStore((s) => s.closeNav)
+  const counts = useNavCounts()
 
   return (
     <nav className="dark relative flex min-w-[196px] shrink basis-[244px] flex-col gap-3.5 bg-zinc-950 px-3 py-3.5">
@@ -35,7 +36,7 @@ export function ConsoleNav() {
 
       <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto px-1">
         {NAV_GROUPS.map((group) => (
-          <ConsoleNavGroup key={group.label} group={group} />
+          <ConsoleNavGroup key={group.label} group={group} counts={counts} />
         ))}
       </div>
 
