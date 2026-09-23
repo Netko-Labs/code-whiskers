@@ -1,16 +1,16 @@
 import { organization, organizationMember, repository } from '@code-whiskers/studio-domain'
-import { db } from '@code-whiskers/studio-repository'
 import { sql } from 'drizzle-orm'
+import type { OrganizationInput, RepositoryInput, Transaction } from './types'
 
 /** `excluded` is the row postgres would have inserted — the standard upsert idiom. */
 const sqlExcluded = (column: string) => sql.raw(`excluded."${column}"`)
 
-export type OrganizationInput = typeof organization.$inferInsert
-export type RepositoryInput = typeof repository.$inferInsert
-
-export const upsertOrganizations = async (rows: OrganizationInput[]): Promise<void> => {
+export const upsertOrganizations = async (
+  tx: Transaction,
+  rows: OrganizationInput[],
+): Promise<void> => {
   if (rows.length === 0) return
-  await db
+  await tx
     .insert(organization)
     .values(rows)
     .onConflictDoUpdate({
@@ -26,11 +26,12 @@ export const upsertOrganizations = async (rows: OrganizationInput[]): Promise<vo
 }
 
 export const upsertMemberships = async (
+  tx: Transaction,
   userId: string,
   installationIds: number[],
 ): Promise<void> => {
   if (installationIds.length === 0) return
-  await db
+  await tx
     .insert(organizationMember)
     .values(installationIds.map((installationId) => ({ installationId, userId })))
     .onConflictDoUpdate({
@@ -40,9 +41,12 @@ export const upsertMemberships = async (
 }
 
 /** `is_watched` is the operator's choice, so an upsert must never reset it. */
-export const upsertRepositories = async (rows: RepositoryInput[]): Promise<void> => {
+export const upsertRepositories = async (
+  tx: Transaction,
+  rows: RepositoryInput[],
+): Promise<void> => {
   if (rows.length === 0) return
-  await db
+  await tx
     .insert(repository)
     .values(rows)
     .onConflictDoUpdate({
