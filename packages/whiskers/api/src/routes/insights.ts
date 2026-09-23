@@ -1,4 +1,10 @@
-import { getIssues, getOverview, getReview, getReviews } from '@code-whiskers/whiskers-service'
+import {
+  getHotspots,
+  getIssues,
+  getOverview,
+  getReview,
+  getReviews,
+} from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
 
@@ -10,6 +16,8 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   .get('/issues', { query: z.object({ projectId: z.string().optional() }) }, ({ query }) =>
     getIssues(query.projectId),
   )
+  // (・_・ヾ where findings keep landing
+  .get('/hotspots', () => getHotspots())
   // ʕ•ᴥ•ʔ every review the cat has done
   .get('/reviews', () => getReviews())
   // (=^･ω･^=) one review with its findings

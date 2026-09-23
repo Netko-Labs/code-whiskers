@@ -1,4 +1,5 @@
 import type { SectionView } from '../../shared/console-model'
+import { useCodebaseMapSection } from './hooks/use-codebase-map-section'
 import { useIssuesSection } from './hooks/use-issues-section'
 import { useMembersSection } from './hooks/use-members-section'
 import { usePullRequestsSection } from './hooks/use-pull-requests-section'
@@ -14,7 +15,7 @@ function sampleOf(section: SectionView): SectionHook {
 export const SECTION_HOOKS: Record<SectionView, SectionHook> = {
   'pull-requests': usePullRequestsSection,
   repositories: useRepositoriesSection,
-  'codebase-map': sampleOf('codebase-map'),
+  'codebase-map': useCodebaseMapSection,
   'review-rules': sampleOf('review-rules'),
   issues: useIssuesSection,
   regressions: sampleOf('regressions'),

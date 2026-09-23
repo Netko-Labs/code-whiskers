@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { fetchWhiskers } from './client'
 import {
   WHISKERS_QUERY_KEY,
+  whiskersHotspotListSchema,
   whiskersIssueListSchema,
   whiskersOverviewSchema,
   whiskersReviewDetailSchema,
@@ -34,4 +35,10 @@ export const whiskersReviewQuery = (reviewId: string) =>
   queryOptions({
     queryKey: [WHISKERS_QUERY_KEY, 'reviews', reviewId],
     queryFn: () => fetchWhiskers(`/reviews/${reviewId}`, whiskersReviewDetailSchema),
+  })
+
+export const whiskersHotspotsQuery = () =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'hotspots'],
+    queryFn: () => fetchWhiskers('/hotspots', whiskersHotspotListSchema),
   })

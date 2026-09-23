@@ -55,3 +55,16 @@ export const whiskersReviewDetailSchema = z.object({
 
 export const whiskersIssueListSchema = z.array(whiskersIssueSchema)
 export const whiskersReviewListSchema = z.array(whiskersReviewSchema)
+
+export const whiskersHotspotSchema = z.object({
+  repository: z.string(),
+  directory: z.string(),
+  findings: z.number(),
+  critical: z.number(),
+  high: z.number(),
+  medium: z.number(),
+  low: z.number(),
+  pullRequests: z.number(),
+  lastSeen: z.coerce.date(),
+})
+export const whiskersHotspotListSchema = z.array(whiskersHotspotSchema)

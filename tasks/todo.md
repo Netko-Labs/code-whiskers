@@ -15,7 +15,7 @@ fallbacks go away as each lands.
 - [x] Nav counts from live data, not constants
 - [x] Issues ← `/v1/issues`
 - [x] Members ← `organization_member` + `user` (`GET /api/members`)
-- [ ] Codebase map ← findings grouped by directory (`/v1/hotspots`)
+- [x] Codebase map ← findings grouped by directory (`/v1/hotspots`)
 - [ ] Instance ← `/v1/overview` counts, database sizes, review latency
 
 ## B · Studio-owned configuration, with forms (~1 day)
