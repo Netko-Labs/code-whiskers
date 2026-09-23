@@ -1,22 +1,18 @@
 import { triageState } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { and, eq, gt, inArray, isNull, or } from 'drizzle-orm'
-
-export interface Suppression {
-  itemKind: string
-  itemRef: string
-  status: string
-  note: string | null
-}
+import { and, desc, eq, gt, inArray, isNull, or } from 'drizzle-orm'
+import type { SuppressionPage } from './types'
 
 const SILENCING = ['dismissed', 'resolved', 'snoozed'] as const
 
+export const SUPPRESSION_LIMIT = 200
+
 /**
- * Decisions that should stop the reviewer raising something again on this repo.
- * A snooze that has expired is no longer silencing, so the finding comes back.
+ * Decisions that should stop the reviewer raising something again on this repo,
+ * newest first so a cap drops the stalest. An expired snooze no longer silences.
  */
-export const getSuppressions = async (scope: string): Promise<Suppression[]> => {
-  return await db
+export const getSuppressions = async (scope: string): Promise<SuppressionPage> => {
+  const rows = await db
     .select({
       itemKind: triageState.itemKind,
       itemRef: triageState.itemRef,
@@ -31,5 +27,10 @@ export const getSuppressions = async (scope: string): Promise<Suppression[]> => 
         or(isNull(triageState.snoozedUntil), gt(triageState.snoozedUntil, new Date())),
       ),
     )
-    .limit(200)
+    .orderBy(desc(triageState.updatedAt))
+    .limit(SUPPRESSION_LIMIT + 1)
+  return {
+    suppressions: rows.slice(0, SUPPRESSION_LIMIT),
+    isTruncated: rows.length > SUPPRESSION_LIMIT,
+  }
 }

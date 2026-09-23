@@ -22,9 +22,12 @@ function authorized(header: string | undefined): boolean {
 
 export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal' })
   // ʕ·ᴥ·ʔ what has a human already argued with on this repo?
-  .get('/suppressions', async ({ headers, query, status }) => {
+  .get('/suppressions', async ({ headers, query, set, status }) => {
     if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
     const scope = typeof query.scope === 'string' ? query.scope : ''
     if (!scope) return status(400, 'scope is required')
-    return await getSuppressions(scope)
+    const { suppressions, isTruncated } = await getSuppressions(scope)
+    // A header, not a wrapper object, so a whiskers still reading a bare array keeps working.
+    if (isTruncated) set.headers['x-suppressions-truncated'] = 'true'
+    return suppressions
   })
