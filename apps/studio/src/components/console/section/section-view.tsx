@@ -1,14 +1,30 @@
-import { Button } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
-import { useConsoleStore } from '../use-console-store'
-import { type SectionViewProps, useSectionDefinition } from './lib'
+import {
+  SECTION_HOOKS,
+  SECTION_SAMPLE_NOTE,
+  type SectionScreenProps,
+  type SectionViewProps,
+} from './lib'
+import { SectionActions } from './section-actions'
 import { SectionTable } from './section-table'
 
 const TABLE_MIN_WIDTH = 1060
 
+/** Keyed by section so each one mounts only its own data hook. */
 export function SectionView({ section, tab }: SectionViewProps) {
-  const definition = useSectionDefinition(section, tab)
+  return (
+    <SectionScreen
+      key={section}
+      section={section}
+      tab={tab}
+      useDefinition={SECTION_HOOKS[section]}
+    />
+  )
+}
+
+function SectionScreen({ section, tab, useDefinition }: SectionScreenProps) {
+  const definition = useDefinition(tab)
   const table = typeof definition.table === 'function' ? definition.table(tab) : definition.table
 
   return (
@@ -20,19 +36,15 @@ export function SectionView({ section, tab }: SectionViewProps) {
             {definition.subtitle}
           </span>
         </div>
-        <div className="flex shrink-0 gap-2">
-          {definition.actions.map((action) => (
-            <Button
-              key={action.label}
-              size="sm"
-              variant={action.variant === 'outline' ? 'outline' : 'default'}
-              onClick={() => useConsoleStore.getState().flash(action.label)}
-            >
-              {action.label}
-            </Button>
-          ))}
-        </div>
+        <SectionActions actions={definition.actions} sample={!!definition.sample} />
       </header>
+
+      {definition.sample && (
+        <div className="flex items-center gap-2.5 border-border border-b bg-severity-info/[0.07] px-6 py-2.5 text-severity-info-ink">
+          <span className="size-[7px] rounded-full bg-severity-info" />
+          <span className="font-medium text-[13px]">{SECTION_SAMPLE_NOTE}</span>
+        </div>
+      )}
 
       <div className="grid shrink-0 grid-cols-4 border-border border-b">
         {definition.stats.map((stat) => (

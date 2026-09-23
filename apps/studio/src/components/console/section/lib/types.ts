@@ -1,4 +1,10 @@
-import type { SectionCell, SectionTable, SectionView } from '../../shared/console-model'
+import type {
+  SectionAction,
+  SectionCell,
+  SectionDefinition,
+  SectionTable,
+  SectionView,
+} from '../../shared/console-model'
 
 export type SectionViewProps = {
   section: SectionView
@@ -12,4 +18,17 @@ export type SectionTableProps = {
 
 export type SectionCellProps = {
   cell: SectionCell
+}
+
+export type SectionHook = (tab: number) => SectionDefinition
+
+export type SectionScreenProps = {
+  section: SectionView
+  tab: number
+  useDefinition: SectionHook
+}
+
+export type SectionActionsProps = {
+  actions: SectionAction[]
+  sample: boolean
 }

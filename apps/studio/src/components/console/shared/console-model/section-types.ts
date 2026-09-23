@@ -45,12 +45,17 @@ export type SectionStat = {
 export type SectionAction = {
   label: string
   variant: 'outline' | 'solid'
+  /** Absent means the action has nothing behind it yet; it renders disabled. */
+  href?: string
 }
+
+export type SectionRowLink = { kind: 'triage'; itemId: string } | { kind: 'external'; href: string }
 
 export type SectionTable = {
   grid: string
   columns: SectionColumn[]
   rows: SectionCell[][]
+  rowLinks?: (SectionRowLink | null)[]
   footer: string
 }
 
@@ -60,6 +65,8 @@ export type SectionDefinition = {
   actions: SectionAction[]
   stats: SectionStat[]
   tabs: string[]
+  /** A fixture shown until the real source has rows; the view labels it. */
+  sample?: boolean
   /** Tab-dependent sections return a different table per tab; the rest ignore the index. */
   table: SectionTable | ((tab: number) => SectionTable)
 }

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { repositoriesQuery } from '@/integrations/studio-api'
+import { instanceQuery, repositoriesQuery } from '@/integrations/studio-api'
 import { whiskersReviewsQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
@@ -23,10 +23,11 @@ const COLUMNS = [
 export function useRepositoriesSection(tab: number): SectionDefinition {
   const { data: repositories } = useQuery({ ...repositoriesQuery(), retry: false })
   const { data: reviews } = useQuery({ ...whiskersReviewsQuery(), retry: false })
+  const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
 
   return useMemo(() => {
     const repos = repositories ?? []
-    if (repos.length === 0) return REPOSITORIES_SECTION
+    if (repos.length === 0) return { ...REPOSITORIES_SECTION, sample: true }
 
     const bySlug = new Map<string, { reviews: number; findings: number }>()
     for (const review of reviews ?? []) {
@@ -87,7 +88,13 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
     return {
       title: 'Repositories',
       subtitle: `${repos.length} connected through the GitHub App`,
-      actions: REPOSITORIES_SECTION.actions,
+      actions: [
+        {
+          label: 'Add repositories',
+          variant: 'solid',
+          href: instance?.githubApp.installUrl,
+        },
+      ],
       stats: [
         { label: 'Connected', value: String(repos.length), note: 'via installations' },
         { label: 'Watched', value: String(watched), note: `${repos.length - watched} paused` },
@@ -101,5 +108,5 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Watched', 'Paused'],
       table,
     }
-  }, [repositories, reviews, tab])
+  }, [repositories, reviews, instance, tab])
 }

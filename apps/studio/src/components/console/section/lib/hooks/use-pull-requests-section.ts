@@ -29,7 +29,7 @@ export function usePullRequestsSection(tab: number): SectionDefinition {
 
   return useMemo(() => {
     const reviews = data ?? []
-    if (reviews.length === 0) return PULL_REQUESTS_SECTION
+    if (reviews.length === 0) return { ...PULL_REQUESTS_SECTION, sample: true }
 
     const rows = latestPerPullRequest(reviews)
     const needsChanges = rows.filter((r) => r.review.verdict === 'request_changes')
@@ -66,13 +66,17 @@ export function usePullRequestsSection(tab: number): SectionDefinition {
           align: 'end' as const,
         },
       ]),
+      rowLinks: visible.map(({ review, slug }) => ({
+        kind: 'triage' as const,
+        itemId: `${slug}#${review.prNumber}`,
+      })),
       footer: 'Whiskers posts one review per push · never merges on your behalf',
     }
 
     return {
       title: 'Pull requests',
       subtitle: `${rows.length} reviewed · Whiskers reviews every push`,
-      actions: PULL_REQUESTS_SECTION.actions,
+      actions: [{ label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' }],
       stats: [
         { label: 'Pull requests', value: String(rows.length), note: 'latest review each' },
         { label: 'Needs changes', value: String(needsChanges.length), note: 'blocking findings' },

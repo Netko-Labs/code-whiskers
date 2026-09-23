@@ -1,15 +1,23 @@
 import type { SectionDefinition, SectionView } from '../../../shared/console-model'
 import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
-import { INSTANCE_SECTION } from './instance-section'
-
-export { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION }
-
 import { CODEBASE_MAP_SECTION } from './codebase-map-section'
 import { ISSUES_SECTION, REGRESSIONS_SECTION } from './error-sections'
+import { INSTANCE_SECTION } from './instance-section'
 import { API_KEYS_SECTION, INTEGRATIONS_SECTION, MEMBERS_SECTION } from './org-sections'
 import { ALERT_RULES_SECTION, RELEASES_SECTION } from './release-sections'
 import { SAVED_QUERIES_SECTION, SERVICES_SECTION } from './service-sections'
 import { LIVE_LOGS_SECTION, TRACES_SECTION } from './telemetry-sections'
+
+export {
+  API_KEYS_SECTION,
+  CODEBASE_MAP_SECTION,
+  INSTANCE_SECTION,
+  INTEGRATIONS_SECTION,
+  ISSUES_SECTION,
+  MEMBERS_SECTION,
+  PULL_REQUESTS_SECTION,
+  REPOSITORIES_SECTION,
+}
 
 export const SECTIONS: Record<SectionView, SectionDefinition> = {
   'pull-requests': PULL_REQUESTS_SECTION,

@@ -1,7 +1,7 @@
 import type { WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
-import type { PillTone, SectionCell } from '../../shared/console-model'
+import type { ConsoleSeverity, PillTone, SectionCell } from '../../shared/console-model'
 
 export type PullRequestRow = {
   review: WhiskersReview
@@ -54,4 +54,10 @@ export function medianReviewDuration(reviews: WhiskersReview[]): string {
   const middle = durations[Math.floor(durations.length / 2)] ?? 0
   const seconds = Math.round(middle / 1000)
   return seconds < 90 ? `${seconds}s` : `${Math.round(seconds / 60)}m`
+}
+
+export function issueDot(level: string): ConsoleSeverity {
+  if (level === 'fatal' || level === 'error') return 'critical'
+  if (level === 'warning') return 'warning'
+  return 'info'
 }
