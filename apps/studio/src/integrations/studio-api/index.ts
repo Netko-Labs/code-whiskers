@@ -1,8 +1,15 @@
 export * from './lib'
-export type { TriageDecision } from './queries'
 export {
+  assignTriage,
+  instanceQuery,
+  membersQuery,
   organizationsQuery,
+  postTriageComment,
   recordTriage,
   repositoriesQuery,
+  STUDIO_QUERY_KEY,
   syncGithub,
+  triageCommentsQuery,
+  triageQuery,
+  viewerQuery,
 } from './queries'

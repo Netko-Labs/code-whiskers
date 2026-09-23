@@ -14,8 +14,8 @@ export function DetailStats({ item, owner }: { item: ConsoleItem; owner: string 
         <span className="font-mono font-semibold text-base">{item.users}</span>
       </div>
       <div className={CELL}>
-        <span className="text-[11px] text-muted-foreground">First seen</span>
-        <span className="font-mono font-semibold text-base">{item.age}</span>
+        <span className="text-[11px] text-muted-foreground">Last seen</span>
+        <span className="font-mono font-semibold text-base">{item.age} ago</span>
       </div>
       <div className="flex flex-col gap-[3px] px-5 py-[13px]">
         <span className="text-[11px] text-muted-foreground">Owner</span>

@@ -1,7 +1,9 @@
 import { createLogger } from '@code-whiskers/logger'
 import { Elysia } from 'elysia'
 import { githubRoutes } from './routes/github'
+import { instanceRoutes } from './routes/instance'
 import { internalRoutes } from './routes/internal'
+import { memberRoutes } from './routes/members'
 import { sessionRoutes } from './routes/session'
 import { triageRoutes } from './routes/triage'
 import { forwardToWhiskers } from './shared'
@@ -23,6 +25,10 @@ export const app = new Elysia({ prefix: '/api' })
   .use(sessionRoutes)
   // (ᵔᴥᵔ) installations and repositories, synced from GitHub
   .use(githubRoutes)
+  // (￣ω￣) which GitHub App this instance runs
+  .use(instanceRoutes)
+  // (ﾉ◕ヮ◕)ﾉ teammates, for assigning and the Members section
+  .use(memberRoutes)
   // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided
   .use(internalRoutes)
   // (•̀ᴗ•́) resolve, approve, dismiss — durable, not just in the browser

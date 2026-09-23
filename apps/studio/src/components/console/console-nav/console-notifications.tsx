@@ -3,16 +3,14 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { IconBell } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { NOTIFICATIONS } from '../shared/console-data'
 import { SeverityDot } from '../shared/console-ui'
 import { useConsoleStore } from '../use-console-store'
-import { useUnreadNotifications } from './lib'
+import { useNotifications } from './lib'
 
 export function ConsoleNotifications({ className }: { className?: string }) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
-  const unread = useUnreadNotifications()
-  const unreadIds = new Set(unread.map((note) => note.itemId))
+  const { notes, unreadIds } = useNotifications()
 
   function openItem(itemId: string) {
     setOpen(false)
@@ -28,7 +26,7 @@ export function ConsoleNotifications({ className }: { className?: string }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className={cn('relative', className)} aria-label="Notifications">
         <IconBell className="size-[15px]" stroke={1.75} />
-        {unread.length > 0 && (
+        {unreadIds.size > 0 && (
           <span className="absolute top-1 right-1 size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
         )}
       </PopoverTrigger>
@@ -40,21 +38,24 @@ export function ConsoleNotifications({ className }: { className?: string }) {
             type="button"
             onClick={() => {
               setOpen(false)
-              const { markAllRead, flash } = useConsoleStore.getState()
-              markAllRead(NOTIFICATIONS.map((note) => note.itemId))
-              flash('All notifications marked as read')
+              useConsoleStore.getState().markAllRead(notes.map((note) => note.itemId))
             }}
             className="text-[11px] text-body underline"
           >
             Mark all as read
           </button>
         </div>
-        {NOTIFICATIONS.map((note) => {
+        {notes.length === 0 && (
+          <span className="px-2.5 py-2 text-[13px] text-muted-foreground">
+            Nothing needs you from the last week.
+          </span>
+        )}
+        {notes.map((note) => {
           const isUnread = unreadIds.has(note.itemId)
           return (
             <button
               type="button"
-              key={note.title}
+              key={note.itemId}
               onClick={() => openItem(note.itemId)}
               className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-rule-soft"
             >

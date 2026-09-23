@@ -30,3 +30,58 @@ export const syncResultSchema = z.object({
   repositories: z.number(),
   skipped: z.literal('no-github-account').optional(),
 })
+
+export const TRIAGE_STATUSES = [
+  'open',
+  'resolved',
+  'snoozed',
+  'tracked',
+  'approved',
+  'dismissed',
+] as const
+export const TRIAGE_ITEM_KINDS = ['issue', 'review', 'log', 'finding'] as const
+
+export const viewerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  image: z.string().nullish(),
+})
+
+export const triageRecordSchema = z.object({
+  scope: z.string(),
+  itemKind: z.enum(TRIAGE_ITEM_KINDS),
+  itemRef: z.string(),
+  status: z.enum(TRIAGE_STATUSES),
+  assigneeUserId: z.string().nullable(),
+  snoozedUntil: z.coerce.date().nullable(),
+  note: z.string().nullable(),
+  updatedAt: z.coerce.date(),
+})
+export const triageRecordListSchema = z.array(triageRecordSchema)
+
+export const memberSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+  organizations: z.array(z.string()),
+  lastSyncedAt: z.coerce.date(),
+})
+export const memberListSchema = z.array(memberSchema)
+
+export const triageCommentSchema = z.object({
+  id: z.string(),
+  body: z.string(),
+  createdAt: z.coerce.date(),
+  authorUserId: z.string().nullable(),
+  authorName: z.string().nullable(),
+  authorImage: z.string().nullable(),
+})
+export const triageCommentListSchema = z.array(triageCommentSchema)
+
+export const okSchema = z.object({ ok: z.boolean() })
+export const createdSchema = z.object({ id: z.string() })
+
+export const instanceSchema = z.object({
+  githubApp: z.object({ slug: z.string(), url: z.string(), installUrl: z.string() }),
+})

@@ -1,12 +1,12 @@
 import { BRAND_NAME, CatMark } from '@code-whiskers/ui/brand'
-import { IconRefresh, IconSearch } from '@tabler/icons-react'
+import { IconSearch } from '@tabler/icons-react'
 import { NAV_GROUPS } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
 import { ConsoleNavGroup } from './console-nav-group'
 import { ConsoleNotifications } from './console-notifications'
 import { ConsoleOrgSwitcher } from './console-org-switcher'
 import { ConsoleUserMenu } from './console-user-menu'
-import { NAV_ICON_BUTTON, NAV_RESET_FLASH, NAV_SEARCH_FLASH, NAV_SEARCH_HINT } from './lib'
+import { NAV_ICON_BUTTON, NAV_SEARCH_HINT } from './lib'
 
 export function ConsoleNav() {
   const closeNav = useConsoleStore((s) => s.closeNav)
@@ -24,7 +24,7 @@ export function ConsoleNav() {
         <button
           type="button"
           title={NAV_SEARCH_HINT}
-          onClick={() => useConsoleStore.getState().flash(NAV_SEARCH_FLASH)}
+          onClick={() => useConsoleStore.getState().setSearchOpen(true)}
           className={NAV_ICON_BUTTON}
         >
           <IconSearch className="size-[15px]" stroke={1.75} />
@@ -40,19 +40,6 @@ export function ConsoleNav() {
       </div>
 
       <div className="mt-auto flex flex-col gap-2.5 border-zinc-900 border-t pt-3">
-        <button
-          type="button"
-          title="Reset the console"
-          onClick={() => {
-            const { reset, flash } = useConsoleStore.getState()
-            reset()
-            flash(NAV_RESET_FLASH)
-          }}
-          className="flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-left transition-colors hover:bg-zinc-800"
-        >
-          <IconRefresh className="size-3.5 text-zinc-500" stroke={1.75} />
-          <span className="text-[13px] text-zinc-400">Reset demo</span>
-        </button>
         <ConsoleUserMenu />
       </div>
     </nav>

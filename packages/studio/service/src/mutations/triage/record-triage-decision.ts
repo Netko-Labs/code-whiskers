@@ -1,24 +1,23 @@
-import { getRepositoryForUser } from '../../queries/github'
-import { parseRepositoryScope } from '../../shared'
+import type { TriageDecisionBody } from '@code-whiskers/studio-domain'
+import { authorizeTriageScope } from '../../queries/triage'
 import { setTriageState } from './set-triage-state'
-import type { TriageDecision } from './types'
 
 /**
- * Persists a decision only on a repository the user can see — the scope is
- * client-supplied, and the reviewer trusts whatever lands under it.
+ * Persists a decision only on a scope the user may triage — the scope is client-supplied, and
+ * the reviewer trusts whatever lands under it.
  */
 export const recordTriageDecision = async (
   userId: string,
-  decision: TriageDecision,
+  decision: TriageDecisionBody,
 ): Promise<boolean> => {
-  const scope = parseRepositoryScope(decision.scope)
-  const repo = scope ? await getRepositoryForUser(userId, scope) : null
-  if (!repo) return false
+  const authorized = await authorizeTriageScope(userId, decision.scope)
+  if (!authorized) return false
 
   await setTriageState({
     ...decision,
-    scope: `${repo.owner}/${repo.name}`,
-    installationId: repo.installationId,
+    snoozedUntil: decision.status === 'snoozed' ? decision.snoozedUntil : undefined,
+    scope: authorized.scope,
+    installationId: authorized.installationId,
     updatedBy: userId,
   })
   return true

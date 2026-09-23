@@ -1,12 +1,12 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
+import { useMembers } from '../../shared/console-data'
 import { SEVERITY_TEXT } from '../../shared/console-ui'
-import { useConsoleStore } from '../../use-console-store'
 import { rowLabel, type TriageRowProps, useItemStatus } from '../lib'
 
 export function TriageRow({ bucket, item, active }: TriageRowProps) {
-  const status = useItemStatus(item.id)
-  const owner = useConsoleStore((s) => s.assignee[item.id])
+  const status = useItemStatus(item)
+  const owner = useMembers().find((m) => m.id === status.assigneeUserId)?.name
 
   return (
     <Link

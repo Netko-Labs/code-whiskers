@@ -1,7 +1,9 @@
 import type { ConsoleItem } from '../../console-model'
 
 export const ISSUE_SESSION: ConsoleItem = {
-  id: 'CW-2041',
+  id: 'sample:CW-2041',
+  handle: 'CW-2041',
+  triage: null,
   kind: 'error',
   label: 'Critical error',
   severity: 'critical',
@@ -114,7 +116,9 @@ export const ISSUE_SESSION: ConsoleItem = {
 }
 
 export const ISSUE_BILLING: ConsoleItem = {
-  id: 'CW-2039',
+  id: 'sample:CW-2039',
+  handle: 'CW-2039',
+  triage: null,
   kind: 'error',
   label: 'Error',
   severity: 'critical',
@@ -192,7 +196,9 @@ export const ISSUE_BILLING: ConsoleItem = {
 }
 
 export const ISSUE_CURSOR: ConsoleItem = {
-  id: 'CW-2036',
+  id: 'sample:CW-2036',
+  handle: 'CW-2036',
+  triage: null,
   kind: 'error',
   label: 'Resolved',
   severity: 'ok',

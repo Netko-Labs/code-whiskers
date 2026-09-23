@@ -35,7 +35,7 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
               {item.badge2}
             </span>
           )}
-          <span className="font-mono text-[11px] text-muted-foreground">{item.id}</span>
+          <span className="font-mono text-[11px] text-muted-foreground">{item.handle}</span>
         </div>
         <h2 className="m-0 font-semibold text-[19px] tracking-[-0.02em] text-pretty">
           {item.title}
@@ -45,9 +45,13 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
 
       <div className="flex shrink-0 gap-2">
         <Button variant="outline" size="sm" onClick={actions.onSecondary}>
-          {secondaryLabel(item)}
+          {secondaryLabel(item, status)}
         </Button>
-        <AssignMenu onAssign={actions.assignTo} />
+        <AssignMenu
+          assigneeUserId={status.assigneeUserId}
+          isDisabled={!item.triage}
+          onAssign={actions.assignTo}
+        />
         <Button size="sm" onClick={actions.onPrimary}>
           {primaryLabel(item, status)}
         </Button>

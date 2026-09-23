@@ -36,6 +36,13 @@
       "when": 1789963506097,
       "tag": "0004_yielding_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790134497173,
+      "tag": "0005_curved_gambit",
+      "breakpoints": true
     }
   ]
 }

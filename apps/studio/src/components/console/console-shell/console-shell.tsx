@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useWindowResize } from '@/shared/dom-events'
 import { ConsoleNav, ConsoleRail } from '../console-nav'
+import { ConsoleSearch } from '../console-search'
 import { useGithubSync } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
 import { ConsoleToast } from './console-toast'
@@ -19,6 +20,7 @@ export function ConsoleShell({ children }: ConsoleShellProps) {
         {children}
         <ConsoleToast />
       </div>
+      <ConsoleSearch />
     </div>
   )
 }

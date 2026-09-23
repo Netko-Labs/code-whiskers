@@ -1,3 +1,5 @@
+import type { TriageItemRef } from '@/integrations/studio-api'
+
 export type ConsoleSeverity = 'critical' | 'warning' | 'info' | 'ok' | 'idle'
 export type ConsoleItemKind = 'error' | 'review' | 'log'
 export type ConsoleTone = 'default' | 'body' | 'muted' | 'faint' | 'bad' | 'warn' | 'ok' | 'info'
@@ -59,6 +61,12 @@ export type FixPlan = {
 
 export type ConsoleItem = {
   id: string
+  handle: string
+  triage: TriageItemRef | null
+  sourceId?: string
+  url?: string
+  commit?: string
+  at?: Date
   kind: ConsoleItemKind
   label: string
   severity: ConsoleSeverity
@@ -72,7 +80,7 @@ export type ConsoleItem = {
   read: string
   fixLabel: string
   evidenceLabel: string
-  fix: FixPlan
+  fix?: FixPlan
   events?: string
   users?: string
   trace?: StackFrame[]
@@ -97,33 +105,20 @@ export type ConsoleItem = {
   lines?: LogLine[]
 }
 
-export type ConsoleComment = {
-  initials: string
-  who: string
-  when: string
-  body: string
-  self: boolean
-}
-
 export type ConsoleNotification = {
   title: string
   when: string
   severity: ConsoleSeverity
-  unread: boolean
   itemId: string
 }
 
 export type ConsoleOrg = {
+  login: string
+  isOrganization: boolean
   name: string
   meta: string
   mono: string
   tint: string
-}
-
-export type ConsoleTeammate = {
-  initials: string
-  name: string
-  role: string
 }
 
 export type TriageBucket = 'inbox' | 'assigned' | 'snoozed'

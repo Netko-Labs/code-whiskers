@@ -1,3 +1,4 @@
+import type { TriageItemRef } from '@/integrations/studio-api'
 import type { WhiskersIssue, WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { ConsoleItem, ConsoleSeverity } from '../console-model'
@@ -26,8 +27,14 @@ export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
   const severity = resolved ? 'ok' : (ISSUE_SEVERITY[issue.level] ?? 'warning')
   const events = issue.eventCount.toLocaleString()
 
+  const scope = `project:${issue.projectId}`
+
   return {
-    id: shortId(issue.id),
+    id: `${scope}/${issue.id}`,
+    handle: shortId(issue.id),
+    triage: { scope, itemKind: 'issue', itemRef: issue.id },
+    sourceId: issue.id,
+    at: issue.lastSeen,
     kind: 'error',
     label: resolved ? 'Resolved' : issue.level,
     severity,
@@ -41,23 +48,14 @@ export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
     badge2: '',
     confidence: 'from ingest',
     read: NO_READ,
-    fixLabel: 'Open suggested fix',
-    evidenceLabel: 'Show recent events',
+    fixLabel: '',
+    evidenceLabel: '',
     tags: [
       { key: 'project', value: issue.projectId },
       { key: 'level', value: issue.level },
       { key: 'status', value: issue.status },
       { key: 'fingerprint', value: shortId(issue.fingerprint) },
     ],
-    fix: {
-      title: 'No patch yet',
-      subtitle: 'Whiskers needs a linked repository to suggest one',
-      note: 'Connect the repository this project ships from and Whiskers will write a patch against the failing frame.',
-      file: issue.fingerprint,
-      cta: 'Connect repository',
-      hunk: [],
-      steps: ['connect a repository', 're-run the review on the suspect commit'],
-    },
   }
 }
 
@@ -73,8 +71,16 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
   // Cheap models drop `summary`, so it arrives as an empty string rather than null.
   const summary = review.summary?.trim()
 
+  const handle = `#${review.prNumber}`
+
   return {
-    id: `#${review.prNumber}`,
+    id: `${slug}${handle}`,
+    handle,
+    triage: { scope: slug, itemKind: 'review', itemRef: handle },
+    sourceId: review.id,
+    url: `https://github.com/${slug}/pull/${review.prNumber}`,
+    commit: review.headSha,
+    at: review.completedAt ?? review.createdAt,
     kind: 'review',
     label: failed ? 'Review failed' : `Review · #${review.prNumber}`,
     severity,
@@ -86,28 +92,48 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
     badge: failed ? 'FAILED' : 'REVIEW',
     badge2: findings === 0 ? 'NO FINDINGS' : `${findings} FINDING${findings === 1 ? '' : 'S'}`,
     confidence: review.model ?? 'whiskers',
-    read: summary ?? NO_READ,
-    fixLabel: 'Open on GitHub',
-    evidenceLabel: 'Show findings',
+    read: summary || NO_READ,
+    fixLabel: '',
+    evidenceLabel: '',
     author: review.author ?? review.owner,
     fileCount: '—',
     diff: formatDiff(review),
     checks: review.status,
     files: [],
     hunk: [],
-    fix: {
-      title: 'Findings',
-      subtitle: `${slug}#${review.prNumber}`,
-      note: 'Open the review on GitHub to see every finding Whiskers posted inline.',
-      file: `${slug}#${review.prNumber}`,
-      cta: 'Open on GitHub',
-      hunk: [],
-      steps: ['review the inline comments', 'resolve or dismiss each finding'],
-    },
   }
 }
 
 export function formatDiff(review: WhiskersReview): string {
   if (review.additions === null && review.deletions === null) return '—'
   return `+${(review.additions ?? 0).toLocaleString()} −${(review.deletions ?? 0).toLocaleString()}`
+}
+
+/** One row per pull request: every push gets a review, the newest one speaks for the PR. */
+export function latestReviewPerPullRequest(reviews: WhiskersReview[]): WhiskersReview[] {
+  const newest = new Map<string, WhiskersReview>()
+  for (const review of reviews) {
+    const key = `${review.owner}/${review.repo}#${review.prNumber}`.toLowerCase()
+    const seen = newest.get(key)
+    if (!seen || review.createdAt > seen.createdAt) newest.set(key, review)
+  }
+  return [...newest.values()].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+}
+
+export function triageKey(ref: TriageItemRef): string {
+  return `${ref.scope.toLowerCase()}|${ref.itemKind}|${ref.itemRef}`
+}
+
+/** The dismissal key the reviewer matches on: file and title survive a re-review, ids do not. */
+export function findingRef(scope: string, finding: { file: string; title: string }): TriageItemRef {
+  return { scope, itemKind: 'finding', itemRef: `${finding.file}:${finding.title}` }
+}
+
+export function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  const letters = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : [name.slice(0, 2)]
+  return letters
+    .map((part) => part?.[0] ?? '')
+    .join('')
+    .toUpperCase()
 }

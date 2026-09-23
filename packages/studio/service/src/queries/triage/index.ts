@@ -1,2 +1,5 @@
+export * from './authorize-triage-scope'
 export * from './get-suppressions'
+export * from './get-triage-comments'
+export * from './get-triage-for-user'
 export type * from './types'

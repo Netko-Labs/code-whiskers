@@ -1,13 +1,11 @@
 import { CatExpression } from '@code-whiskers/ui/brand'
 import { Button } from '@code-whiskers/ui/components/button'
 import { IconX } from '@tabler/icons-react'
-import type { ConsoleItem } from '../../shared/console-model'
+import type { FixPlan } from '../../shared/console-model'
 import { CodeHunk } from '../../shared/console-ui'
 import type { DetailActions } from '../lib'
 
-export function FixDrawer({ item, actions }: { item: ConsoleItem; actions: DetailActions }) {
-  const fix = item.fix
-
+export function FixDrawer({ fix, actions }: { fix: FixPlan; actions: DetailActions }) {
   return (
     <div className="absolute inset-y-0 right-0 z-10 flex w-[436px] animate-in flex-col border-border border-l bg-background shadow-2xl duration-200 slide-in-from-right-4">
       <div className="flex items-start justify-between gap-3 border-border border-b px-[18px] py-4">

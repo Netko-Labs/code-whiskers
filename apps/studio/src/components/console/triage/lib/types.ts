@@ -1,10 +1,15 @@
+import type { Member } from '@/integrations/studio-api'
+import type { WhiskersFinding } from '@/integrations/whiskers'
 import type { ConsoleItem, TriageBucket, TriageFilter } from '../../shared/console-model'
 
 export type TriageStatus = {
   resolved: boolean
   approved: boolean
   tracked: boolean
-  dismissed: boolean
+  /** Set only while the snooze is still running; an expired one reads as open. */
+  snoozedUntil: Date | null
+  assigneeUserId: string | null
+  decidedAt: Date | null
   done: boolean
 }
 
@@ -12,6 +17,18 @@ export type TriageBanner = {
   message: string
   meta: string
   tone: 'ok' | 'info' | 'warn'
+}
+
+export type DetailActions = {
+  onPrimary: () => void
+  onSecondary: () => void
+  onEvidence: () => void
+  toggleFinding: (finding: WhiskersFinding, isDismissed: boolean) => void
+  openFix: () => void
+  closeFix: () => void
+  commitFix: () => void
+  assignTo: (member: Member | null) => void
+  postComment: () => void
 }
 
 export type TriageViewProps = {
@@ -41,13 +58,27 @@ export type TriageDetailProps = {
 export type DetailPaneProps = {
   item: ConsoleItem
   status: TriageStatus
-  actions: import('./hooks/use-detail-actions').DetailActions
+  actions: DetailActions
 }
 
 export type AssignMenuProps = {
-  onAssign: (name: string) => void
+  assigneeUserId: string | null
+  isDisabled: boolean
+  onAssign: (member: Member | null) => void
 }
 
 export type DetailBannerProps = {
   banner: TriageBanner
+}
+
+export type FindingCardProps = {
+  finding: WhiskersFinding
+  isDismissed: boolean
+  url: string | undefined
+  onToggle: () => void
+}
+
+export type ItemThreadProps = {
+  item: ConsoleItem
+  onPost: () => void
 }

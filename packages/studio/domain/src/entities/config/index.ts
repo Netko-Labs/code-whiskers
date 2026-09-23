@@ -32,6 +32,9 @@ const _protoStudioConfigSchema = z.object({
     url: z.string().url(),
     internalToken: z.string().default(''),
   }),
+  github: z.object({
+    appSlug: z.string().min(1).default('code-whiskers'),
+  }),
   auth: z.object({
     secret: z.string().optional(),
     emailAndPassword: z.object({
@@ -48,6 +51,5 @@ const _protoStudioConfigSchema = z.object({
   }),
 })
 
-// Magic link is always mounted, so social providers are optional extras
 export const StudioConfigSchema = _protoStudioConfigSchema
 export type StudioConfig = z.infer<typeof StudioConfigSchema>

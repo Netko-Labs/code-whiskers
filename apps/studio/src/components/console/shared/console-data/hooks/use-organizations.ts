@@ -11,6 +11,8 @@ function toConsoleOrg(
   index: number,
 ): ConsoleOrg {
   return {
+    login: org.login,
+    isOrganization: org.accountType === 'Organization',
     name: org.name ?? org.login,
     meta: org.accountType === 'Organization' ? 'Organization' : 'Personal',
     mono: org.login.slice(0, 2).toUpperCase(),

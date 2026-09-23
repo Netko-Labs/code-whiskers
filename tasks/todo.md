@@ -10,8 +10,9 @@ fallbacks go away as each lands.
 
 ## A · Sections whose data already exists (~half a day)
 
+- [x] Triage on studio: decisions read back, assign to teammates, snooze, comments, findings
+      with per-finding dismiss, real viewer, notifications from live items, ⌘K, j/k, filter
 - [ ] Nav counts from live data, not constants
-- [ ] Triage buckets: inbox / assigned / snoozed from `triage_state`
 - [ ] Issues ← `/v1/issues`
 - [ ] Members ← `organization_member` + `user` (`GET /api/members`)
 - [ ] Codebase map ← findings grouped by directory (`/v1/hotspots`)
@@ -36,6 +37,10 @@ fallbacks go away as each lands.
 - [ ] No section renders sample data once its source has rows
 - [ ] `bun run check-types`, `bun run fmt-lint`, `bun run test` clean after each item
 - [ ] Each migration deployed and checked on both Coolify apps
+
+## Known gaps
+
+- Issues are triaged under `project:<id>` by any signed-in user until projects gain an owner (B).
 
 ## Open questions
 

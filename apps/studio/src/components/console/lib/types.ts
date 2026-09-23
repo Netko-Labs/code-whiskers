@@ -1,5 +1,3 @@
-import type { ConsoleComment } from '../shared/console-model'
-
 export type ConsoleToast = {
   message: string
   /** Present only when the action can genuinely be reversed; the button is hidden otherwise. */
@@ -9,35 +7,24 @@ export type ConsoleToast = {
 export type ConsoleStore = {
   navOpen: boolean
   navPinned: boolean
-  orgIndex: number
+  /** `null` shows every installation the viewer can see. */
+  orgLogin: string | null
   readIds: Record<string, boolean>
   /** The item the fix drawer was opened for; the drawer closes if the selection moves elsewhere. */
   fixItemId: string | null
-  resolved: Record<string, boolean>
-  approved: Record<string, boolean>
-  tracked: Record<string, boolean>
-  dismissed: Record<string, boolean>
-  assignee: Record<string, string | undefined>
-  comments: ConsoleComment[]
-  draft: string
+  drafts: Record<string, string>
+  isSearchOpen: boolean
   toast: ConsoleToast | null
   openNav: () => void
   closeNav: () => void
   collapseNavOnNarrow: () => void
-  pickOrg: (index: number) => void
+  pickOrg: (login: string | null) => void
   markRead: (itemId: string) => void
   markAllRead: (itemIds: string[]) => void
   openFix: (itemId: string) => void
   closeFix: () => void
-  setResolved: (id: string, value: boolean) => void
-  setApproved: (id: string, value: boolean) => void
-  setTracked: (id: string, value: boolean) => void
-  setDismissed: (id: string, value: boolean) => void
-  assign: (id: string, name: string | undefined) => void
-  setDraft: (draft: string) => void
-  addComment: (comment: ConsoleComment) => void
-  removeLastComment: () => void
+  setDraft: (itemId: string, draft: string) => void
+  setSearchOpen: (isOpen: boolean) => void
   flash: (message: string, onUndo?: () => void) => void
   clearToast: () => void
-  reset: () => void
 }

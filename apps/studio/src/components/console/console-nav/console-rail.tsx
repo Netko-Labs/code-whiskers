@@ -1,17 +1,18 @@
 import { CatMark } from '@code-whiskers/ui/brand'
 import { cn } from '@code-whiskers/ui/lib/utils'
-import { IconBell, IconRefresh, IconSearch } from '@tabler/icons-react'
+import { IconBell, IconSearch } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
-import { RAIL_ITEMS, VIEWER } from '../shared/console-data'
+import { initialsOf, RAIL_ITEMS, useViewer } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
-import { NAV_SEARCH_FLASH, NAV_SEARCH_HINT, useUnreadNotifications } from './lib'
+import { NAV_SEARCH_HINT, useNotifications } from './lib'
 
 const RAIL_BUTTON =
   'flex size-[34px] items-center justify-center rounded-[9px] text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-50'
 
 export function ConsoleRail() {
   const openNav = useConsoleStore((s) => s.openNav)
-  const unread = useUnreadNotifications()
+  const { unreadIds } = useNotifications()
+  const viewer = useViewer()
 
   return (
     <nav className="dark flex w-14 shrink-0 flex-col items-center gap-3.5 bg-zinc-950 py-3.5">
@@ -27,14 +28,14 @@ export function ConsoleRail() {
           className={cn(RAIL_BUTTON, 'relative')}
         >
           <IconBell className="size-4" stroke={1.75} />
-          {unread.length > 0 && (
+          {unreadIds.size > 0 && (
             <span className="absolute top-[7px] right-[7px] size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
           )}
         </button>
         <button
           type="button"
           title={NAV_SEARCH_HINT}
-          onClick={() => useConsoleStore.getState().flash(NAV_SEARCH_FLASH)}
+          onClick={() => useConsoleStore.getState().setSearchOpen(true)}
           className={RAIL_BUTTON}
         >
           <IconSearch className="size-4" stroke={1.75} />
@@ -58,20 +59,8 @@ export function ConsoleRail() {
       </div>
 
       <div className="mt-auto flex flex-col items-center gap-3">
-        <button
-          type="button"
-          title="Reset the console"
-          onClick={() => {
-            const { reset, flash } = useConsoleStore.getState()
-            reset()
-            flash('Console reset')
-          }}
-          className={RAIL_BUTTON}
-        >
-          <IconRefresh className="size-4" stroke={1.75} />
-        </button>
         <span className="flex size-7 items-center justify-center rounded-full bg-zinc-50 font-semibold text-[10px] text-zinc-950">
-          {VIEWER.initials}
+          {viewer ? initialsOf(viewer.name) : ''}
         </span>
       </div>
     </nav>

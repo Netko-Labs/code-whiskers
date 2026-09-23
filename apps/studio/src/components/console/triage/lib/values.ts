@@ -14,6 +14,10 @@ export const ERROR_TABS = [
   { value: 'tags', label: 'Tags', meta: 'issue tags' },
 ] as const
 
+export const SNOOZE_MS = 24 * 60 * 60 * 1000
 export const HIDDEN_FRAMES_NOTE = '3 frames hidden (node_modules)'
-export const DRAFT_HINT = 'Markdown supported · ⌘↵ to post'
+export const DRAFT_HINT = 'Visible to everyone on this repository · ⌘↵ to post'
 export const KEYBOARD_HINT = 'j / k'
+export const LIVE_NOTE = 'Live — refreshes when you return to this tab'
+export const SAMPLE_ACTION_NOTE = 'Sample data — connect a repository to act on real items'
+export const DISMISS_NOTE = 'dismissed in the CodeWhiskers console'

@@ -37,3 +37,20 @@ export const triageState = pgTable(
     index('triage_state_scope').on(t.scope),
   ],
 )
+
+/** A human conversation on a triage item; keyed like the decision, never by whiskers FK. */
+export const triageComment = pgTable(
+  'triage_comment',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    scope: text('scope').notNull(),
+    itemKind: text('item_kind', { enum: ['issue', 'review', 'log', 'finding'] }).notNull(),
+    itemRef: text('item_ref').notNull(),
+    authorUserId: text('author_user_id').references(() => user.id, { onDelete: 'set null' }),
+    body: text('body').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('triage_comment_item').on(t.scope, t.itemKind, t.itemRef, t.createdAt)],
+)

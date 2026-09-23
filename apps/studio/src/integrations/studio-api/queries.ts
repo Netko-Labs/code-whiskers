@@ -1,11 +1,21 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
-import { z } from 'zod'
-import { organizationListSchema, repositoryListSchema, syncResultSchema } from './lib'
+import {
+  createdSchema,
+  instanceSchema,
+  memberListSchema,
+  okSchema,
+  organizationListSchema,
+  repositoryListSchema,
+  syncResultSchema,
+  type TriageDecision,
+  type TriageItemRef,
+  triageCommentListSchema,
+  triageRecordListSchema,
+  viewerSchema,
+} from './lib'
 
-const okSchema = z.object({ ok: z.boolean() })
-
-const STUDIO_QUERY_KEY = 'studio'
+export const STUDIO_QUERY_KEY = 'studio'
 
 /** Studio's own API is same-origin; these are browser-only like the whiskers ones. */
 async function fetchStudio<T>(
@@ -28,6 +38,20 @@ async function fetchStudio<T>(
   return schema.parse(await response.json())
 }
 
+export const viewerQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'me'],
+    queryFn: () => fetchStudio('/me', viewerSchema),
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
+export const instanceQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance'],
+    queryFn: () => fetchStudio('/instance', instanceSchema),
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
 export const organizationsQuery = () =>
   queryOptions({
     queryKey: [STUDIO_QUERY_KEY, 'orgs'],
@@ -40,16 +64,36 @@ export const repositoriesQuery = () =>
     queryFn: () => fetchStudio('/repositories', repositoryListSchema),
   })
 
-export const syncGithub = () => fetchStudio('/orgs/sync', syncResultSchema, 'POST')
+export const membersQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'members'],
+    queryFn: () => fetchStudio('/members', memberListSchema),
+  })
 
-export type TriageDecision = {
-  scope: string
-  itemKind: 'issue' | 'review' | 'log' | 'finding'
-  itemRef: string
-  status: 'open' | 'resolved' | 'snoozed' | 'tracked' | 'approved' | 'dismissed'
-  note?: string
-}
+export const triageQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'triage'],
+    queryFn: () => fetchStudio('/triage', triageRecordListSchema),
+  })
+
+export const triageCommentsQuery = (item: TriageItemRef) =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'triage-comments', item.scope, item.itemKind, item.itemRef],
+    queryFn: () =>
+      fetchStudio(
+        `/triage/comments?${new URLSearchParams({ scope: item.scope, itemKind: item.itemKind, itemRef: item.itemRef })}`,
+        triageCommentListSchema,
+      ),
+  })
+
+export const syncGithub = () => fetchStudio('/orgs/sync', syncResultSchema, 'POST')
 
 /** Records the decision in studio so the reviewer sees it on the next push. */
 export const recordTriage = (decision: TriageDecision) =>
   fetchStudio('/triage', okSchema, 'POST', decision)
+
+export const assignTriage = (item: TriageItemRef, assigneeUserId: string | null) =>
+  fetchStudio('/triage/assign', okSchema, 'POST', { ...item, assigneeUserId })
+
+export const postTriageComment = (item: TriageItemRef, body: string) =>
+  fetchStudio('/triage/comments', createdSchema, 'POST', { ...item, body })

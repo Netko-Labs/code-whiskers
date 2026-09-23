@@ -2,33 +2,35 @@ import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/compo
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { VIEWER } from '../shared/console-data'
-import { useConsoleStore } from '../use-console-store'
-import { USER_MENU } from './lib'
+import { signOut } from '@/integrations/auth'
+import { initialsOf, useViewer } from '../shared/console-data'
+import { USER_MENU, type UserMenuEntry } from './lib'
 import { ThemePicker } from './theme-picker'
 
 export function ConsoleUserMenu() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const viewer = useViewer()
+  const initials = viewer ? initialsOf(viewer.name) : ''
 
-  function activate(entry: (typeof USER_MENU)[number]) {
+  function activate(entry: UserMenuEntry) {
     setOpen(false)
     if (entry.section) {
       navigate({ to: '/console/$section', params: { section: entry.section } })
       return
     }
-    useConsoleStore.getState().flash(entry.label)
+    void signOut().then(() => navigate({ to: '/sign-in' }))
   }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 transition-colors hover:bg-zinc-800 aria-expanded:bg-zinc-800">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-50 font-semibold text-[10px] text-zinc-950">
-          {VIEWER.initials}
+          {initials}
         </span>
         <div className="flex min-w-0 flex-1 flex-col text-left">
-          <span className="truncate font-medium text-xs text-zinc-50">{VIEWER.name}</span>
-          <span className="truncate text-[11px] text-zinc-500">{VIEWER.email}</span>
+          <span className="truncate font-medium text-xs text-zinc-50">{viewer?.name}</span>
+          <span className="truncate text-[11px] text-zinc-500">{viewer?.email}</span>
         </div>
         <span className="shrink-0 text-[10px] text-zinc-500">⌄</span>
       </PopoverTrigger>
@@ -36,11 +38,11 @@ export function ConsoleUserMenu() {
       <PopoverContent align="start" side="top" sideOffset={8} className="w-[272px] gap-0 p-1.5">
         <div className="flex items-center gap-2.5 px-2.5 pt-2.5 pb-3">
           <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-foreground font-semibold text-primary-foreground text-xs">
-            {VIEWER.initials}
+            {initials}
           </span>
           <div className="flex min-w-0 flex-col gap-px">
-            <span className="font-semibold text-[13px]">{VIEWER.name}</span>
-            <span className="truncate text-[11px] text-muted-foreground">{VIEWER.email}</span>
+            <span className="font-semibold text-[13px]">{viewer?.name}</span>
+            <span className="truncate text-[11px] text-muted-foreground">{viewer?.email}</span>
           </div>
         </div>
 
@@ -72,7 +74,6 @@ export function ConsoleUserMenu() {
               >
                 {entry.label}
               </span>
-              <span className="font-mono text-[11px] text-faint">{entry.kbd}</span>
             </button>
           )
         })}

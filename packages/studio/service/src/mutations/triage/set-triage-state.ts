@@ -3,7 +3,10 @@ import { db } from '@code-whiskers/studio-repository'
 
 export type TriageInput = typeof triageState.$inferInsert
 
-/** One row per (scope, kind, ref) — the latest decision wins. */
+/**
+ * One row per (scope, kind, ref) — the latest decision wins. The assignee is only touched when
+ * the caller says so: resolving an item must not quietly unassign it.
+ */
 export const setTriageState = async (input: TriageInput): Promise<void> => {
   await db
     .insert(triageState)
@@ -12,11 +15,11 @@ export const setTriageState = async (input: TriageInput): Promise<void> => {
       target: [triageState.scope, triageState.itemKind, triageState.itemRef],
       set: {
         status: input.status,
-        assigneeUserId: input.assigneeUserId ?? null,
         snoozedUntil: input.snoozedUntil ?? null,
         note: input.note ?? null,
         updatedBy: input.updatedBy ?? null,
         updatedAt: new Date(),
+        ...(input.assigneeUserId !== undefined && { assigneeUserId: input.assigneeUserId }),
       },
     })
 }

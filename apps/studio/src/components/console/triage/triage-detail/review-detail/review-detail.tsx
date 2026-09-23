@@ -2,7 +2,7 @@ import { CatExpression } from '@code-whiskers/ui/brand'
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { CodeHunk, TONE_TEXT } from '../../../shared/console-ui'
 import type { DetailPaneProps } from '../../lib'
-import { ReviewThread } from './review-thread'
+import { ReviewFindings } from './review-findings'
 
 const CARD = 'flex flex-col gap-[3px] rounded-xl border border-border px-3.5 py-3'
 
@@ -15,12 +15,14 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
           <span className="font-mono font-semibold text-[15px]">{item.diff}</span>
         </div>
         <div className={CARD}>
-          <span className="text-[11px] text-muted-foreground">Files</span>
-          <span className="font-mono font-semibold text-[15px]">{item.fileCount}</span>
+          <span className="text-[11px] text-muted-foreground">Commit</span>
+          <span className="font-mono font-semibold text-[15px]">
+            {item.commit?.slice(0, 7) ?? item.fileCount}
+          </span>
         </div>
         <div className={CARD}>
-          <span className="text-[11px] text-muted-foreground">Checks</span>
-          <span className="font-semibold text-severity-resolved text-sm">{item.checks}</span>
+          <span className="text-[11px] text-muted-foreground">Review</span>
+          <span className="font-semibold text-sm">{item.checks}</span>
         </div>
         <div className={CARD}>
           <span className="text-[11px] text-muted-foreground">Author</span>
@@ -54,7 +56,7 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
                 </button>
                 <button
                   type="button"
-                  onClick={actions.onDismissBlocker}
+                  onClick={actions.onEvidence}
                   className="rounded-lg border border-border bg-background px-[9px] py-[5px] font-medium text-[11px]"
                 >
                   Not a blocker
@@ -86,7 +88,7 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
         </div>
       )}
 
-      <ReviewThread onPost={actions.postComment} />
+      {item.sourceId && <ReviewFindings item={item} actions={actions} />}
     </div>
   )
 }

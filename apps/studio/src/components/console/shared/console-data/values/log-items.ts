@@ -1,7 +1,9 @@
 import type { ConsoleItem } from '../../console-model'
 
 export const LOG_INGEST_LATENCY: ConsoleItem = {
-  id: 'LOG-882',
+  id: 'sample:LOG-882',
+  handle: 'LOG-882',
+  triage: null,
   kind: 'log',
   label: 'Log alert',
   severity: 'warning',
@@ -79,7 +81,9 @@ export const LOG_INGEST_LATENCY: ConsoleItem = {
 }
 
 export const LOG_DEPRECATIONS: ConsoleItem = {
-  id: 'LOG-874',
+  id: 'sample:LOG-874',
+  handle: 'LOG-874',
+  triage: null,
   kind: 'log',
   label: 'Log pattern',
   severity: 'warning',

@@ -1,6 +1,6 @@
 import type { WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
-import { formatDiff } from '../../shared/console-data'
+import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
 import type { PillTone, SectionCell } from '../../shared/console-model'
 
 export type PullRequestRow = {
@@ -10,15 +10,10 @@ export type PullRequestRow = {
 
 /** One row per pull request: the newest review wins, older pushes fall away. */
 export function latestPerPullRequest(reviews: WhiskersReview[]): PullRequestRow[] {
-  const newest = new Map<string, WhiskersReview>()
-  for (const review of reviews) {
-    const key = `${review.owner}/${review.repo}#${review.prNumber}`
-    const seen = newest.get(key)
-    if (!seen || review.createdAt > seen.createdAt) newest.set(key, review)
-  }
-  return [...newest.entries()]
-    .map(([key, review]) => ({ review, slug: key.split('#')[0] ?? '' }))
-    .sort((a, b) => b.review.createdAt.getTime() - a.review.createdAt.getTime())
+  return latestReviewPerPullRequest(reviews).map((review) => ({
+    review,
+    slug: `${review.owner}/${review.repo}`,
+  }))
 }
 
 export function verdictCell(review: WhiskersReview): SectionCell {

@@ -1,20 +1,8 @@
-import { useShallow } from 'zustand/react/shallow'
-import { useConsoleStore } from '../../../use-console-store'
+import { useTriageRecords } from '../../../shared/console-data'
+import type { ConsoleItem } from '../../../shared/console-model'
 import type { TriageStatus } from '../types'
+import { statusFor } from '../utils'
 
-export function useItemStatus(id: string): TriageStatus {
-  return useConsoleStore(
-    useShallow((s) => {
-      const resolved = !!s.resolved[id]
-      const approved = !!s.approved[id]
-      const tracked = !!s.tracked[id]
-      return {
-        resolved,
-        approved,
-        tracked,
-        dismissed: !!s.dismissed[id],
-        done: resolved || approved || tracked,
-      }
-    }),
-  )
+export function useItemStatus(item: ConsoleItem): TriageStatus {
+  return statusFor(item, useTriageRecords())
 }

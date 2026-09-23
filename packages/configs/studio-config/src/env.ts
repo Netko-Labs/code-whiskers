@@ -23,6 +23,10 @@ const studioConfig: StudioConfig = {
     // Accepted on /api/internal/*; empty means the surface stays closed.
     internalToken: process.env.INTERNAL_TOKEN ?? '',
   },
+  github: {
+    // Each self-hosted instance runs its own GitHub App; its install page is built from this.
+    appSlug: process.env.GITHUB_APP_SLUG ?? 'code-whiskers',
+  },
   auth: {
     secret: process.env.AUTH_SECRET,
     emailAndPassword: {

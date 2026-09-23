@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { whiskersIssuesQuery, whiskersReviewsQuery } from '@/integrations/whiskers'
 import type { ConsoleItem } from '../../console-model'
-import { issueToConsoleItem, reviewToConsoleItem } from '../utils'
+import { issueToConsoleItem, latestReviewPerPullRequest, reviewToConsoleItem } from '../utils'
 import { SAMPLE_ITEMS } from '../values'
 
 export type ConsoleItemsResult = {
@@ -20,7 +20,7 @@ export function useConsoleItems(): ConsoleItemsResult {
   return useMemo(() => {
     const live = [
       ...(issues.data ?? []).map(issueToConsoleItem),
-      ...(reviews.data ?? []).map(reviewToConsoleItem),
+      ...latestReviewPerPullRequest(reviews.data ?? []).map(reviewToConsoleItem),
     ]
     const unreachable = issues.isError || reviews.isError
 

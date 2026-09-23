@@ -1,38 +1,49 @@
 import { Button } from '@code-whiskers/ui/components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/components/popover'
 import { useState } from 'react'
-import { TEAM } from '../../shared/console-data'
+import type { Member } from '@/integrations/studio-api'
+import { initialsOf, useMembers } from '../../shared/console-data'
 import type { AssignMenuProps } from '../lib'
 
-export function AssignMenu({ onAssign }: AssignMenuProps) {
+const ROW = 'flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft'
+
+export function AssignMenu({ assigneeUserId, isDisabled, onAssign }: AssignMenuProps) {
   const [open, setOpen] = useState(false)
+  const members = useMembers()
+
+  function pick(member: Member | null) {
+    setOpen(false)
+    onAssign(member)
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button variant="outline" size="sm" />}>Assign</PopoverTrigger>
+      <PopoverTrigger render={<Button variant="outline" size="sm" disabled={isDisabled} />}>
+        Assign
+      </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-[246px] gap-0 p-1.5">
         <span className="px-2.5 pt-[7px] pb-[5px] text-[11px] text-muted-foreground">
-          Assign to
+          {members.length > 0 ? 'Assign to' : 'Teammates appear after the GitHub sync'}
         </span>
-        {TEAM.map((mate) => (
-          <button
-            type="button"
-            key={mate.name}
-            onClick={() => {
-              setOpen(false)
-              onAssign(mate.name)
-            }}
-            className="flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft"
-          >
+        {members.map((member) => (
+          <button type="button" key={member.id} onClick={() => pick(member)} className={ROW}>
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-semibold text-[9px]">
-              {mate.initials}
+              {initialsOf(member.name)}
             </span>
             <div className="flex min-w-0 flex-col">
-              <span className="font-medium text-[13px]">{mate.name}</span>
-              <span className="text-[11px] text-muted-foreground">{mate.role}</span>
+              <span className="font-medium text-[13px]">{member.name}</span>
+              <span className="truncate text-[11px] text-muted-foreground">
+                {member.organizations.join(', ')}
+              </span>
             </div>
+            {member.id === assigneeUserId && <span className="ml-auto text-[11px]">✓</span>}
           </button>
         ))}
+        {assigneeUserId && (
+          <button type="button" onClick={() => pick(null)} className={ROW}>
+            <span className="text-[13px] text-muted-foreground">Unassign</span>
+          </button>
+        )}
       </PopoverContent>
     </Popover>
   )

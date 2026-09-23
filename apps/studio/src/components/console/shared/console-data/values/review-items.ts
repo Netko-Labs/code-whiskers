@@ -1,7 +1,9 @@
 import type { ConsoleItem } from '../../console-model'
 
 export const REVIEW_FANOUT: ConsoleItem = {
-  id: '#4471',
+  id: 'sample:#4471',
+  handle: '#4471',
+  triage: null,
   kind: 'review',
   label: 'Review · #4471',
   severity: 'info',
@@ -63,7 +65,9 @@ export const REVIEW_FANOUT: ConsoleItem = {
 }
 
 export const REVIEW_SHIPPER: ConsoleItem = {
-  id: '#4468',
+  id: 'sample:#4468',
+  handle: '#4468',
+  triage: null,
   kind: 'review',
   label: 'Review · #4468',
   severity: 'ok',

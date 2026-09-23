@@ -1,124 +1,182 @@
+import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { recordTriage, type TriageDecision } from '@/integrations/studio-api'
-import { VIEWER } from '../../../shared/console-data'
+import {
+  assignTriage,
+  postTriageComment,
+  recordTriage,
+  type TriageDecision,
+  type TriageItemRef,
+  triageCommentsQuery,
+} from '@/integrations/studio-api'
+import { findingRef } from '../../../shared/console-data'
 import type { ConsoleItem } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
+import type { DetailActions } from '../types'
+import {
+  formatUntil,
+  patchTriageCache,
+  readTriage,
+  restoreTriageCache,
+  snoozeDeadline,
+} from '../utils'
+import { DISMISS_NOTE, SAMPLE_ACTION_NOTE } from '../values'
 
-export type DetailActions = {
-  onPrimary: () => void
-  onSecondary: () => void
-  onEvidence: () => void
-  onDismissBlocker: () => void
-  openFix: () => void
-  closeFix: () => void
-  commitFix: () => void
-  assignTo: (name: string) => void
-  postComment: () => void
+type DecisionExtra = Pick<TriageDecision, 'note' | 'snoozedUntil'>
+
+function flash(message: string, onUndo?: () => void) {
+  useConsoleStore.getState().flash(message, onUndo)
+}
+
+/**
+ * The cache moves first so the console answers immediately; the write follows, and a failed
+ * write puts the cache back and says so rather than leaving a decision that never landed.
+ */
+function saveDecision(
+  queryClient: QueryClient,
+  target: TriageItemRef,
+  status: TriageDecision['status'],
+  extra: DecisionExtra = {},
+) {
+  const previous = patchTriageCache(queryClient, target, {
+    status,
+    note: extra.note ?? null,
+    snoozedUntil: extra.snoozedUntil ?? null,
+  })
+  recordTriage({ ...target, status, ...extra }).catch(() => {
+    restoreTriageCache(queryClient, target, previous)
+    flash('Could not save that decision — nothing changed')
+  })
+  return previous
+}
+
+function decide(
+  queryClient: QueryClient,
+  target: TriageItemRef,
+  status: TriageDecision['status'],
+  message: string,
+  extra: DecisionExtra = {},
+) {
+  const previous = saveDecision(queryClient, target, status, extra)
+  flash(message, () =>
+    saveDecision(queryClient, target, previous?.status ?? 'open', {
+      note: previous?.note ?? undefined,
+      snoozedUntil: previous?.snoozedUntil ?? undefined,
+    }),
+  )
 }
 
 export function useDetailActions(item: ConsoleItem): DetailActions {
-  return useMemo(() => {
-    const store = () => useConsoleStore.getState()
+  const queryClient = useQueryClient()
 
-    /**
-     * The store keeps the UI honest immediately; this makes the decision
-     * durable and, for a dismissal, tells the reviewer to stop raising it. A
-     * failed write must not undo what the user just saw happen.
-     */
-    const remember = (status: TriageDecision['status'], note?: string) => {
-      const scope = item.subtitle.split(' · ')[0] ?? item.id
-      void recordTriage({
-        scope,
-        itemKind: item.kind === 'error' ? 'issue' : item.kind,
-        itemRef: item.id,
-        status,
-        note,
-      }).catch(() => undefined)
+  return useMemo(() => {
+    const live = (): TriageItemRef | null => {
+      if (!item.triage) flash(SAMPLE_ACTION_NOTE)
+      return item.triage
     }
 
-    const setApproved = (value: boolean) => store().setApproved(item.id, value)
-    const setResolved = (value: boolean) => store().setResolved(item.id, value)
-    const setTracked = (value: boolean) => store().setTracked(item.id, value)
-    const setDismissed = (value: boolean) => store().setDismissed(item.id, value)
+    const assign = (target: TriageItemRef, assigneeUserId: string | null) => {
+      const previous = patchTriageCache(queryClient, target, { assigneeUserId })
+      assignTriage(target, assigneeUserId).catch(() => {
+        restoreTriageCache(queryClient, target, previous)
+        flash('Could not change the assignee — nothing changed')
+      })
+      return previous?.assigneeUserId ?? null
+    }
 
     return {
       onPrimary: () => {
-        const { approved, resolved, flash } = store()
+        const target = live()
+        if (!target) return
+        const current = readTriage(queryClient, target)?.status
         if (item.kind === 'review') {
-          const next = !approved[item.id]
-          setApproved(next)
-          remember(next ? 'approved' : 'open')
-          flash(
-            next ? `Approved ${item.id} — Jamie notified` : `${item.id} approval withdrawn`,
-            () => setApproved(!next),
-          )
+          if (current === 'approved') {
+            decide(queryClient, target, 'open', `Approval withdrawn on ${item.handle}`)
+          } else decide(queryClient, target, 'approved', `Approved ${item.handle} in CodeWhiskers`)
           return
         }
-        if (item.kind === 'log') {
-          setTracked(true)
-          remember('tracked')
-          flash('Created CW-2048 from this pattern', () => setTracked(false))
-          return
-        }
-        const next = !resolved[item.id]
-        setResolved(next)
-        remember(next ? 'resolved' : 'open')
-        flash(next ? `Resolved ${item.id} — quiet window started` : `${item.id} reopened`, () =>
-          setResolved(!next),
-        )
+        if (current === 'resolved') decide(queryClient, target, 'open', `Reopened ${item.handle}`)
+        else decide(queryClient, target, 'resolved', `Resolved ${item.handle}`)
       },
 
       onSecondary: () => {
-        const { flash } = store()
-        if (item.kind === 'review') flash(`Changes requested on ${item.id}`)
-        else if (item.kind === 'log') flash('Alert muted for 1 hour')
-        else flash(`${item.id} snoozed until the next release`)
+        if (item.kind === 'review' && item.url) {
+          window.open(item.url, '_blank', 'noopener')
+          return
+        }
+        const target = live()
+        if (!target) return
+        const record = readTriage(queryClient, target)
+        const isSnoozing =
+          record?.status === 'snoozed' && !!record.snoozedUntil && record.snoozedUntil > new Date()
+        if (isSnoozing) {
+          decide(queryClient, target, 'open', `${item.handle} is back in the inbox`)
+          return
+        }
+        const snoozedUntil = snoozeDeadline()
+        decide(
+          queryClient,
+          target,
+          'snoozed',
+          `Snoozed ${item.handle} until ${formatUntil(snoozedUntil)}`,
+          { snoozedUntil },
+        )
       },
 
-      onEvidence: () => store().flash(`${item.evidenceLabel} — opened in a side panel`),
+      onEvidence: () => flash(SAMPLE_ACTION_NOTE),
 
-      onDismissBlocker: () => {
-        setDismissed(true)
-        remember('dismissed', `dismissed in the console by ${VIEWER.name}`)
-        store().flash(`Blocker dismissed on ${item.id}`, () => setDismissed(false))
+      toggleFinding: (finding, isDismissed) => {
+        const target = live()
+        if (!target) return
+        const ref = findingRef(target.scope, finding)
+        if (isDismissed) {
+          decide(queryClient, ref, 'open', `Whiskers may raise "${finding.title}" again`)
+        } else {
+          decide(
+            queryClient,
+            ref,
+            'dismissed',
+            `Dismissed — Whiskers stops raising "${finding.title}" on ${target.scope}`,
+            { note: DISMISS_NOTE },
+          )
+        }
       },
 
-      openFix: () => store().openFix(item.id),
-      closeFix: () => store().closeFix(),
-
+      openFix: () => useConsoleStore.getState().openFix(item.id),
+      closeFix: () => useConsoleStore.getState().closeFix(),
       commitFix: () => {
-        const { closeFix, flash } = store()
-        closeFix()
-        if (item.kind === 'review') flash(`Committed to ${item.id} — checks re-running`)
-        else if (item.kind === 'log') {
-          setTracked(true)
-          flash('Created CW-2048 with this alert condition', () => setTracked(false))
-        } else flash('PR #4472 opened — Whiskers pushed the fix')
+        useConsoleStore.getState().closeFix()
+        flash(SAMPLE_ACTION_NOTE)
       },
 
-      assignTo: (name: string) => {
-        const { assignee, assign, flash } = store()
-        const previous = assignee[item.id]
-        assign(item.id, name)
-        flash(`Assigned ${item.id} to ${name}`, () => assign(item.id, previous))
+      assignTo: (member) => {
+        const target = live()
+        if (!target) return
+        const previous = assign(target, member?.id ?? null)
+        flash(
+          member ? `Assigned ${item.handle} to ${member.name}` : `Unassigned ${item.handle}`,
+          () => assign(target, previous),
+        )
       },
 
       postComment: () => {
-        const { draft, addComment, removeLastComment, flash } = store()
-        const body = draft.trim()
+        const target = live()
+        if (!target) return
+        const { drafts, setDraft } = useConsoleStore.getState()
+        const body = drafts[item.id]?.trim()
         if (!body) {
           flash('Nothing to post yet')
           return
         }
-        addComment({
-          initials: VIEWER.initials,
-          who: VIEWER.name,
-          when: 'just now',
-          body,
-          self: true,
-        })
-        flash(`Comment posted to ${item.id}`, removeLastComment)
+        setDraft(item.id, '')
+        postTriageComment(target, body)
+          .then(() =>
+            queryClient.invalidateQueries({ queryKey: triageCommentsQuery(target).queryKey }),
+          )
+          .catch(() => {
+            setDraft(item.id, body)
+            flash('Comment not posted — your draft is back')
+          })
       },
     }
-  }, [item])
+  }, [item, queryClient])
 }
