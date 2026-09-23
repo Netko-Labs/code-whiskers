@@ -1,10 +1,10 @@
 import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import type { LlmReview, Review } from '@code-whiskers/whiskers-domain'
+import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
-import { createTokenTally, mapWithConcurrency, type TokenTally } from '../shared/llm'
-import { chunkDiff, commentableLines, splitChunk } from './chunk'
+import { createTokenTally, mapWithConcurrency } from '../shared/llm'
+import { chunkDiff, commentableLines } from './chunk'
 import { buildPrContext } from './context'
 import {
   completeCheckRun,
@@ -16,7 +16,7 @@ import {
   postPrReview,
   startCheckRun,
 } from './github'
-import { mergeReviews, reviewChunk } from './llm'
+import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import { type ReviewReport, renderFailureComment } from './render'
 import { fetchSuppressions } from './suppressions'
 
@@ -28,68 +28,10 @@ export * from './suppressions'
 
 const logger = createLogger('whiskers-review')
 
-// A malformed sample counts as transient too: cheap models emit unparseable JSON
-// a few percent of the time, and a fresh sample almost always parses.
-const TRANSIENT_ERROR =
-  /timed out|timeout|abort|429|5\d\d|overloaded|rate limit|no object generated|could not parse|did not match schema/i
-// A timeout says the prompt was too big for the window, not that the provider is
-// unwell — the same chunk will time out again, so that retry splits instead.
-const TIMEOUT_ERROR = /timed out|timeout|abort/i
-const MAX_ATTEMPTS = 3
-const RETRY_BASE_MS = 1_500
-// Halving twice turns one 24k chunk into four; past that the timeout is not size.
-const MAX_SPLIT_DEPTH = 2
-
-/** Full jitter — four chunks retrying in lockstep would re-create the congestion. */
-function backoffMs(attempt: number): number {
-  const ceiling = RETRY_BASE_MS * 2 ** (attempt - 1)
-  return Math.round(ceiling * (0.5 + Math.random() * 0.5))
-}
 // A failed review must be visible on the PR, but only once per head —
 // webhook redeliveries and repeated failures must not pile up comments.
 const failureNotified = new Set<string>()
 const FAILURE_NOTIFIED_CAP = 1_000
-
-/**
- * Up to three attempts per chunk with jittered backoff. A chunk that still
- * fails resolves to `null` rather than throwing: one unlucky section must not
- * discard the findings from every other one.
- */
-async function reviewChunkWithRetry(
-  chunk: string,
-  context: string,
-  tokens: TokenTally,
-  depth = 0,
-): Promise<LlmReview | null> {
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      return await reviewChunk(chunk, context, tokens)
-    } catch (error) {
-      const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      const last = attempt === MAX_ATTEMPTS
-      if (!TRANSIENT_ERROR.test(message) || last) {
-        logger.warn({ err: message, attempt }, 'chunk failed — skipping this section')
-        return null
-      }
-
-      if (TIMEOUT_ERROR.test(message) && depth < MAX_SPLIT_DEPTH) {
-        const halves = splitChunk(chunk)
-        if (halves.length > 1) {
-          logger.warn({ attempt, depth, chars: chunk.length }, 'chunk timed out — splitting')
-          const results = await Promise.all(
-            halves.map((half) => reviewChunkWithRetry(half, context, tokens, depth + 1)),
-          )
-          const usable = results.filter((r): r is LlmReview => r !== null)
-          return usable.length > 0 ? mergeReviews(usable) : null
-        }
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, backoffMs(attempt)))
-      logger.warn({ err: message, attempt }, 'transient chunk failure — retrying')
-    }
-  }
-  return null
-}
 
 /** The whole pipeline: diff -> chunks -> LLM -> persist -> PR review on GitHub. */
 export async function runReview(ref: PrRef): Promise<Review | undefined> {
@@ -136,24 +78,15 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     if (context) logger.info({ ...ref, contextChars: context.length }, 'review has prior context')
 
     const chunks = chunkDiff(diff)
-    const results = await mapWithConcurrency(chunks, (chunk) =>
+    const outcomes = await mapWithConcurrency(chunks, (chunk) =>
       reviewChunkWithRetry(chunk, context, tokens),
     )
-    const reviewed = results.filter((r): r is LlmReview => r !== null)
-    const skipped = results.length - reviewed.length
-
-    // Every section failing is a real failure; some failing is a partial review,
-    // and a partial review beats telling the author to push again for nothing.
-    if (reviewed.length === 0) {
-      throw new Error(`all ${results.length} diff sections failed to review`)
-    }
-
-    const merged = mergeReviews(reviewed)
-    if (skipped > 0) logger.warn({ ...ref, skipped, total: results.length }, 'partial review')
+    const { review: merged, coverage } = resolveOutcome(outcomes)
+    if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
     const report: ReviewReport = {
       review: merged,
       model: review.model ?? whiskersEnvConfig.openrouter.model,
-      coverage: { reviewed: reviewed.length, total: results.length },
+      coverage,
     }
 
     await createFindings(
