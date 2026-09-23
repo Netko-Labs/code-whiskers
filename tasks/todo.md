@@ -1,40 +1,44 @@
-# Self-hosted console, internal API, GitHub sync
+# Finish the console — every section on real data
 
-Three asks, in dependency order. Each lands as its own commit.
+16 sections; 2 are real today (Pull requests, Repositories). The spec for every other one is the
+"Feature → home" table in docs/architecture.md. One commit per item; nav counts and sample
+fallbacks go away as each lands.
 
-## 1 · Console sections that assume a business we don't have
+## 0 · Blockers
 
-- [x] Delete `Billing` — invoices, plans, a Visa ending 4402. Fiction for a self-hosted tool.
-- [x] `Usage & quota` → **Instance**: disk, retention, ingest rate against the operator's own
-      caps, worker queue depth. No overage rates, no included allowances.
-- [x] Drop `billing` from `SectionView`, `SECTIONS`, and the nav group.
-- [x] 16 sections, not 17.
+- [x] `/v1/*` was public — gate behind the studio session (12ca583)
 
-## 2 · GitHub sync — fill the tables from e26307f
+## A · Sections whose data already exists (~half a day)
 
-- [x] `syncGithubInstallations(userId)` in studio service: read the user's GitHub token from
-      better-auth `account`, call `/user/installations` and `/user/installations/{id}/repositories`.
-- [x] Upsert `organization`, `organization_member`, `repository`.
-- [x] Run it on sign-in; expose `GET /api/orgs` + `GET /api/repositories` for the console.
-- [x] Org switcher and Repositories read real data, fixtures only until the first sync.
+- [ ] Nav counts from live data, not constants
+- [ ] Triage buckets: inbox / assigned / snoozed from `triage_state`
+- [ ] Issues ← `/v1/issues`
+- [ ] Members ← `organization_member` + `user` (`GET /api/members`)
+- [ ] Codebase map ← findings grouped by directory (`/v1/hotspots`)
+- [ ] Instance ← `/v1/overview` counts, database sizes, review latency
 
-## 3 · `/api/internal/*` — the whiskers → studio direction
+## B · Studio-owned configuration, with forms (~1 day)
 
-- [x] `triage_state` table + migration (studio). Spec'd in docs/architecture.md, never built.
-- [x] Console writes dismissals/resolutions there instead of only the zustand store.
-- [x] `GET /api/internal/suppressions?repo=` on studio, service-JWT authenticated.
-- [x] Whiskers fetches it in `runReview`, caches briefly, and feeds it into `buildPrContext`
-      so a dismissal actually silences the finding.
+- [ ] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
+- [ ] API keys → `api_key` (hashed, shown once)
+- [ ] Integrations → `integration` (webhook targets) + GitHub App status
+- [ ] Saved queries → `saved_query`
+- [ ] Alert rules → `alert_rule` + evaluator in whiskers
+
+## C · Whiskers telemetry (~1–2 days)
+
+- [ ] Releases ← `event.release`; Regressions ← resolved issues that come back
+- [ ] Live logs ← OTLP/HTTP logs → `log_line` (daily partitions, BRIN) + live tail
+- [ ] Traces + Services ← OTLP/HTTP traces → `span`, `service` rollup
 
 ## Acceptance
 
-- [x] `bun run check-types`, `bun run fmt-lint`, `bun run test` clean after each.
-- [x] A dismissal in the console survives a reload and reaches the next review.
-- [x] Console shows real orgs and repos for a signed-in GitHub user.
+- [ ] No section renders sample data once its source has rows
+- [ ] `bun run check-types`, `bun run fmt-lint`, `bun run test` clean after each item
+- [ ] Each migration deployed and checked on both Coolify apps
 
-## Done — b0e399c, 3b57545, b263004
+## Open questions
 
-All three landed. Not yet exercised against production: the sync needs a GitHub sign-in (the
-magic-link account has no GitHub token, so `octokitForUser` returns null and the console keeps the
-sample orgs), and suppressions need `INTERNAL_TOKEN` set on both Coolify apps — unset, the surface
-stays closed and whiskers reads nothing.
+1. API keys: read access to `/v1` for scripts, or ingest keys for SDKs, or both?
+2. Telemetry ingest: OTLP/HTTP JSON first, protobuf later?
+3. Alert delivery: webhook (Slack/Discord-compatible) only, now that email is gone?
