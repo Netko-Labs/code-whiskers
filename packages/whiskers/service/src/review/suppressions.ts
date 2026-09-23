@@ -39,6 +39,9 @@ export async function fetchSuppressions(scope: string): Promise<Suppression[]> {
       return []
     }
     const value = (await response.json()) as Suppression[]
+    if (response.headers.get('x-suppressions-truncated') === 'true') {
+      logger.warn({ scope, kept: value.length }, 'suppressions truncated; oldest decisions dropped')
+    }
     cache.set(scope, { at: Date.now(), value })
     return value
   } catch (error) {

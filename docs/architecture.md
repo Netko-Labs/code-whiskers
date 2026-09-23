@@ -283,4 +283,6 @@ Timescale is the natural first move because nothing above the driver changes.
 5. ~~`/api/internal/*` appears on studio.~~ Done: `GET /api/internal/suppressions?scope=`
    returns what a human dismissed, resolved or snoozed; whiskers caches it for 60s and
    feeds it into the review preamble. An unreachable studio degrades to "nothing
-   suppressed" rather than failing the review.
+   suppressed" rather than failing the review. Newest 200 only; past that studio sets
+   `x-suppressions-truncated: true` and whiskers logs it. `POST /api/triage` only
+   writes under an `owner/repo` scope the caller is a member of.
