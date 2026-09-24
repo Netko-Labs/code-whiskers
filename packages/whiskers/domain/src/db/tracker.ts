@@ -7,6 +7,7 @@ import { integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from 'dri
 export const projectTable = pgTable('project', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  repository: text('repository'),
   publicKey: text('public_key').notNull(),
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())

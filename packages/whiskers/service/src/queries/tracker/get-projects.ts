@@ -5,6 +5,7 @@ import { asc, count, eq, max } from 'drizzle-orm'
 export interface ProjectSummary {
   id: string
   name: string
+  repository: string | null
   publicKey: string
   createdAt: Date
   issues: number

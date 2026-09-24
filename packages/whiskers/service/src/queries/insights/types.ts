@@ -54,6 +54,7 @@ export interface ReleaseSummary {
 }
 
 export interface LogFilter {
+  projectIds?: string[]
   service?: string
   level?: 'error' | 'warn'
   query?: string

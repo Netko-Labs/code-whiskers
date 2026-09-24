@@ -1,6 +1,6 @@
 import { type Issue, issueTable } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { desc, eq, sql } from 'drizzle-orm'
+import { desc, inArray, sql } from 'drizzle-orm'
 
 export type IssueWithRelease = Issue & { lastRelease: string | null }
 
@@ -12,12 +12,14 @@ const LAST_RELEASE = sql<string | null>`(
   order by e.received_at desc limit 1
 )`
 
-export const getIssues = async (projectId?: string): Promise<IssueWithRelease[]> => {
+export const getIssues = async (projectIds?: string[]): Promise<IssueWithRelease[]> => {
   const query = db
     .select({ issue: issueTable, lastRelease: LAST_RELEASE })
     .from(issueTable)
     .orderBy(desc(issueTable.lastSeen))
     .limit(200)
-  const rows = projectId ? await query.where(eq(issueTable.projectId, projectId)) : await query
+  const rows = projectIds
+    ? await query.where(inArray(issueTable.projectId, projectIds))
+    : await query
   return rows.map(({ issue, lastRelease }) => ({ ...issue, lastRelease }))
 }

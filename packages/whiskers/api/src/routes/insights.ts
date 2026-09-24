@@ -1,6 +1,8 @@
 import {
   LogQuerySchema,
   ProjectCreateSchema,
+  ProjectRepositorySchema,
+  ProjectScopeSchema,
   ReviewRerunSchema,
   TraceQuerySchema,
 } from '@code-whiskers/whiskers-domain'
@@ -21,9 +23,10 @@ import {
   getTrace,
   getTraces,
   runReview,
+  setProjectRepository,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
-import { z } from 'zod'
+import { projectIdsOf } from '../shared'
 
 /** Read-only management surface for dashboards and smoke tests. */
 export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
@@ -31,26 +34,54 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   .get('/overview', () => getOverview())
   // (ノ°▽°)ノ where error events come from, and the DSN each one uses
   .get('/projects', () => getProjects())
-  .post('/projects', { body: ProjectCreateSchema }, ({ body }) => createProject(body.name))
+  .post('/projects', { body: ProjectCreateSchema }, ({ body }) =>
+    createProject(body.name, body.repository ?? null),
+  )
+  .post(
+    '/projects/:projectId/repository',
+    { body: ProjectRepositorySchema },
+    async ({ params, body, set }) => {
+      const project = await setProjectRepository(params.projectId, body.repository)
+      if (!project) {
+        set.status = 404
+        return { error: 'no such project' }
+      }
+      return project
+    },
+  )
   // (o･ω･o) grouped errors, newest churn first
-  .get('/issues', { query: z.object({ projectId: z.string().optional() }) }, ({ query }) =>
-    getIssues(query.projectId),
+  .get('/issues', { query: ProjectScopeSchema }, ({ query }) =>
+    getIssues(projectIdsOf(query.projectId)),
   )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
   // (｀-´)> log lines, newest first; `before` pages back by id
   .get('/logs', { query: LogQuerySchema }, ({ query }) =>
-    getLogs({ service: query.service, level: query.level, query: query.q, before: query.before }),
+    getLogs({
+      projectIds: projectIdsOf(query.projectId),
+      service: query.service,
+      level: query.level,
+      query: query.q,
+      before: query.before,
+    }),
   )
   // (｀-´)> error log lines grouped by shape — the log side of triage
-  .get('/log-patterns', () => getLogPatterns())
+  .get('/log-patterns', { query: ProjectScopeSchema }, ({ query }) =>
+    getLogPatterns(projectIdsOf(query.projectId)),
+  )
   // (｀-´)> traces from the last day, and one trace's spans
-  .get('/traces', { query: TraceQuerySchema }, ({ query }) => getTraces(query.service))
+  .get('/traces', { query: TraceQuerySchema }, ({ query }) =>
+    getTraces(query.service, projectIdsOf(query.projectId)),
+  )
   .get('/traces/:traceId', ({ params }) => getTrace(params.traceId))
   // (｀-´)> every service that logged or traced today
-  .get('/services', () => getServices())
+  .get('/services', { query: ProjectScopeSchema }, ({ query }) =>
+    getServices(projectIdsOf(query.projectId)),
+  )
   // (ﾉ≧∀≦)ﾉ what each release brought in
-  .get('/releases', () => getReleases())
+  .get('/releases', { query: ProjectScopeSchema }, ({ query }) =>
+    getReleases(projectIdsOf(query.projectId)),
+  )
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())
   // (・∀・) the newest event of one issue, read for a human

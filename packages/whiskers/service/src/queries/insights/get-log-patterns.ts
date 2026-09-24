@@ -17,7 +17,10 @@ const HOUR_MS = 3_600_000
  * Error and fatal lines from the last day, grouped by service and message shape — the log side
  * of the triage inbox. Grouped in memory over the newest few thousand lines; a flood is sampled.
  */
-export const getLogPatterns = async (now = new Date()): Promise<LogPattern[]> => {
+export const getLogPatterns = async (
+  projectIds?: string[],
+  now = new Date(),
+): Promise<LogPattern[]> => {
   const lines = await db
     .select({
       projectId: logLineTable.projectId,
@@ -30,6 +33,7 @@ export const getLogPatterns = async (now = new Date()): Promise<LogPattern[]> =>
     .where(
       and(
         inArray(logLineTable.level, ['ERROR', 'FATAL']),
+        projectIds ? inArray(logLineTable.projectId, projectIds) : undefined,
         gt(logLineTable.timestamp, new Date(now.getTime() - LOG_PATTERN_WINDOW_HOURS * HOUR_MS)),
       ),
     )

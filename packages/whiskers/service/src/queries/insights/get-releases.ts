@@ -1,7 +1,7 @@
 import { db } from '@code-whiskers/whiskers-repository'
 import { sql } from 'drizzle-orm'
 import type { ReleaseSummary } from './types'
-import { asDate } from './utils'
+import { asDate, inProjects } from './utils'
 
 type Row = Record<string, unknown>
 
@@ -9,7 +9,7 @@ type Row = Record<string, unknown>
  * One row per release an SDK reported, with what it brought: an issue counts as new in the
  * release of its first event.
  */
-export const getReleases = async (): Promise<ReleaseSummary[]> => {
+export const getReleases = async (projectIds?: string[]): Promise<ReleaseSummary[]> => {
   const rows = (await db.execute(sql`
     with first_events as (
       select distinct on (issue_id) issue_id, project_id, release
@@ -26,7 +26,7 @@ export const getReleases = async (): Promise<ReleaseSummary[]> => {
            max(e.environment) as environment
     from event e
     left join introduced i on i.project_id = e.project_id and i.release = e.release
-    where e.release is not null
+    where e.release is not null ${inProjects('e.project_id', projectIds)}
     group by e.project_id, e.release
     order by min(e.received_at) desc
     limit 100`)) as Row[]

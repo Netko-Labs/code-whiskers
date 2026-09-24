@@ -1,3 +1,4 @@
+import { type SQL, sql } from 'drizzle-orm'
 import { HOTSPOT_DIRECTORY_DEPTH } from './constants'
 
 /** `apps/studio/src/components/x.tsx` → `apps/studio/src`; a root file sits in `.`. */
@@ -25,4 +26,13 @@ export function logPattern(message: string): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 160)
+}
+
+/** `and <column> in (…)` for raw SQL; `column` is a constant from the query, never input. */
+export function inProjects(column: string, projectIds: string[] | undefined): SQL {
+  if (!projectIds) return sql``
+  return sql`and ${sql.raw(column)} in (${sql.join(
+    projectIds.map((id) => sql`${id}`),
+    sql`, `,
+  )})`
 }
