@@ -2,17 +2,21 @@ import { studioEnvConfig } from '@code-whiskers/studio-config'
 import { auth, verifyApiKey } from '@code-whiskers/studio-service'
 
 const HOP_BY_HOP = ['host', 'connection', 'content-length', 'transfer-encoding']
+const CALLER_CREDENTIALS = ['cookie', 'authorization']
 
 /**
  * Studio owns the public hostname; whiskers is a worker on the internal
  * network. Requests are handed over byte-for-byte so whiskers can still verify
  * GitHub's HMAC and Sentry's auth header against the original body.
  */
-export async function forwardToWhiskers(request: Request): Promise<Response> {
+export async function forwardToWhiskers(
+  request: Request,
+  dropHeaders: readonly string[] = [],
+): Promise<Response> {
   const incoming = new URL(request.url)
   const target = new URL(incoming.pathname + incoming.search, studioEnvConfig.whiskers.url)
   const headers = new Headers(request.headers)
-  for (const name of HOP_BY_HOP) headers.delete(name)
+  for (const name of [...HOP_BY_HOP, ...dropHeaders]) headers.delete(name)
   headers.set('x-forwarded-host', incoming.host)
   headers.set('x-forwarded-proto', incoming.protocol.replace(':', ''))
 
@@ -41,8 +45,7 @@ async function isAllowed(request: Request): Promise<boolean> {
 export async function forwardSignedInToWhiskers(request: Request): Promise<Response> {
   if (!(await isAllowed(request))) return Response.json({ error: 'unauthorized' }, { status: 401 })
 
-  const headers = new Headers(request.headers)
-  headers.delete('cookie')
-  headers.delete('authorization')
-  return forwardToWhiskers(new Request(request, { headers }))
+  // Rebuilding the Request in Bun keeps its authorization header, so the drop happens where the
+  // outgoing headers are built.
+  return forwardToWhiskers(request, CALLER_CREDENTIALS)
 }
