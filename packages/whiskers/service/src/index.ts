@@ -1,6 +1,7 @@
 export * from './alerts'
 export * from './auth'
 export * from './fix'
+export * from './github-access'
 export * from './mutations'
 export * from './queries'
 export * from './review'
