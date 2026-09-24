@@ -112,3 +112,14 @@ export const reviewRuleSchema = z.object({
   createdAt: z.coerce.date(),
 })
 export const reviewRuleListSchema = z.array(reviewRuleSchema)
+
+export const apiKeySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  prefix: z.string(),
+  lastUsedAt: z.coerce.date().nullable(),
+  revokedAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+})
+export const apiKeyListSchema = z.array(apiKeySchema)
+export const createdKeySchema = z.object({ id: z.string(), key: z.string() })

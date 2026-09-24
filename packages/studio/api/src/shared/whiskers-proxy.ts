@@ -1,5 +1,5 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { auth } from '@code-whiskers/studio-service'
+import { auth, verifyApiKey } from '@code-whiskers/studio-service'
 
 const HOP_BY_HOP = ['host', 'connection', 'content-length', 'transfer-encoding']
 
@@ -25,15 +25,23 @@ export async function forwardToWhiskers(request: Request): Promise<Response> {
   })
 }
 
+async function isAllowed(request: Request): Promise<boolean> {
+  const bearer = request.headers.get('authorization')?.match(/^Bearer (cw_\S+)$/)?.[1]
+  if (bearer) return (await verifyApiKey(bearer)) !== null
+  const signedIn = await auth.api.getSession({ headers: request.headers })
+  return !!signedIn?.user
+}
+
 /**
  * `/v1` returns review findings (which quote private code) and error events, so it is never
- * forwarded anonymously. The worker has no public host; this is its only door.
+ * forwarded anonymously: a browser session or a `cw_` API key. The worker has no public host;
+ * this is its only door.
  */
 export async function forwardSignedInToWhiskers(request: Request): Promise<Response> {
-  const signedIn = await auth.api.getSession({ headers: request.headers })
-  if (!signedIn?.user) return Response.json({ error: 'unauthorized' }, { status: 401 })
+  if (!(await isAllowed(request))) return Response.json({ error: 'unauthorized' }, { status: 401 })
 
   const headers = new Headers(request.headers)
   headers.delete('cookie')
+  headers.delete('authorization')
   return forwardToWhiskers(new Request(request, { headers }))
 }

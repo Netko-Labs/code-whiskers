@@ -1,5 +1,6 @@
 import type { z } from 'zod'
 import type {
+  apiKeySchema,
   instanceSchema,
   memberSchema,
   organizationSchema,
@@ -46,3 +47,4 @@ export type ReviewRuleInput = {
   scope: string
   effect: ReviewRuleEffect
 }
+export type ApiKey = z.infer<typeof apiKeySchema>

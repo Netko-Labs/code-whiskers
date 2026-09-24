@@ -21,7 +21,7 @@ fallbacks go away as each lands.
 ## B · Studio-owned configuration, with forms (~1 day)
 
 - [x] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
-- [ ] API keys → `api_key` (hashed, shown once)
+- [x] API keys → `api_key` (hashed, shown once) — read access to `/v1`
 - [ ] Integrations → `integration` (webhook targets) + GitHub App status
 - [ ] Saved queries → `saved_query`
 - [ ] Alert rules → `alert_rule` + evaluator in whiskers

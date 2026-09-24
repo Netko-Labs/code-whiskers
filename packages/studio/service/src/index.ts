@@ -1,5 +1,6 @@
 export * from './auth'
 export * from './github'
+export * from './keys'
 export * from './mutations'
 export * from './queries'
 export * from './shared'

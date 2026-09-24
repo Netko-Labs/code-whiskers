@@ -1,6 +1,8 @@
 export * from './lib'
 export {
+  apiKeysQuery,
   assignTriage,
+  createApiKey,
   createRule,
   deleteRule,
   instanceQuery,
@@ -9,6 +11,7 @@ export {
   postTriageComment,
   recordTriage,
   repositoriesQuery,
+  revokeApiKey,
   rulesQuery,
   STUDIO_QUERY_KEY,
   studioStorageQuery,

@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 import { githubRoutes } from './routes/github'
 import { instanceRoutes } from './routes/instance'
 import { internalRoutes } from './routes/internal'
+import { keyRoutes } from './routes/keys'
 import { memberRoutes } from './routes/members'
 import { ruleRoutes } from './routes/rules'
 import { sessionRoutes } from './routes/session'
@@ -30,6 +31,8 @@ export const app = new Elysia({ prefix: '/api' })
   .use(instanceRoutes)
   // (ﾉ◕ヮ◕)ﾉ teammates, for assigning and the Members section
   .use(memberRoutes)
+  // (￣^￣)ゞ API keys for scripts reading /v1
+  .use(keyRoutes)
   // (｀・ω・´) review rules, written by humans, read by the reviewer
   .use(ruleRoutes)
   // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided

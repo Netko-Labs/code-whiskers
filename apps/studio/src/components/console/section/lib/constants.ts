@@ -1,4 +1,5 @@
 import type { SectionView } from '../../shared/console-model'
+import { useApiKeysSection } from './hooks/use-api-keys-section'
 import { useCodebaseMapSection } from './hooks/use-codebase-map-section'
 import { useInstanceSection } from './hooks/use-instance-section'
 import { useIssuesSection } from './hooks/use-issues-section'
@@ -29,7 +30,7 @@ export const SECTION_HOOKS: Record<SectionView, SectionHook> = {
   'saved-queries': sampleOf('saved-queries'),
   members: useMembersSection,
   integrations: sampleOf('integrations'),
-  'api-keys': sampleOf('api-keys'),
+  'api-keys': useApiKeysSection,
   instance: useInstanceSection,
 }
 

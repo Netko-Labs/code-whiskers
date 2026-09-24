@@ -1,6 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
 import {
+  apiKeyListSchema,
+  createdKeySchema,
   createdSchema,
   instanceSchema,
   memberListSchema,
@@ -139,3 +141,14 @@ export const updateRule = (id: string, patch: Partial<ReviewRuleInput> & { isMut
   fetchStudio(`/rules/${id}`, okSchema, 'PATCH', patch)
 
 export const deleteRule = (id: string) => fetchStudio(`/rules/${id}`, okSchema, 'DELETE')
+
+export const apiKeysQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'keys'],
+    queryFn: () => fetchStudio('/keys', apiKeyListSchema),
+  })
+
+export const createApiKey = (name: string) =>
+  fetchStudio('/keys', createdKeySchema, 'POST', { name })
+
+export const revokeApiKey = (id: string) => fetchStudio(`/keys/${id}`, okSchema, 'DELETE')
