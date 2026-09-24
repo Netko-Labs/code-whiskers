@@ -1,7 +1,7 @@
 import { Button } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { SEVERITY_BG } from '../../shared/console-ui'
-import { type DetailPaneProps, primaryLabel, secondaryLabel } from '../lib'
+import { type DetailPaneProps, primaryLabel, secondaryLabel, useDetailShortcuts } from '../lib'
 import { AssignMenu } from './assign-menu'
 
 const BADGE2_TONE: Record<string, string> = {
@@ -10,6 +10,7 @@ const BADGE2_TONE: Record<string, string> = {
 }
 
 export function DetailHeader({ item, status, actions }: DetailPaneProps) {
+  useDetailShortcuts(actions)
   const done = status.resolved || status.approved
   const badge = status.resolved ? 'RESOLVED' : status.approved ? 'APPROVED' : item.badge
 
@@ -44,7 +45,7 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
       </div>
 
       <div className="flex shrink-0 gap-2">
-        <Button variant="outline" size="sm" onClick={actions.onSecondary}>
+        <Button variant="outline" size="sm" onClick={actions.onSecondary} title="s">
           {secondaryLabel(item, status)}
         </Button>
         <AssignMenu
@@ -52,7 +53,7 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
           isDisabled={!item.triage}
           onAssign={actions.assignTo}
         />
-        <Button size="sm" onClick={actions.onPrimary}>
+        <Button size="sm" onClick={actions.onPrimary} title="e">
           {primaryLabel(item, status)}
         </Button>
       </div>

@@ -2,13 +2,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useCallback } from 'react'
 import { useDocumentKeydown } from '@/shared/dom-events'
 import type { ConsoleItem, TriageBucket } from '../../../shared/console-model'
-
-function isTyping(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
-  )
-}
+import { isTyping } from '../utils'
 
 /** j / k walk the visible list; ignored while the user is typing anywhere. */
 export function useTriageKeys(items: ConsoleItem[], selectedId: string, bucket: TriageBucket) {
