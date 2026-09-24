@@ -86,7 +86,9 @@ function SectionScreen({ section, tab, filters, useDefinition }: SectionScreenPr
             placeholder={definition.searchPlaceholder ?? 'Search…'}
           />
         )}
-        <span className="ml-auto text-muted-foreground text-xs">{table.rows.length} rows</span>
+        <span className="ml-auto text-muted-foreground text-xs">
+          {table.rows.length} {table.rows.length === 1 ? 'row' : 'rows'}
+        </span>
       </div>
 
       <SectionTable table={table} minWidth={TABLE_MIN_WIDTH} />
