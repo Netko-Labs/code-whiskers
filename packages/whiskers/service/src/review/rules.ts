@@ -12,6 +12,15 @@ export async function fetchRules(repo: string): Promise<ReviewRule[]> {
   return value
 }
 
+/** A rule scoped to src/billing/** has nothing to say about a PR that never touches billing. */
+export function rulesForFiles(rules: ReviewRule[], files: string[]): ReviewRule[] {
+  return rules.filter((rule) => {
+    if (rule.scope === '**' || rule.scope === '*') return true
+    const glob = new Bun.Glob(rule.scope)
+    return files.some((file) => glob.match(file))
+  })
+}
+
 const RULES_BUDGET_CHARS = 1_400
 const EFFECT_INSTRUCTION: Record<ReviewRule['effect'], string> = {
   blocker: 'a violation is a high-severity finding',

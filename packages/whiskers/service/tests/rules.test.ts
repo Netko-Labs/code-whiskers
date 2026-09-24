@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { buildRulesContext, type ReviewRule } from '../src/review/rules'
+import { buildRulesContext, type ReviewRule, rulesForFiles } from '../src/review/rules'
 
 const rule = (overrides: Partial<ReviewRule> = {}): ReviewRule => ({
   body: 'Money is integer cents, never floats',
@@ -29,5 +29,17 @@ describe('buildRulesContext', () => {
     const text = buildRulesContext(many)
     expect(text).toMatch(/…\d+ more rules did not fit/)
     expect(text.length).toBeLessThan(1_700)
+  })
+})
+
+describe('rulesForFiles', () => {
+  test('a scoped rule applies only when a changed file matches it', () => {
+    const billing = rule({ scope: 'src/billing/**' })
+    const everywhere = rule({ scope: '**', body: 'No console.log' })
+    expect(rulesForFiles([billing, everywhere], ['src/web/app.tsx'])).toEqual([everywhere])
+    expect(rulesForFiles([billing, everywhere], ['src/billing/refunds/cents.ts'])).toEqual([
+      billing,
+      everywhere,
+    ])
   })
 })

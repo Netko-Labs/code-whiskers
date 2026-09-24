@@ -18,7 +18,7 @@ import {
 } from './github'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import { type ReviewReport, renderFailureComment } from './render'
-import { buildRulesContext, fetchRules } from './rules'
+import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { fetchSuppressions } from './suppressions'
 import { isRepositoryWatched } from './watching'
 
@@ -84,10 +84,12 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       suppressions,
       botHandle: whiskersEnvConfig.github.botHandle,
     })
-    const context = [buildRulesContext(rules), prContext].filter(Boolean).join('\n\n')
+    const changedFiles = [...commentableLines(diff).keys()]
+    const applicable = rulesForFiles(rules, changedFiles)
+    const context = [buildRulesContext(applicable), prContext].filter(Boolean).join('\n\n')
     if (context) {
       logger.info(
-        { ...ref, contextChars: context.length, rules: rules.length },
+        { ...ref, contextChars: context.length, rules: applicable.length },
         'review has context',
       )
     }
