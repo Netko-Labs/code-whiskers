@@ -1,6 +1,7 @@
 import {
   LogQuerySchema,
   ProjectCreateSchema,
+  ReviewRerunSchema,
   TraceQuerySchema,
 } from '@code-whiskers/whiskers-domain'
 import {
@@ -19,6 +20,7 @@ import {
   getServices,
   getTrace,
   getTraces,
+  runReview,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
@@ -59,6 +61,11 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
       return { error: 'no events' }
     }
     return event
+  })
+  // (ง'̀-'́)ง run the review again on the pull request's current head
+  .post('/reviews/rerun', { body: ReviewRerunSchema }, ({ body }) => {
+    void runReview(body).catch(() => undefined)
+    return { queued: true }
   })
   // ʕ•ᴥ•ʔ every review the cat has done
   .get('/reviews', () => getReviews())

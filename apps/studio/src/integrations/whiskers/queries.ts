@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
+import { z } from 'zod'
 import { fetchWhiskers, postWhiskers } from './client'
 import {
   type LogQuery,
@@ -124,3 +125,6 @@ export const whiskersLogPatternsQuery = () =>
     queryKey: [WHISKERS_QUERY_KEY, 'log-patterns'],
     queryFn: () => fetchWhiskers('/log-patterns', whiskersLogPatternListSchema),
   })
+
+export const rerunReview = (target: { owner: string; repo: string; prNumber: number }) =>
+  postWhiskers('/reviews/rerun', target, z.object({ queued: z.boolean() }))

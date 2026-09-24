@@ -10,3 +10,9 @@ export const LogQuerySchema = z.object({
 })
 
 export const TraceQuerySchema = z.object({ service: z.string().max(200).optional() })
+
+export const ReviewRerunSchema = z.object({
+  owner: z.string().min(1).max(100),
+  repo: z.string().min(1).max(100),
+  prNumber: z.coerce.number().int().positive(),
+})

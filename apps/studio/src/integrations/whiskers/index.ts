@@ -2,6 +2,7 @@ export { fetchWhiskers, postWhiskers } from './client'
 export * from './lib'
 export {
   createWhiskersProject,
+  rerunReview,
   whiskersHotspotsQuery,
   whiskersInstanceQuery,
   whiskersIssuesQuery,
