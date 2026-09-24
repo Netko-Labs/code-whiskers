@@ -73,6 +73,13 @@ export function usePullRequestsSection(tab: number, filters: SectionFilters): Se
           align: 'end' as const,
         },
       ]),
+      rowActions: visible.map(({ review, slug }) => [
+        {
+          label: 'GitHub',
+          onSelect: () =>
+            window.open(`https://github.com/${slug}/pull/${review.prNumber}`, '_blank', 'noopener'),
+        },
+      ]),
       rowLinks: visible.map(({ review, slug }) => ({
         kind: 'triage' as const,
         itemId: `${slug}#${review.prNumber}`,
