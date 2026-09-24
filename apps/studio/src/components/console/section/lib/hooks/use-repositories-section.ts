@@ -1,9 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { instanceQuery, repositoriesQuery } from '@/integrations/studio-api'
+import {
+  instanceQuery,
+  repositoriesQuery,
+  STUDIO_QUERY_KEY,
+  setRepositoryWatched,
+  syncGithub,
+} from '@/integrations/studio-api'
 import { whiskersReviewsQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
+import { useConsoleStore } from '../../../use-console-store'
 import { REPOSITORIES_SECTION } from '../values'
 
 const GRID = '1fr 130px 110px 130px 120px 100px'
@@ -21,6 +28,7 @@ const COLUMNS = [
  * than server-side because they are different databases on purpose.
  */
 export function useRepositoriesSection(tab: number): SectionDefinition {
+  const queryClient = useQueryClient()
   const { data: repositories } = useQuery({ ...repositoriesQuery(), retry: false })
   const { data: reviews } = useQuery({ ...whiskersReviewsQuery(), retry: false })
   const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
@@ -81,14 +89,52 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
           },
         ]
       }),
+      rowActions: visible.map((repo) => [
+        {
+          label: repo.isWatched ? 'Pause reviews' : 'Resume reviews',
+          onSelect: () => {
+            setRepositoryWatched(repo.id, !repo.isWatched)
+              .then(() => queryClient.invalidateQueries({ queryKey: repositoriesQuery().queryKey }))
+              .then(() =>
+                useConsoleStore
+                  .getState()
+                  .flash(
+                    repo.isWatched
+                      ? `${repo.name} paused — pull requests there are not reviewed`
+                      : `${repo.name} is reviewed again`,
+                  ),
+              )
+              .catch((error: Error) => useConsoleStore.getState().flash(error.message))
+          },
+        },
+      ]),
       footer:
-        'A repository is reviewed only while it is watched — unwatching keeps ingest, stops reviews',
+        'A repository is reviewed only while it is watched — pausing stops reviews, keeps everything else',
     }
 
     return {
       title: 'Repositories',
       subtitle: `${repos.length} connected through the GitHub App`,
       actions: [
+        {
+          label: 'Sync from GitHub',
+          variant: 'outline',
+          onSelect: () => {
+            useConsoleStore.getState().flash('Syncing installations and repositories…')
+            syncGithub()
+              .then((result) => {
+                useConsoleStore
+                  .getState()
+                  .flash(
+                    result.skipped
+                      ? 'Sign in with GitHub to sync — this session has no GitHub token'
+                      : `Synced ${result.organizations} installations, ${result.repositories} repositories`,
+                  )
+                return queryClient.invalidateQueries({ queryKey: [STUDIO_QUERY_KEY] })
+              })
+              .catch((error: Error) => useConsoleStore.getState().flash(error.message))
+          },
+        },
         {
           label: 'Add repositories',
           variant: 'solid',
@@ -108,5 +154,5 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Watched', 'Paused'],
       table,
     }
-  }, [repositories, reviews, instance, tab])
+  }, [repositories, reviews, instance, tab, queryClient])
 }

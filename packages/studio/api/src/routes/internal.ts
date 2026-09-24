@@ -4,6 +4,7 @@ import { AlertFireSchema, IdParamSchema } from '@code-whiskers/studio-domain'
 import {
   fireAlertRule,
   getEvaluableRules,
+  getRepositoryWatch,
   getRulesForRepository,
   getSuppressions,
   quietAlertRule,
@@ -70,3 +71,11 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       return { ok: true }
     },
   )
+  // (｡-ω-)zzz should the reviewer run on this repository?
+  .get('/repository', async ({ headers, query, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    const repo = typeof query.repo === 'string' ? query.repo : ''
+    const isWatched = repo ? await getRepositoryWatch(repo) : null
+    if (isWatched === null) return status(404, 'Not found')
+    return { isWatched }
+  })

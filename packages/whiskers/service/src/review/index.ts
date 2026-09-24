@@ -20,6 +20,7 @@ import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import { type ReviewReport, renderFailureComment } from './render'
 import { buildRulesContext, fetchRules } from './rules'
 import { fetchSuppressions } from './suppressions'
+import { isRepositoryWatched } from './watching'
 
 export * from './chunk'
 export * from './github'
@@ -27,6 +28,7 @@ export * from './llm'
 export * from './render'
 export * from './rules'
 export * from './suppressions'
+export * from './watching'
 
 const logger = createLogger('whiskers-review')
 
@@ -37,6 +39,10 @@ const FAILURE_NOTIFIED_CAP = 1_000
 
 /** The whole pipeline: diff -> chunks -> LLM -> persist -> PR review on GitHub. */
 export async function runReview(ref: PrRef): Promise<Review | undefined> {
+  if (!(await isRepositoryWatched(`${ref.owner}/${ref.repo}`))) {
+    logger.info(ref, 'repository is paused in CodeWhiskers — review skipped')
+    return undefined
+  }
   const head = await fetchPrHead(ref)
   const headSha = head.sha
   const review = await createReview({

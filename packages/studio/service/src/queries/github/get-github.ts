@@ -82,3 +82,20 @@ export const isInstallationMember = async (
     .limit(1)
   return !!row
 }
+
+/** Whether whiskers should review this repository; null when studio has never synced it. */
+export const getRepositoryWatch = async (slug: string): Promise<boolean | null> => {
+  const [owner, name] = slug.split('/')
+  if (!owner || !name) return null
+  const [row] = await db
+    .select({ isWatched: repository.isWatched })
+    .from(repository)
+    .where(
+      and(
+        eq(sql`lower(${repository.owner})`, owner.toLowerCase()),
+        eq(sql`lower(${repository.name})`, name.toLowerCase()),
+      ),
+    )
+    .limit(1)
+  return row ? row.isWatched : null
+}

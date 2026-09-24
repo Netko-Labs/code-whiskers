@@ -24,6 +24,7 @@ export {
   STUDIO_QUERY_KEY,
   savedQueriesQuery,
   setAlertRuleMuted,
+  setRepositoryWatched,
   studioStorageQuery,
   syncGithub,
   testIntegration,

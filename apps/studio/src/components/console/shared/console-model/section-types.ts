@@ -75,6 +75,7 @@ export type SectionAction = {
   /** Neither `href` nor `form` means the action has nothing behind it yet; it renders disabled. */
   href?: string
   form?: SectionForm
+  onSelect?: () => void
 }
 
 export type SectionRowAction = {

@@ -9,6 +9,13 @@ export function SectionActions({ actions, sample }: SectionActionsProps) {
       {actions.map((action) => {
         const variant = action.variant === 'outline' ? 'outline' : 'default'
         if (action.form && !sample) return <SectionFormAction key={action.label} action={action} />
+        if (action.onSelect && !sample) {
+          return (
+            <Button key={action.label} size="sm" variant={variant} onClick={action.onSelect}>
+              {action.label}
+            </Button>
+          )
+        }
         if (!action.href || sample) {
           return (
             <Button

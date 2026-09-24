@@ -201,3 +201,6 @@ export const createSavedQuery = (input: SavedQueryInput) =>
 
 export const deleteSavedQuery = (id: string) =>
   fetchStudio(`/saved-queries/${id}`, okSchema, 'DELETE')
+
+export const setRepositoryWatched = (id: number, isWatched: boolean) =>
+  fetchStudio(`/repositories/${id}`, okSchema, 'PATCH', { isWatched })
