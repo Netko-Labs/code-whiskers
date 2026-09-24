@@ -20,6 +20,7 @@ export interface StoreStats {
 
 export interface InstanceStats {
   telemetryRetentionDays: number
+  errorEventRetentionDays: number
   databaseBytes: number
   stores: StoreStats[]
   activity: {

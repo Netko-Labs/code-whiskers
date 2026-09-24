@@ -68,7 +68,7 @@ export function useInstanceSection(tab: number): SectionDefinition {
         text(store.rows, { mono: true }),
         text(store.oldest ? `${formatAge(store.oldest)}` : '—', { tone: 'muted', align: 'end' }),
       ]),
-      footer: `Logs and spans are deleted after ${worker?.telemetryRetentionDays ?? 7} days (TELEMETRY_RETENTION_DAYS) · reviews, issues and events are kept`,
+      footer: `Logs and spans go after ${worker?.telemetryRetentionDays ?? 7} days, error events after ${worker?.errorEventRetentionDays ?? 90} · reviews and issues are kept`,
     }
     const throughput: SectionTable = {
       grid: ACTIVITY_GRID,

@@ -24,6 +24,7 @@ export const WhiskersConfigSchema = z.object({
   }),
   telemetry: z.object({
     retentionDays: z.number().int().positive().default(7),
+    errorEventRetentionDays: z.number().int().positive().default(90),
   }),
   fix: z.object({
     maxTurns: z.number().int().positive().default(12),

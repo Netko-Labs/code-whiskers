@@ -27,6 +27,7 @@ const whiskersConfig: WhiskersConfig = {
   },
   telemetry: {
     retentionDays: Number(process.env.TELEMETRY_RETENTION_DAYS ?? 7),
+    errorEventRetentionDays: Number(process.env.ERROR_EVENT_RETENTION_DAYS ?? 90),
   },
   fix: {
     maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),

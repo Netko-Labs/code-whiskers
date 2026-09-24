@@ -8,7 +8,8 @@ export function startRetentionLoop(): void {
   const run = () =>
     expireTelemetry()
       .then((removed) => {
-        if (removed.logs || removed.spans) logger.info(removed, 'expired telemetry')
+        if (removed.logs || removed.spans || removed.events)
+          logger.info(removed, 'expired telemetry')
       })
       .catch((error) => logger.warn({ err: String(error) }, 'retention pass failed'))
   void run()

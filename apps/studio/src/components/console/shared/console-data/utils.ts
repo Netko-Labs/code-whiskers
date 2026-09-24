@@ -92,7 +92,13 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
     badge: failed ? 'FAILED' : 'REVIEW',
     badge2: findings === 0 ? 'NO FINDINGS' : `${findings} FINDING${findings === 1 ? '' : 'S'}`,
     confidence: review.model ?? 'whiskers',
-    read: summary || NO_READ,
+    read: summary
+      ? summary
+          .split('\n')
+          .filter((line) => line.trim())
+          .map((line) => `• ${line.trim()}`)
+          .join('\n')
+      : NO_READ,
     fixLabel: '',
     evidenceLabel: '',
     author: review.author ?? review.owner,

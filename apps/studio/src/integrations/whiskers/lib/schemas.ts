@@ -72,6 +72,7 @@ export const whiskersHotspotListSchema = z.array(whiskersHotspotSchema)
 
 export const whiskersInstanceSchema = z.object({
   telemetryRetentionDays: z.number().default(7),
+  errorEventRetentionDays: z.number().default(90),
   databaseBytes: z.number(),
   stores: z.array(
     z.object({

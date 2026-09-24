@@ -1,5 +1,11 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { logLineTable, type Project, projectTable, spanTable } from '@code-whiskers/whiskers-domain'
+import {
+  eventTable,
+  logLineTable,
+  type Project,
+  projectTable,
+  spanTable,
+} from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
 import { eq, lt } from 'drizzle-orm'
 import { INSERT_BATCH } from './constants'
@@ -35,15 +41,28 @@ export async function ingestSpans(projectId: string, rows: SpanInput[]): Promise
   return rows.length
 }
 
-/** Raw telemetry is kept for the configured number of days, then deleted by time. */
-export async function expireTelemetry(now = new Date()): Promise<{ logs: number; spans: number }> {
-  const cutoff = new Date(now.getTime() - whiskersEnvConfig.telemetry.retentionDays * 86_400_000)
-  const [logs, spans] = await Promise.all([
+const DAY_MS = 86_400_000
+
+/**
+ * Raw telemetry is kept for the configured number of days, then deleted by time. Error events
+ * get a longer window of their own; their issue keeps its count and first/last seen.
+ */
+export async function expireTelemetry(
+  now = new Date(),
+): Promise<{ logs: number; spans: number; events: number }> {
+  const { retentionDays, errorEventRetentionDays } = whiskersEnvConfig.telemetry
+  const cutoff = new Date(now.getTime() - retentionDays * DAY_MS)
+  const eventCutoff = new Date(now.getTime() - errorEventRetentionDays * DAY_MS)
+  const [logs, spans, events] = await Promise.all([
     db
       .delete(logLineTable)
       .where(lt(logLineTable.timestamp, cutoff))
       .returning({ id: logLineTable.id }),
     db.delete(spanTable).where(lt(spanTable.startTime, cutoff)).returning({ id: spanTable.id }),
+    db
+      .delete(eventTable)
+      .where(lt(eventTable.receivedAt, eventCutoff))
+      .returning({ id: eventTable.id }),
   ])
-  return { logs: logs.length, spans: spans.length }
+  return { logs: logs.length, spans: spans.length, events: events.length }
 }

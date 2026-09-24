@@ -82,7 +82,7 @@ encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECR
 (default `code-whiskers`), `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`,
 `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
 `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
-`TELEMETRY_RETENTION_DAYS` (default 7).
+`TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
 ### Sending data in
 

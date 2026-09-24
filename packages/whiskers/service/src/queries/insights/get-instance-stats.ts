@@ -70,6 +70,7 @@ export const getInstanceStats = async (): Promise<InstanceStats> => {
   const event = first(events)
   return {
     telemetryRetentionDays: whiskersEnvConfig.telemetry.retentionDays,
+    errorEventRetentionDays: whiskersEnvConfig.telemetry.errorEventRetentionDays,
     databaseBytes: num(first(size).bytes),
     stores,
     activity: {
