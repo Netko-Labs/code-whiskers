@@ -1,5 +1,5 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { auth, verifyApiKey } from '@code-whiskers/studio-service'
+import { auth, hasInstanceAccess, verifyApiKey } from '@code-whiskers/studio-service'
 
 const HOP_BY_HOP = ['host', 'connection', 'content-length', 'transfer-encoding']
 const CALLER_CREDENTIALS = ['cookie', 'authorization']
@@ -29,12 +29,17 @@ export async function forwardToWhiskers(
   })
 }
 
-async function isAllowed(request: Request): Promise<boolean> {
+async function callerOf(request: Request): Promise<string | null> {
   const bearer = request.headers.get('authorization')?.match(/^Bearer (cw_\S+)$/)?.[1]
   // API keys read; creating anything takes a person at a browser.
-  if (bearer) return request.method === 'GET' && (await verifyApiKey(bearer)) !== null
+  if (bearer) return request.method === 'GET' ? await verifyApiKey(bearer) : null
   const signedIn = await auth.api.getSession({ headers: request.headers })
-  return !!signedIn?.user
+  return signedIn?.user?.id ?? null
+}
+
+async function isAllowed(request: Request): Promise<boolean> {
+  const userId = await callerOf(request)
+  return userId !== null && (await hasInstanceAccess(userId))
 }
 
 /**

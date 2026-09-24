@@ -1,6 +1,7 @@
 import { organizationMember, repository, triageState } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
 import { and, desc, eq, like, sql } from 'drizzle-orm'
+import { hasInstanceAccess } from '../github'
 import { PROJECT_SCOPE_PREFIX } from './authorize-triage-scope'
 import type { TriageRecord } from './types'
 
@@ -19,6 +20,7 @@ const COLUMNS = {
 
 /** Every decision on a repository the user can see, plus every project decision. */
 export const getTriageForUser = async (userId: string): Promise<TriageRecord[]> => {
+  const canSeeProjects = await hasInstanceAccess(userId)
   const [onRepositories, onProjects] = await Promise.all([
     db
       .select(COLUMNS)
@@ -36,12 +38,14 @@ export const getTriageForUser = async (userId: string): Promise<TriageRecord[]> 
       )
       .orderBy(desc(triageState.updatedAt))
       .limit(TRIAGE_READ_LIMIT),
-    db
-      .select(COLUMNS)
-      .from(triageState)
-      .where(like(triageState.scope, `${PROJECT_SCOPE_PREFIX}%`))
-      .orderBy(desc(triageState.updatedAt))
-      .limit(TRIAGE_READ_LIMIT),
+    canSeeProjects
+      ? db
+          .select(COLUMNS)
+          .from(triageState)
+          .where(like(triageState.scope, `${PROJECT_SCOPE_PREFIX}%`))
+          .orderBy(desc(triageState.updatedAt))
+          .limit(TRIAGE_READ_LIMIT)
+      : Promise.resolve([]),
   ])
   return [...onRepositories, ...onProjects]
 }

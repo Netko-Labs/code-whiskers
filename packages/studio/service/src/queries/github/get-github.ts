@@ -99,3 +99,22 @@ export const getRepositoryWatch = async (slug: string): Promise<boolean | null> 
     .limit(1)
   return row ? row.isWatched : null
 }
+
+/**
+ * Anyone with a GitHub account can sign in, so signing in is not access. A user reads the
+ * worker's data once they belong to an installation — except on a fresh instance with none
+ * synced yet, where the first operator has to get in to connect one.
+ */
+export const hasInstanceAccess = async (userId: string): Promise<boolean> => {
+  const [member] = await db
+    .select({ userId: organizationMember.userId })
+    .from(organizationMember)
+    .where(eq(organizationMember.userId, userId))
+    .limit(1)
+  if (member) return true
+  const [anyInstallation] = await db
+    .select({ installationId: organization.installationId })
+    .from(organization)
+    .limit(1)
+  return !anyInstallation
+}

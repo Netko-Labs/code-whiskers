@@ -27,6 +27,7 @@ let sessionUser: { id: string } | null = null
 mock.module('@code-whiskers/studio-service', () => ({
   auth: { api: { getSession: async () => (sessionUser ? { user: sessionUser } : null) } },
   verifyApiKey: async (key: string) => (key === 'cw_live' ? 'u2' : null),
+  hasInstanceAccess: async (userId: string) => userId !== 'outsider',
 }))
 mock.module('@code-whiskers/studio-config', () => ({
   studioEnvConfig: { whiskers: { url: `http://localhost:${whiskers.port}` } },
@@ -56,6 +57,13 @@ describe('forwardSignedInToWhiskers', () => {
     expect(response.status).toBe(200)
     expect(received).toHaveLength(1)
     expect(received[0]?.authorization).toBeUndefined()
+  })
+
+  test('signed in is not enough: a user outside every installation is refused', async () => {
+    sessionUser = { id: 'outsider' }
+    const response = await forwardSignedInToWhiskers(request())
+    expect(response.status).toBe(401)
+    expect(received).toHaveLength(0)
   })
 
   test('a key cannot write', async () => {
