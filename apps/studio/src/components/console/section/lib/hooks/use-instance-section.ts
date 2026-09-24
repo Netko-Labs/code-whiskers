@@ -7,8 +7,9 @@ import type { SectionDefinition, SectionTable } from '../../../shared/console-mo
 import type { StoreRow } from '../types'
 import { formatBytes, formatSeconds, textCell as text } from '../utils'
 import { INSTANCE_SECTION } from '../values'
+import { useSetupSteps } from './use-setup-steps'
 
-const TABS = ['Storage', 'Activity'] as const
+const TABS = ['Storage', 'Activity', 'Setup'] as const
 const STORAGE_GRID = '1fr 110px 1fr 120px 110px'
 const STORAGE_COLUMNS = [
   { label: 'Table' },
@@ -28,6 +29,7 @@ const ACTIVITY_COLUMNS = [
 export function useInstanceSection(tab: number): SectionDefinition {
   const { data: worker } = useQuery({ ...whiskersInstanceQuery(), retry: false })
   const { data: studio } = useQuery({ ...studioStorageQuery(), retry: false })
+  const steps = useSetupSteps()
 
   return useMemo(() => {
     if (!worker && !studio) return { ...INSTANCE_SECTION, sample: true }
@@ -101,6 +103,17 @@ export function useInstanceSection(tab: number): SectionDefinition {
         : [],
       footer: 'Counted from the worker database on each load',
     }
+    const setup: SectionTable = {
+      grid: '260px 90px 1fr',
+      columns: [{ label: 'Step' }, { label: 'Status' }, { label: 'How' }],
+      rows: steps.map((step) => [
+        text(step.step, { strong: !step.isDone, tone: step.isDone ? 'muted' : undefined }),
+        { kind: 'pill', text: step.isDone ? 'done' : 'to do', tone: step.isDone ? 'ok' : 'warn' },
+        text(step.how, { tone: 'muted' }),
+      ]),
+      rowLinks: steps.map((step) => step.link),
+      footer: `${steps.filter((s) => s.isDone).length} of ${steps.length} done · each row opens where it is done`,
+    }
     const total = (worker?.databaseBytes ?? 0) + (studio?.databaseBytes ?? 0)
 
     return {
@@ -126,7 +139,7 @@ export function useInstanceSection(tab: number): SectionDefinition {
         },
       ],
       tabs: [...TABS],
-      table: tab === 1 ? throughput : storage,
+      table: tab === 2 ? setup : tab === 1 ? throughput : storage,
     }
-  }, [worker, studio, tab])
+  }, [worker, studio, steps, tab])
 }

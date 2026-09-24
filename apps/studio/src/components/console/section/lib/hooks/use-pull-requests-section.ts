@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { whiskersReviewsQuery } from '@/integrations/whiskers'
-import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
+import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
 import {
   latestPerPullRequest,
   medianReviewDuration,
@@ -24,14 +24,21 @@ const COLUMNS = [
 ]
 
 /** Live Pull requests section; falls back to the sample table until whiskers has reviewed anything. */
-export function usePullRequestsSection(tab: number): SectionDefinition {
+export function usePullRequestsSection(tab: number, filters: SectionFilters): SectionDefinition {
   const { data } = useQuery({ ...whiskersReviewsQuery(), retry: false })
 
   return useMemo(() => {
     const reviews = data ?? []
     if (reviews.length === 0) return { ...PULL_REQUESTS_SECTION, sample: true }
 
-    const rows = latestPerPullRequest(reviews)
+    const needle = filters.q?.toLowerCase()
+    const rows = latestPerPullRequest(reviews).filter(
+      ({ review, slug }) =>
+        !needle ||
+        `${slug}#${review.prNumber} ${review.title ?? ''} ${review.author ?? ''}`
+          .toLowerCase()
+          .includes(needle),
+    )
     const needsChanges = rows.filter((r) => r.review.verdict === 'request_changes')
     const failed = rows.filter((r) => r.review.status === 'failed')
     const findings = rows.reduce((total, r) => total + r.review.findingCount, 0)
@@ -84,7 +91,8 @@ export function usePullRequestsSection(tab: number): SectionDefinition {
         { label: 'Findings', value: String(findings), note: 'across latest reviews' },
       ],
       tabs: [...TABS],
+      searchPlaceholder: 'Repository, title or author…',
       table,
     }
-  }, [data, tab])
+  }, [data, tab, filters.q])
 }

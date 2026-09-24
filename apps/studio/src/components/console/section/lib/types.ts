@@ -6,6 +6,7 @@ import type {
   SectionForm,
   SectionFormResult,
   SectionRowAction,
+  SectionRowLink,
   SectionTable,
   SectionView,
 } from '../../shared/console-model'
@@ -77,4 +78,11 @@ export type SectionFormActionProps = {
 
 export type SectionRowActionsProps = {
   actions: SectionRowAction[]
+}
+
+export type SetupStep = {
+  step: string
+  isDone: boolean
+  how: string
+  link: SectionRowLink | null
 }

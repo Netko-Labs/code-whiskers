@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { savedQueriesQuery } from '@/integrations/studio-api'
 import { whiskersIssuesQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { triageKey, useMembers, useTriageRecords } from '../../../shared/console-data'
-import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
-import { issueDot } from '../utils'
+import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import { issueDot, saveViewAction } from '../utils'
 import { ISSUES_SECTION } from '../values'
 
 const TABS = ['Unresolved', 'Resolved', 'All'] as const
@@ -19,7 +20,8 @@ const COLUMNS = [
 ]
 
 /** Whiskers groups the events; studio knows who resolved or owns each group. */
-export function useIssuesSection(tab: number): SectionDefinition {
+export function useIssuesSection(tab: number, filters: SectionFilters): SectionDefinition {
+  const queryClient = useQueryClient()
   const { data } = useQuery({ ...whiskersIssuesQuery(), retry: false })
   const records = useTriageRecords()
   const members = useMembers()
@@ -38,7 +40,15 @@ export function useIssuesSection(tab: number): SectionDefinition {
       })
       .sort((a, b) => b.issue.lastSeen.getTime() - a.issue.lastSeen.getTime())
     const unresolved = rows.filter((r) => !r.isResolved)
-    const visible = tab === 0 ? unresolved : tab === 1 ? rows.filter((r) => r.isResolved) : rows
+    const needle = filters.q?.toLowerCase()
+    const byTab = tab === 0 ? unresolved : tab === 1 ? rows.filter((r) => r.isResolved) : rows
+    const visible = needle
+      ? byTab.filter(({ issue }) =>
+          `${issue.title} ${issue.projectId} ${issue.lastRelease ?? ''}`
+            .toLowerCase()
+            .includes(needle),
+        )
+      : byTab
 
     const table: SectionTable = {
       grid: GRID,
@@ -68,7 +78,12 @@ export function useIssuesSection(tab: number): SectionDefinition {
     return {
       title: 'Issues',
       subtitle: `${unresolved.length} unresolved · grouped by fingerprint`,
-      actions: [{ label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' }],
+      actions: [
+        saveViewAction('issues', tab, filters, () =>
+          queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),
+        ),
+        { label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' },
+      ],
       stats: [
         { label: 'Unresolved', value: String(unresolved.length), note: 'open groups' },
         {
@@ -88,7 +103,8 @@ export function useIssuesSection(tab: number): SectionDefinition {
         },
       ],
       tabs: [...TABS],
+      searchPlaceholder: 'Title, project or release…',
       table,
     }
-  }, [data, records, members, tab])
+  }, [data, records, members, tab, filters, queryClient])
 }
