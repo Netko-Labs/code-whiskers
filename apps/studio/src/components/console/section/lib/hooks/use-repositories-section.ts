@@ -89,6 +89,11 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
           },
         ]
       }),
+      rowLinks: visible.map((repo) => ({
+        kind: 'section' as const,
+        section: 'pull-requests' as const,
+        filters: { scope: `${repo.owner}/${repo.name}` },
+      })),
       rowActions: visible.map((repo) => [
         {
           label: repo.isWatched ? 'Pause reviews' : 'Resume reviews',
@@ -109,7 +114,7 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
         },
       ]),
       footer:
-        'A repository is reviewed only while it is watched — pausing stops reviews, keeps everything else',
+        'Open a repository to see its pull requests · pausing stops reviews, keeps everything else',
     }
 
     return {

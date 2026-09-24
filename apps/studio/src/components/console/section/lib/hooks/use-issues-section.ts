@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { savedQueriesQuery } from '@/integrations/studio-api'
-import { whiskersIssuesQuery } from '@/integrations/whiskers'
+import { whiskersIssuesQuery, whiskersProjectsQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { triageKey, useMembers, useTriageRecords } from '../../../shared/console-data'
 import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import { type ConsoleScope, isInScope } from '../../../shared/console-scope'
 import { issueDot, saveViewAction } from '../utils'
 import { ISSUES_SECTION } from '../values'
 
@@ -20,9 +21,14 @@ const COLUMNS = [
 ]
 
 /** Whiskers groups the events; studio knows who resolved or owns each group. */
-export function useIssuesSection(tab: number, filters: SectionFilters): SectionDefinition {
+export function useIssuesSection(
+  tab: number,
+  filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const queryClient = useQueryClient()
   const { data } = useQuery({ ...whiskersIssuesQuery(), retry: false })
+  const { data: projects } = useQuery({ ...whiskersProjectsQuery(), retry: false })
   const records = useTriageRecords()
   const members = useMembers()
 
@@ -30,37 +36,38 @@ export function useIssuesSection(tab: number, filters: SectionFilters): SectionD
     const issues = data ?? []
     if (issues.length === 0) return { ...ISSUES_SECTION, sample: true }
 
+    const projectName = new Map((projects ?? []).map((p) => [p.id, p.name]))
     const rows = issues
+      .filter((issue) => isInScope(scope, { projectId: issue.projectId }))
       .map((issue) => {
-        const scope = `project:${issue.projectId}`
-        const record = records.get(triageKey({ scope, itemKind: 'issue', itemRef: issue.id }))
+        const ref = `project:${issue.projectId}`
+        const record = records.get(triageKey({ scope: ref, itemKind: 'issue', itemRef: issue.id }))
         const isResolved = issue.status === 'resolved' || record?.status === 'resolved'
         const assignee = members.find((m) => m.id === record?.assigneeUserId)?.name
-        return { issue, isResolved, assignee, itemId: `${scope}/${issue.id}` }
+        const project = projectName.get(issue.projectId) ?? issue.projectId
+        return { issue, project, isResolved, assignee, itemId: `${ref}/${issue.id}` }
       })
       .sort((a, b) => b.issue.lastSeen.getTime() - a.issue.lastSeen.getTime())
     const unresolved = rows.filter((r) => !r.isResolved)
     const needle = filters.q?.toLowerCase()
     const byTab = tab === 0 ? unresolved : tab === 1 ? rows.filter((r) => r.isResolved) : rows
     const visible = needle
-      ? byTab.filter(({ issue }) =>
-          `${issue.title} ${issue.projectId} ${issue.lastRelease ?? ''}`
-            .toLowerCase()
-            .includes(needle),
+      ? byTab.filter(({ issue, project }) =>
+          `${issue.title} ${project} ${issue.lastRelease ?? ''}`.toLowerCase().includes(needle),
         )
       : byTab
 
     const table: SectionTable = {
       grid: GRID,
       columns: COLUMNS,
-      rows: visible.map(({ issue, isResolved, assignee }) => [
+      rows: visible.map(({ issue, project, isResolved, assignee }) => [
         {
           kind: 'text' as const,
           text: issue.title,
           strong: true,
           dot: isResolved ? ('ok' as const) : issueDot(issue.level),
         },
-        { kind: 'text' as const, text: issue.projectId, mono: true, tone: 'muted' as const },
+        { kind: 'text' as const, text: project, mono: true, tone: 'muted' as const },
         { kind: 'text' as const, text: issue.level, tone: 'muted' as const },
         { kind: 'text' as const, text: issue.eventCount.toLocaleString(), mono: true },
         { kind: 'text' as const, text: assignee ?? 'Unassigned', tone: 'muted' as const },
@@ -77,6 +84,7 @@ export function useIssuesSection(tab: number, filters: SectionFilters): SectionD
 
     return {
       title: 'Issues',
+      isScoped: true,
       subtitle: `${unresolved.length} unresolved · grouped by fingerprint`,
       actions: [
         saveViewAction('issues', tab, filters, () =>
@@ -93,7 +101,7 @@ export function useIssuesSection(tab: number, filters: SectionFilters): SectionD
         },
         {
           label: 'Projects',
-          value: String(new Set(issues.map((i) => i.projectId)).size),
+          value: String(new Set(rows.map((r) => r.issue.projectId)).size),
           note: 'sending events',
         },
         {
@@ -106,5 +114,5 @@ export function useIssuesSection(tab: number, filters: SectionFilters): SectionD
       searchPlaceholder: 'Title, project or release…',
       table,
     }
-  }, [data, records, members, tab, filters, queryClient])
+  }, [data, projects, records, members, tab, filters, scope, queryClient])
 }

@@ -7,6 +7,7 @@ import {
   useViewer,
 } from '../../../shared/console-data'
 import type { ConsoleItem, TriageBucket, TriageFilter } from '../../../shared/console-model'
+import { isInScope, useConsoleScope } from '../../../shared/console-scope'
 import { useConsoleStore } from '../../../use-console-store'
 import { matchesFilter } from '../utils'
 
@@ -31,6 +32,7 @@ export function useTriageItems(
   const records = useTriageRecords()
   const viewer = useViewer()
   const orgLogin = useConsoleStore((s) => s.orgLogin)
+  const scope = useConsoleScope()
 
   return useMemo(() => {
     const now = new Date()
@@ -38,11 +40,12 @@ export function useTriageItems(
       return (
         inBucket(statusFor(item, records, now), bucket, viewer?.id) &&
         inOrganization(item, orgLogin) &&
+        isInScope(scope, item) &&
         matchesFilter(item, filter)
       )
     })
 
     const selected = visible.find((item) => item.id === selectedId) ?? visible[0]
     return { items: visible, selected, sample, unreachable }
-  }, [items, records, viewer, orgLogin, bucket, filter, selectedId, sample, unreachable])
+  }, [items, records, viewer, orgLogin, scope, bucket, filter, selectedId, sample, unreachable])
 }

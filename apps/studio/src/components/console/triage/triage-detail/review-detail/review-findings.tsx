@@ -1,82 +1,98 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { rerunReview, WHISKERS_QUERY_KEY, whiskersReviewQuery } from '@/integrations/whiskers'
-import { findingRef, triageKey, useTriageRecords } from '../../../shared/console-data'
-import { useConsoleStore } from '../../../use-console-store'
-import type { DetailPaneProps } from '../../lib'
-import { FindingCard } from './finding-card'
+import { cn } from '@code-whiskers/ui/lib/utils'
+import { useState } from 'react'
+import {
+  blobUrl,
+  FIX_HINT,
+  groupByFile,
+  type ReviewFindingsProps,
+  SEVERITY_DOT,
+  SEVERITY_ORDER,
+  type SeverityFilter,
+  severityCounts,
+} from './lib'
+import { ReviewFileGroup } from './review-file-group'
 
-const SEVERITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 } as const
+const CHIP = 'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-medium text-xs'
 
-export function ReviewFindings({ item, actions }: Omit<DetailPaneProps, 'status'>) {
-  const records = useTriageRecords()
-  const queryClient = useQueryClient()
-  const { data, isLoading, isError } = useQuery({
-    ...whiskersReviewQuery(item.sourceId ?? ''),
-    enabled: !!item.sourceId,
-    retry: false,
-  })
-  const scope = item.triage?.scope ?? ''
-  const findings = [...(data?.findings ?? [])].sort(
-    (a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity],
+export function ReviewFindings({ item, detail, decisions, actions }: ReviewFindingsProps) {
+  const [severity, setSeverity] = useState<SeverityFilter>('all')
+  const [isShowingDismissed, setShowingDismissed] = useState(false)
+  const { open, dismissedCount, isDismissed } = decisions
+  const slug = item.repository ?? item.triage?.scope ?? ''
+  const counts = severityCounts(open)
+  const shown = (isShowingDismissed ? detail.findings : open).filter(
+    (finding) => severity === 'all' || finding.severity === severity,
   )
+  const groups = groupByFile(shown)
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border">
-      <div className="flex items-center justify-between gap-3 border-rule-soft border-b px-3.5 py-2.5">
-        <span className="font-semibold text-[13px]">Findings</span>
-        <span className="text-muted-foreground text-xs">
-          Reply <span className="font-mono">@code-whiskers fix</span> on an inline comment to have
-          Whiskers push the change
-        </span>
-        {data && (
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <h3 className="m-0 mr-2 font-semibold text-[15px] tracking-[-0.01em]">
+          Findings <span className="font-normal text-muted-foreground">{open.length}</span>
+        </h3>
+        {(['all', ...SEVERITY_ORDER] as const).map((option) => {
+          const count = option === 'all' ? open.length : counts[option]
+          if (option !== 'all' && count === 0) return null
+          return (
+            <button
+              type="button"
+              key={option}
+              onClick={() => setSeverity(option)}
+              className={cn(
+                CHIP,
+                option === severity
+                  ? 'border-foreground bg-foreground text-primary-foreground'
+                  : 'border-border bg-background text-body hover:bg-surface-subtle',
+              )}
+            >
+              {option !== 'all' && (
+                <span className={cn('size-[7px] rounded-full', SEVERITY_DOT[option])} />
+              )}
+              <span className="capitalize">{option}</span>
+              <span className="font-mono opacity-70">{count}</span>
+            </button>
+          )
+        })}
+        {dismissedCount > 0 && (
           <button
             type="button"
-            onClick={() => {
-              const { owner, repo, prNumber } = data.review
-              rerunReview({ owner, repo, prNumber })
-                .then(() => {
-                  useConsoleStore
-                    .getState()
-                    .flash(`Reviewing #${prNumber} again — results land in a minute or two`)
-                  setTimeout(
-                    () => void queryClient.invalidateQueries({ queryKey: [WHISKERS_QUERY_KEY] }),
-                    30_000,
-                  )
-                })
-                .catch((error: Error) => useConsoleStore.getState().flash(error.message))
-            }}
-            className="shrink-0 rounded-lg border border-border bg-background px-[9px] py-[3px] font-medium text-[11px]"
+            onClick={() => setShowingDismissed(!isShowingDismissed)}
+            className="ml-auto text-[12px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            Run the review again
+            {isShowingDismissed ? 'Hide' : 'Show'} {dismissedCount} dismissed
           </button>
         )}
       </div>
-      {isLoading && <div className="px-3.5 py-3 text-muted-foreground text-xs">Loading…</div>}
-      {isError && (
-        <div className="px-3.5 py-3 text-muted-foreground text-xs">
-          Whiskers did not answer — findings are on the pull request.
+
+      {detail.isLoading && <p className="m-0 text-[13px] text-muted-foreground">Loading…</p>}
+      {detail.isError && (
+        <p className="m-0 text-[13px] text-muted-foreground">
+          Whiskers did not answer — the findings are on the pull request.
+        </p>
+      )}
+      {detail.review && groups.length === 0 && (
+        <div className="rounded-xl border border-border border-dashed px-4 py-6 text-center text-[13px] text-muted-foreground">
+          {detail.findings.length === 0
+            ? 'No findings on this push.'
+            : 'Nothing open at this severity.'}
         </div>
       )}
-      {data && findings.length === 0 && (
-        <div className="px-3.5 py-3 text-muted-foreground text-xs">No findings on this push.</div>
-      )}
-      {findings.map((finding) => {
-        const isDismissed =
-          records.get(triageKey(findingRef(scope, finding)))?.status === 'dismissed'
-        const url =
-          item.commit && finding.line !== null
-            ? `https://github.com/${scope}/blob/${item.commit}/${encodeURI(finding.file)}#L${finding.line}`
-            : undefined
-        return (
-          <FindingCard
-            key={finding.id}
-            finding={finding}
-            isDismissed={isDismissed}
-            url={url}
-            onToggle={() => actions.toggleFinding(finding, isDismissed)}
-          />
-        )
-      })}
-    </div>
+      {groups.map((group) => (
+        <ReviewFileGroup
+          key={group.file}
+          group={group}
+          fileUrl={item.commit ? blobUrl(slug, item.commit, group.file) : undefined}
+          lineUrl={(finding) =>
+            item.commit && finding.line !== null
+              ? blobUrl(slug, item.commit, finding.file, finding.line)
+              : undefined
+          }
+          isDismissed={isDismissed}
+          onToggle={actions.toggleFinding}
+        />
+      ))}
+      {groups.length > 0 && <p className="m-0 text-[12px] text-faint">{FIX_HINT}</p>}
+    </section>
   )
 }

@@ -1,6 +1,7 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ScopePicker } from '../../scope-picker'
 import { TRIAGE_TITLES } from '../../shared/console-data'
 import {
   KEYBOARD_HINT,
@@ -27,13 +28,16 @@ export function TriageList({ bucket, filter, items, selectedId, sampleNote }: Tr
             {shown.length} · {heading.sub}
           </span>
         </div>
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Filter…"
-          aria-label="Filter items"
-          className="h-8 rounded-[10px] border border-border bg-transparent px-2.5 text-[13px] shadow-sm outline-none placeholder:text-faint focus-visible:border-ring"
-        />
+        <div className="flex gap-2">
+          <ScopePicker className="max-w-[48%] shrink-0" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter…"
+            aria-label="Filter items"
+            className="h-8 min-w-0 flex-1 rounded-[10px] border border-border bg-transparent px-2.5 text-[13px] shadow-sm outline-none placeholder:text-faint focus-visible:border-ring"
+          />
+        </div>
         <div className="flex gap-1.5">
           {TRIAGE_FILTERS.map((option) => (
             <Link

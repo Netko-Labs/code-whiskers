@@ -5,8 +5,10 @@ import { formatAge } from '@/shared/format-date'
 import type {
   ConsoleSeverity,
   SectionDefinition,
+  SectionFilters,
   SectionTable,
 } from '../../../shared/console-model'
+import { type ConsoleScope, isInScope } from '../../../shared/console-scope'
 import { CODEBASE_MAP_SECTION } from '../values'
 
 const TABS = ['All', 'Blocking'] as const
@@ -31,12 +33,16 @@ function dotFor(spot: WhiskersHotspot): ConsoleSeverity {
 }
 
 /** Where findings land, by directory, from the latest review of each PR in the last 90 days. */
-export function useCodebaseMapSection(tab: number): SectionDefinition {
+export function useCodebaseMapSection(
+  tab: number,
+  _filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const { data } = useQuery({ ...whiskersHotspotsQuery(), retry: false })
 
   return useMemo(() => {
-    const spots = data ?? []
-    if (spots.length === 0) return { ...CODEBASE_MAP_SECTION, sample: true }
+    if (!data?.length) return { ...CODEBASE_MAP_SECTION, sample: true }
+    const spots = data.filter((spot) => isInScope(scope, { repository: spot.repository }))
 
     const visible = tab === 1 ? spots.filter((s) => blocking(s) > 0) : spots
     const blockingTotal = spots.reduce((sum, s) => sum + blocking(s), 0)
@@ -86,6 +92,7 @@ export function useCodebaseMapSection(tab: number): SectionDefinition {
 
     return {
       title: 'Codebase map',
+      isScoped: true,
       subtitle: `Where findings land across ${repositories} ${repositories === 1 ? 'repository' : 'repositories'}`,
       actions: [],
       stats: [
@@ -105,5 +112,5 @@ export function useCodebaseMapSection(tab: number): SectionDefinition {
       tabs: [...TABS],
       table,
     }
-  }, [data, tab])
+  }, [data, tab, scope])
 }

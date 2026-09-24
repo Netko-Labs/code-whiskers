@@ -1,5 +1,10 @@
 import type { TriageItemRef, TriageRecord } from '@/integrations/studio-api'
-import type { WhiskersIssue, WhiskersLogPattern, WhiskersReview } from '@/integrations/whiskers'
+import type {
+  WhiskersIssue,
+  WhiskersLogPattern,
+  WhiskersProject,
+  WhiskersReview,
+} from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { ConsoleItem, ConsoleSeverity, TriageBucket, TriageStatus } from '../console-model'
 
@@ -22,10 +27,18 @@ function shortId(id: string) {
   return id.slice(0, 8)
 }
 
-export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
+function projectLabel(projectId: string, project: WhiskersProject | undefined): string {
+  return project?.name ?? `project ${projectId}`
+}
+
+export function issueToConsoleItem(
+  issue: WhiskersIssue,
+  project: WhiskersProject | undefined,
+): ConsoleItem {
   const resolved = issue.status === 'resolved'
   const severity = resolved ? 'ok' : (ISSUE_SEVERITY[issue.level] ?? 'warning')
   const events = issue.eventCount.toLocaleString()
+  const name = projectLabel(issue.projectId, project)
 
   const scope = `project:${issue.projectId}`
 
@@ -36,11 +49,14 @@ export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
     sourceId: issue.id,
     at: issue.lastSeen,
     kind: 'error',
+    repository: project?.repository ?? null,
+    projectId: issue.projectId,
+    scopeLabel: name,
     label: resolved ? 'Resolved' : issue.level,
     severity,
     age: formatAge(issue.lastSeen),
     title: issue.title,
-    subtitle: `${issue.projectId} · ${issue.level} · first seen ${formatAge(issue.firstSeen)} ago`,
+    subtitle: `${name} · ${issue.level} · first seen ${formatAge(issue.firstSeen)} ago`,
     meta: `${events} events`,
     events,
     users: '—',
@@ -51,7 +67,8 @@ export function issueToConsoleItem(issue: WhiskersIssue): ConsoleItem {
     fixLabel: '',
     evidenceLabel: '',
     tags: [
-      { key: 'project', value: issue.projectId },
+      { key: 'project', value: name },
+      ...(project?.repository ? [{ key: 'repository', value: project.repository }] : []),
       { key: 'level', value: issue.level },
       { key: 'status', value: issue.status },
       { key: 'fingerprint', value: shortId(issue.fingerprint) },
@@ -82,12 +99,14 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
     commit: review.headSha,
     at: review.completedAt ?? review.createdAt,
     kind: 'review',
+    repository: slug,
+    scopeLabel: review.repo,
     label: failed ? 'Review failed' : `Review · #${review.prNumber}`,
     severity,
     age: formatAge(review.completedAt ?? review.createdAt),
     title:
       review.title ?? (summary ? (summary.split('\n')[0] ?? slug) : `${slug}#${review.prNumber}`),
-    subtitle: `${slug} · ${review.headSha.slice(0, 7)}`,
+    subtitle: `${review.author ?? review.owner} · ${review.headSha.slice(0, 7)} · ${formatDiff(review)}`,
     meta: failed ? 'review failed' : findings === 0 ? 'no findings' : `${findings} findings`,
     badge: failed ? 'FAILED' : 'REVIEW',
     badge2: findings === 0 ? 'NO FINDINGS' : `${findings} FINDING${findings === 1 ? '' : 'S'}`,
@@ -203,8 +222,12 @@ function logLevel(level: string): 'ERROR' | 'WARN' | 'INFO' {
 }
 
 /** One triage item per error-log shape: what it says, where, and how often across the day. */
-export function logPatternToConsoleItem(pattern: WhiskersLogPattern): ConsoleItem {
+export function logPatternToConsoleItem(
+  pattern: WhiskersLogPattern,
+  project: WhiskersProject | undefined,
+): ConsoleItem {
   const scope = `project:${pattern.projectId}`
+  const name = projectLabel(pattern.projectId, project)
   const peak = Math.max(1, ...pattern.hourly)
   const lastHour = pattern.hourly[pattern.hourly.length - 1] ?? 0
   return {
@@ -213,11 +236,14 @@ export function logPatternToConsoleItem(pattern: WhiskersLogPattern): ConsoleIte
     triage: { scope, itemKind: 'log', itemRef: pattern.hash },
     at: pattern.lastSeen,
     kind: 'log',
+    repository: project?.repository ?? null,
+    projectId: pattern.projectId,
+    scopeLabel: name,
     label: `Logs · ${pattern.service}`,
     severity: lastHour > 0 ? 'critical' : 'warning',
     age: formatAge(pattern.lastSeen),
     title: pattern.pattern,
-    subtitle: `${pattern.service} · project ${pattern.projectId} · first ${formatAge(pattern.firstSeen)} ago`,
+    subtitle: `${pattern.service} · ${name} · first ${formatAge(pattern.firstSeen)} ago`,
     meta: `${pattern.count} ${pattern.count === 1 ? 'line' : 'lines'} in 24h`,
     badge: 'LOG PATTERN',
     badge2: `${pattern.count} ${pattern.count === 1 ? 'LINE' : 'LINES'}`,

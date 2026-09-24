@@ -1,6 +1,7 @@
 import { Spinner } from '@code-whiskers/ui/components/spinner'
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, retainSearchParams } from '@tanstack/react-router'
 import { ConsoleShell } from '@/components/console'
+import { parseConsoleScope } from '@/components/console/shared/console-routing'
 import { useRequireSession } from '@/integrations/auth'
 
 function ConsoleLayout() {
@@ -21,5 +22,7 @@ function ConsoleLayout() {
 
 export const Route = createFileRoute('/console')({
   head: () => ({ meta: [{ title: 'Console · CodeWhiskers' }] }),
+  validateSearch: parseConsoleScope,
+  search: { middlewares: [retainSearchParams(['scope'])] },
   component: ConsoleLayout,
 })

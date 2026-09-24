@@ -4,13 +4,18 @@ import { recordTriage, triageQuery } from '@/integrations/studio-api'
 import { whiskersIssuesQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { triageKey, useTriageRecords } from '../../../shared/console-data'
-import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
+import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import { type ConsoleScope, isInScope } from '../../../shared/console-scope'
 import { useConsoleStore } from '../../../use-console-store'
 import { formatSeconds, textCell as text } from '../utils'
 import { REGRESSIONS_SECTION } from '../values'
 
 /** An issue a human resolved in CodeWhiskers that has fired since. Nothing else counts. */
-export function useRegressionsSection(): SectionDefinition {
+export function useRegressionsSection(
+  _tab: number,
+  _filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const queryClient = useQueryClient()
   const { data: issues } = useQuery({ ...whiskersIssuesQuery(), retry: false })
   const records = useTriageRecords()
@@ -20,12 +25,16 @@ export function useRegressionsSection(): SectionDefinition {
     if (all.length === 0) return { ...REGRESSIONS_SECTION, sample: true }
 
     const regressions = all
+      .filter((issue) => isInScope(scope, { projectId: issue.projectId }))
       .map((issue) => {
-        const scope = `project:${issue.projectId}`
-        const ref = { scope, itemKind: 'issue' as const, itemRef: issue.id }
+        const ref = {
+          scope: `project:${issue.projectId}`,
+          itemKind: 'issue' as const,
+          itemRef: issue.id,
+        }
         const record = records.get(triageKey(ref))
         if (record?.status !== 'resolved' || issue.lastSeen <= record.updatedAt) return null
-        return { issue, ref, resolvedAt: record.updatedAt, itemId: `${scope}/${issue.id}` }
+        return { issue, ref, resolvedAt: record.updatedAt, itemId: `${ref.scope}/${issue.id}` }
       })
       .filter((r) => r !== null)
       .sort((a, b) => b.issue.lastSeen.getTime() - a.issue.lastSeen.getTime())
@@ -72,6 +81,7 @@ export function useRegressionsSection(): SectionDefinition {
 
     return {
       title: 'Regressions',
+      isScoped: true,
       subtitle: `${regressions.length} of ${resolvedCount} resolved issues came back`,
       actions: [],
       stats: [
@@ -101,5 +111,5 @@ export function useRegressionsSection(): SectionDefinition {
       tabs: ['Regressed'],
       table,
     }
-  }, [issues, records, queryClient])
+  }, [issues, records, scope, queryClient])
 }

@@ -1,6 +1,13 @@
 import { SECTION_VIEWS } from '../../section/lib'
 import type { SectionView, TriageBucket, TriageFilter } from '../console-model'
-import type { SectionSearch, SectionSearchInput, TriageSearch, TriageSearchInput } from './types'
+import type {
+  ConsoleScopeSearch,
+  ConsoleScopeSearchInput,
+  SectionSearch,
+  SectionSearchInput,
+  TriageSearch,
+  TriageSearchInput,
+} from './types'
 
 const BUCKETS: TriageBucket[] = ['inbox', 'assigned', 'snoozed']
 const FILTERS: TriageFilter[] = ['all', 'errors', 'reviews', 'logs']
@@ -31,4 +38,8 @@ export function parseSectionTab(search: SectionSearchInput): SectionSearch {
     q: text(search.q),
     service: text(search.service),
   }
+}
+
+export function parseConsoleScope(search: ConsoleScopeSearchInput): ConsoleScopeSearch {
+  return { scope: text(search.scope) }
 }

@@ -69,13 +69,6 @@ export type DetailBannerProps = {
   banner: TriageBanner
 }
 
-export type FindingCardProps = {
-  finding: WhiskersFinding
-  isDismissed: boolean
-  url: string | undefined
-  onToggle: () => void
-}
-
 export type ItemThreadProps = {
   item: ConsoleItem
   onPost: () => void

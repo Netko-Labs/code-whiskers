@@ -68,6 +68,9 @@ export type ConsoleItem = {
   commit?: string
   at?: Date
   kind: ConsoleItemKind
+  repository: string | null
+  projectId?: string
+  scopeLabel: string
   label: string
   severity: ConsoleSeverity
   age: string

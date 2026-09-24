@@ -1,5 +1,7 @@
 import { Button } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
+import { IconBrandGithub } from '@tabler/icons-react'
+import { Link } from '@tanstack/react-router'
 import { SEVERITY_BG } from '../../shared/console-ui'
 import { type DetailPaneProps, primaryLabel, secondaryLabel, useDetailShortcuts } from '../lib'
 import { AssignMenu } from './assign-menu'
@@ -41,7 +43,20 @@ export function DetailHeader({ item, status, actions }: DetailPaneProps) {
         <h2 className="m-0 font-semibold text-[19px] tracking-[-0.02em] text-pretty">
           {item.title}
         </h2>
-        <span className="font-mono text-muted-foreground text-xs">{item.subtitle}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs">
+          {item.repository && (
+            <Link
+              to="."
+              search={(prev) => ({ ...prev, scope: item.repository ?? undefined })}
+              title={`Show only ${item.repository}`}
+              className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-body hover:bg-surface-subtle"
+            >
+              <IconBrandGithub className="size-3.5" stroke={1.75} />
+              {item.repository}
+            </Link>
+          )}
+          <span className="min-w-0 truncate font-mono text-muted-foreground">{item.subtitle}</span>
+        </div>
       </div>
 
       <div className="flex shrink-0 gap-2">

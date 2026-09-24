@@ -80,13 +80,15 @@ export type SectionAction = {
 
 export type SectionRowAction = {
   label: string
-  onSelect: () => void
+  onSelect?: () => void
+  form?: SectionForm
   tone?: 'danger'
 }
 
 export type SectionFilters = {
   q?: string
   service?: string
+  scope?: string
 }
 
 export type SectionRowLink =
@@ -111,6 +113,8 @@ export type SectionDefinition = {
   tabs: string[]
   /** A fixture shown until the real source has rows; the view labels it. */
   sample?: boolean
+  /** Reads the console scope; shows the repository picker next to the tabs. */
+  isScoped?: boolean
   /** Shows a search box bound to the `q` filter. */
   searchPlaceholder?: string
   /** Tab-dependent sections return a different table per tab; the rest ignore the index. */

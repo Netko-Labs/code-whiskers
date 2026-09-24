@@ -31,6 +31,9 @@ export const whiskersReviewSchema = z.object({
   verdict: z.enum(['approve', 'request_changes', 'comment']).nullable(),
   summary: z.string().nullable(),
   model: z.string().nullable(),
+  inputTokens: z.number().nullable().default(null),
+  outputTokens: z.number().nullable().default(null),
+  reasoningTokens: z.number().nullable().default(null),
   createdAt: z.coerce.date(),
   completedAt: z.coerce.date().nullable(),
   findingCount: z.number().default(0),
@@ -108,6 +111,7 @@ export const whiskersInstanceSchema = z.object({
 export const whiskersProjectSchema = z.object({
   id: z.string(),
   name: z.string(),
+  repository: z.string().nullable().default(null),
   publicKey: z.string(),
   createdAt: z.coerce.date(),
   issues: z.number().default(0),

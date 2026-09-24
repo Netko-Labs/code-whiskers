@@ -25,7 +25,9 @@ export function matchesFilter(item: ConsoleItem, filter: TriageFilter) {
 
 export function matchesQuery(item: ConsoleItem, query: string): boolean {
   const needle = query.trim().toLowerCase()
-  return `${item.handle} ${item.title} ${item.subtitle}`.toLowerCase().includes(needle)
+  return `${item.handle} ${item.title} ${item.subtitle} ${item.repository ?? ''} ${item.scopeLabel}`
+    .toLowerCase()
+    .includes(needle)
 }
 
 export function rowLabel(item: ConsoleItem, status: TriageStatus) {

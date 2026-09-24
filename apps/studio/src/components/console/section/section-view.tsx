@@ -1,5 +1,7 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
+import { ScopePicker } from '../scope-picker'
+import { useConsoleScope } from '../shared/console-scope'
 import {
   SECTION_HOOKS,
   SECTION_SAMPLE_NOTE,
@@ -26,7 +28,8 @@ export function SectionView({ section, tab, filters }: SectionViewProps) {
 }
 
 function SectionScreen({ section, tab, filters, useDefinition }: SectionScreenProps) {
-  const definition = useDefinition(tab, filters)
+  const scope = useConsoleScope()
+  const definition = useDefinition(tab, filters, scope)
   const table = typeof definition.table === 'function' ? definition.table(tab) : definition.table
 
   return (
@@ -62,6 +65,12 @@ function SectionScreen({ section, tab, filters, useDefinition }: SectionScreenPr
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 border-border border-b px-6 py-3">
+        {definition.isScoped && (
+          <>
+            <ScopePicker className="max-w-[240px]" />
+            <span className="mx-1.5 h-5 w-px bg-border" />
+          </>
+        )}
         {definition.tabs.map((label, index) => (
           <Link
             key={label}

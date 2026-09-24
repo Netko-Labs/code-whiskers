@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { type WhiskersService, whiskersServicesQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
-import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
-import { textCell as text } from '../utils'
+import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import type { ConsoleScope } from '../../../shared/console-scope'
+import { textCell as text, unlinkedScopeNote } from '../utils'
 import { SERVICES_SECTION } from '../values'
 
 function errorShare(service: WhiskersService): number {
@@ -17,12 +18,20 @@ function ms(value: number | null): string {
 }
 
 /** Services are whatever named itself in `service.name` today, logs and spans together. */
-export function useServicesSection(tab: number): SectionDefinition {
-  const { data, isFetched } = useQuery({ ...whiskersServicesQuery(), retry: false })
+export function useServicesSection(
+  tab: number,
+  _filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
+  const { data, isFetched } = useQuery({
+    ...whiskersServicesQuery(scope.projectIds),
+    retry: false,
+  })
 
   return useMemo(() => {
     const services = data ?? []
-    if (isFetched && services.length === 0) return { ...SERVICES_SECTION, sample: true }
+    if (isFetched && services.length === 0 && !scope.value)
+      return { ...SERVICES_SECTION, sample: true }
     const erroring = services.filter((s) => s.logErrors + s.spanErrors > 0)
     const visible = tab === 1 ? erroring : services
     const slowest = [...services].sort((a, b) => (b.p95Ms ?? 0) - (a.p95Ms ?? 0))[0]
@@ -77,7 +86,8 @@ export function useServicesSection(tab: number): SectionDefinition {
 
     return {
       title: 'Services',
-      subtitle: `${services.length} reporting today`,
+      isScoped: true,
+      subtitle: unlinkedScopeNote(scope) ?? `${services.length} reporting today`,
       actions: [],
       stats: [
         { label: 'Services', value: String(services.length), note: 'reporting today' },
@@ -93,5 +103,5 @@ export function useServicesSection(tab: number): SectionDefinition {
       tabs: ['All', 'With errors'],
       table,
     }
-  }, [data, isFetched, tab])
+  }, [data, isFetched, tab, scope])
 }

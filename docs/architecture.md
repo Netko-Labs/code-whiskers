@@ -92,8 +92,13 @@ which installation; written by the sync on login.
 | `id` | text PK | DSN path segment |
 | `installation_id` | bigint | |
 | `name` | text | |
+| `repository` | text null | `owner/name`; its errors, logs and spans show under that repository |
 | `public_key` | text | what SDKs send as `sentry_key` |
 | `created_at` | timestamp | |
+
+Today the table lives in whiskers (ingest checks the key on every event). The console's
+`?scope=owner/name` reads reviews by repository and telemetry by every project linked to it;
+`?scope=project:<id>` covers a project with no repository.
 
 Whiskers caches `(id, public_key)` — ingest cannot round-trip per event.
 

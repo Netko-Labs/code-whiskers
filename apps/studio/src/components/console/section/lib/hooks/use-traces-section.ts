@@ -4,7 +4,8 @@ import { savedQueriesQuery } from '@/integrations/studio-api'
 import { whiskersTraceQuery, whiskersTracesQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
-import { saveViewAction, textCell as text } from '../utils'
+import type { ConsoleScope } from '../../../shared/console-scope'
+import { saveViewAction, textCell as text, unlinkedScopeNote } from '../utils'
 import { TRACES_SECTION } from '../values'
 
 function ms(value: number): string {
@@ -15,9 +16,16 @@ function ms(value: number): string {
  * The last day of traces, one row each. Searching an exact trace id turns the table into that
  * trace's waterfall — the span list, offset from the root.
  */
-export function useTracesSection(tab: number, filters: SectionFilters): SectionDefinition {
+export function useTracesSection(
+  tab: number,
+  filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const queryClient = useQueryClient()
-  const { data, isFetched } = useQuery({ ...whiskersTracesQuery(filters.service), retry: false })
+  const { data, isFetched } = useQuery({
+    ...whiskersTracesQuery(filters.service, scope.projectIds),
+    retry: false,
+  })
   const traceId = filters.q?.trim()
   const { data: spans } = useQuery({
     ...whiskersTraceQuery(traceId ?? ''),
@@ -27,7 +35,7 @@ export function useTracesSection(tab: number, filters: SectionFilters): SectionD
 
   return useMemo(() => {
     const traces = data ?? []
-    if (isFetched && traces.length === 0 && !filters.service)
+    if (isFetched && traces.length === 0 && !filters.service && !scope.value)
       return { ...TRACES_SECTION, sample: true }
 
     const needle = filters.q?.toLowerCase() ?? ''
@@ -119,9 +127,10 @@ export function useTracesSection(tab: number, filters: SectionFilters): SectionD
 
     return {
       title: waterfall ? (trace?.rootName ?? 'Trace') : 'Traces',
+      isScoped: true,
       subtitle: waterfall
         ? `${ms(trace?.durationMs ?? 0)} across ${spans?.length ?? 0} spans`
-        : 'Every trace from the last day',
+        : (unlinkedScopeNote(scope) ?? 'Every trace from the last day'),
       actions: [
         saveViewAction('traces', tab, filters, () =>
           queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),
@@ -145,5 +154,5 @@ export function useTracesSection(tab: number, filters: SectionFilters): SectionD
       tabs: ['All', 'With errors', 'Slowest'],
       table: waterfall ?? list,
     }
-  }, [data, isFetched, spans, filters, traceId, tab, queryClient])
+  }, [data, isFetched, spans, filters, traceId, tab, scope, queryClient])
 }

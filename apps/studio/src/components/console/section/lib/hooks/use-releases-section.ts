@@ -2,18 +2,23 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { whiskersProjectsQuery, whiskersReleasesQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
-import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
+import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import { type ConsoleScope, isInScope } from '../../../shared/console-scope'
 import { textCell as text } from '../utils'
 import { RELEASES_SECTION } from '../values'
 
 /** Releases are what SDKs report in `release`; what each one brought is read off the events. */
-export function useReleasesSection(tab: number): SectionDefinition {
+export function useReleasesSection(
+  tab: number,
+  _filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const { data } = useQuery({ ...whiskersReleasesQuery(), retry: false })
   const { data: projects } = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
-    const releases = data ?? []
-    if (releases.length === 0) return { ...RELEASES_SECTION, sample: true }
+    if (!data?.length) return { ...RELEASES_SECTION, sample: true }
+    const releases = data.filter((release) => isInScope(scope, { projectId: release.projectId }))
 
     const projectName = new Map((projects ?? []).map((p) => [p.id, p.name]))
     const visible = tab === 1 ? releases.filter((r) => r.newIssues > 0) : releases
@@ -51,6 +56,7 @@ export function useReleasesSection(tab: number): SectionDefinition {
 
     return {
       title: 'Releases',
+      isScoped: true,
       subtitle: 'What each release brought in, read from the events that carry it',
       actions: [],
       stats: [
@@ -74,5 +80,5 @@ export function useReleasesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Introduced issues'],
       table,
     }
-  }, [data, projects, tab])
+  }, [data, projects, tab, scope])
 }

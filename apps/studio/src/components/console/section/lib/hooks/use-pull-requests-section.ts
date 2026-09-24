@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { whiskersReviewsQuery } from '@/integrations/whiskers'
 import type { SectionDefinition, SectionFilters, SectionTable } from '../../../shared/console-model'
+import { type ConsoleScope, isInScope } from '../../../shared/console-scope'
 import {
   latestPerPullRequest,
   medianReviewDuration,
@@ -24,7 +25,11 @@ const COLUMNS = [
 ]
 
 /** Live Pull requests section; falls back to the sample table until whiskers has reviewed anything. */
-export function usePullRequestsSection(tab: number, filters: SectionFilters): SectionDefinition {
+export function usePullRequestsSection(
+  tab: number,
+  filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const { data } = useQuery({ ...whiskersReviewsQuery(), retry: false })
 
   return useMemo(() => {
@@ -34,10 +39,11 @@ export function usePullRequestsSection(tab: number, filters: SectionFilters): Se
     const needle = filters.q?.toLowerCase()
     const rows = latestPerPullRequest(reviews).filter(
       ({ review, slug }) =>
-        !needle ||
-        `${slug}#${review.prNumber} ${review.title ?? ''} ${review.author ?? ''}`
-          .toLowerCase()
-          .includes(needle),
+        isInScope(scope, { repository: slug }) &&
+        (!needle ||
+          `${slug}#${review.prNumber} ${review.title ?? ''} ${review.author ?? ''}`
+            .toLowerCase()
+            .includes(needle)),
     )
     const needsChanges = rows.filter((r) => r.review.verdict === 'request_changes')
     const failed = rows.filter((r) => r.review.status === 'failed')
@@ -89,7 +95,8 @@ export function usePullRequestsSection(tab: number, filters: SectionFilters): Se
 
     return {
       title: 'Pull requests',
-      subtitle: `${rows.length} reviewed · Whiskers reviews every push`,
+      subtitle: `${rows.length} reviewed${scope.value ? ` in ${scope.label}` : ''} · Whiskers reviews every push`,
+      isScoped: true,
       actions: [{ label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' }],
       stats: [
         { label: 'Pull requests', value: String(rows.length), note: 'latest review each' },
@@ -101,5 +108,5 @@ export function usePullRequestsSection(tab: number, filters: SectionFilters): Se
       searchPlaceholder: 'Repository, title or author…',
       table,
     }
-  }, [data, tab, filters.q])
+  }, [data, tab, filters.q, scope])
 }

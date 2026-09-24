@@ -3,6 +3,7 @@ export * from './lib'
 export {
   createWhiskersProject,
   rerunReview,
+  setWhiskersProjectRepository,
   whiskersHotspotsQuery,
   whiskersInstanceQuery,
   whiskersIssuesQuery,

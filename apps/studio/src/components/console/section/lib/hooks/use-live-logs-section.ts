@@ -9,7 +9,8 @@ import type {
   SectionFilters,
   SectionTable,
 } from '../../../shared/console-model'
-import { saveViewAction, textCell as text } from '../utils'
+import type { ConsoleScope } from '../../../shared/console-scope'
+import { saveViewAction, textCell as text, unlinkedScopeNote } from '../utils'
 import { LIVE_LOGS_SECTION } from '../values'
 
 const LEVELS = [undefined, 'error', 'warn'] as const
@@ -31,17 +32,26 @@ function clock(date: Date): string {
 }
 
 /** Newest lines first, refreshed every few seconds; the URL carries the search and service. */
-export function useLiveLogsSection(tab: number, filters: SectionFilters): SectionDefinition {
+export function useLiveLogsSection(
+  tab: number,
+  filters: SectionFilters,
+  scope: ConsoleScope,
+): SectionDefinition {
   const queryClient = useQueryClient()
   const level = LEVELS[tab] ?? undefined
   const { data, isFetched } = useQuery({
-    ...whiskersLogsQuery({ service: filters.service, level, q: filters.q }),
+    ...whiskersLogsQuery({
+      projectIds: scope.projectIds,
+      service: filters.service,
+      level,
+      q: filters.q,
+    }),
     retry: false,
   })
 
   return useMemo(() => {
     const lines = data ?? []
-    const isFiltered = !!(filters.q || filters.service || level)
+    const isFiltered = !!(filters.q || filters.service || level || scope.value)
     if (isFetched && lines.length === 0 && !isFiltered) {
       return { ...LIVE_LOGS_SECTION, sample: true }
     }
@@ -76,9 +86,12 @@ export function useLiveLogsSection(tab: number, filters: SectionFilters): Sectio
 
     return {
       title: 'Live logs',
-      subtitle: filters.service
-        ? `Lines from ${filters.service}, newest first`
-        : 'Every service, newest first',
+      isScoped: true,
+      subtitle:
+        unlinkedScopeNote(scope) ??
+        (filters.service
+          ? `Lines from ${filters.service}, newest first`
+          : 'Every service, newest first'),
       actions: [
         saveViewAction('live-logs', tab, filters, () =>
           queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),
@@ -106,5 +119,5 @@ export function useLiveLogsSection(tab: number, filters: SectionFilters): Sectio
       tabs: ['All', 'Errors', 'Warnings'],
       table,
     }
-  }, [data, isFetched, filters, level, tab, queryClient])
+  }, [data, isFetched, filters, level, tab, scope, queryClient])
 }

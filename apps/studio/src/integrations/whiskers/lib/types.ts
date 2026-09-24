@@ -30,6 +30,13 @@ export type WhiskersLog = z.infer<typeof whiskersLogSchema>
 export type WhiskersTrace = z.infer<typeof whiskersTraceSchema>
 export type WhiskersSpan = z.infer<typeof whiskersSpanSchema>
 export type WhiskersService = z.infer<typeof whiskersServiceSchema>
-export type LogQuery = { service?: string; level?: 'error' | 'warn'; q?: string }
+/** Project ids to read from; undefined reads every project, empty reads none. */
+export type ProjectScope = string[] | undefined
+export type LogQuery = {
+  projectIds?: ProjectScope
+  service?: string
+  level?: 'error' | 'warn'
+  q?: string
+}
 export type WhiskersEventDetail = z.infer<typeof whiskersEventDetailSchema>
 export type WhiskersLogPattern = z.infer<typeof whiskersLogPatternSchema>

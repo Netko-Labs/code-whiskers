@@ -1,5 +1,9 @@
 import { createSavedQuery } from '@/integrations/studio-api'
-import type { WhiskersReview } from '@/integrations/whiskers'
+import {
+  setWhiskersProjectRepository,
+  type WhiskersProject,
+  type WhiskersReview,
+} from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
 import type {
@@ -7,9 +11,12 @@ import type {
   PillTone,
   SectionAction,
   SectionCell,
+  SectionFieldOption,
   SectionFilters,
+  SectionForm,
   SectionTextCell,
 } from '../../shared/console-model'
+import type { ConsoleScope } from '../../shared/console-scope'
 
 export type PullRequestRow = {
   review: WhiskersReview
@@ -136,6 +143,54 @@ export function saveViewAction(
         await onSaved()
         return undefined
       },
+    },
+  }
+}
+
+/** A repository scope with no linked project has no telemetry — say why the table is empty. */
+export function unlinkedScopeNote(scope: ConsoleScope): string | null {
+  if (!scope.value || scope.projectIds?.length !== 0) return null
+  return `No project sends telemetry for ${scope.label} yet — link one under Integrations → Error ingest`
+}
+
+const NO_REPOSITORY = ''
+
+export function repositoryOptionsOf(
+  repos: { owner: string; name: string }[],
+): SectionFieldOption[] {
+  return [
+    { value: NO_REPOSITORY, label: 'No repository' },
+    ...repos
+      .map((repo) => `${repo.owner}/${repo.name}`)
+      .sort((a, b) => a.localeCompare(b))
+      .map((slug) => ({ value: slug, label: slug })),
+  ]
+}
+
+export function linkRepositoryForm(
+  project: WhiskersProject,
+  options: SectionFieldOption[],
+  onSaved: (repository: string | null) => Promise<void>,
+): SectionForm {
+  return {
+    title: `Link ${project.name} to a repository`,
+    description:
+      'Its errors, logs and traces then show up under that repository, next to its reviews.',
+    submitLabel: 'Save',
+    fields: [
+      {
+        name: 'repository',
+        label: 'Repository',
+        kind: 'select',
+        options,
+        defaultValue: project.repository ?? NO_REPOSITORY,
+      },
+    ],
+    onSubmit: async (values) => {
+      const repository = values.repository || null
+      await setWhiskersProjectRepository(project.id, repository)
+      await onSaved(repository)
+      return undefined
     },
   }
 }

@@ -21,25 +21,33 @@ export function TriageRow({ bucket, item, active }: TriageRowProps) {
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            'font-semibold text-[13px]',
+            'truncate font-semibold text-[13px]',
             status.done ? SEVERITY_TEXT.ok : SEVERITY_TEXT[item.severity],
           )}
         >
           {rowLabel(item, status)}
         </span>
-        <span className="text-[11px] text-muted-foreground">{item.age}</span>
+        <span className="shrink-0 text-[11px] text-muted-foreground">{item.age}</span>
       </div>
       <span className={cn('text-[13px] leading-[18px] text-pretty', active && 'font-semibold')}>
         {item.title}
       </span>
-      <span
-        className={cn(
-          'font-mono text-[11px]',
-          status.done ? 'text-severity-resolved' : 'text-muted-foreground',
-        )}
-      >
-        {owner ? `assigned to ${owner}` : item.meta}
-      </span>
+      <div className="flex min-w-0 items-center gap-2 font-mono text-[11px]">
+        <span
+          title={item.repository ?? item.scopeLabel}
+          className="max-w-[55%] shrink-0 truncate rounded-md border border-border px-1.5 py-px text-body"
+        >
+          {item.scopeLabel}
+        </span>
+        <span
+          className={cn(
+            'truncate',
+            status.done ? 'text-severity-resolved' : 'text-muted-foreground',
+          )}
+        >
+          {owner ? `assigned to ${owner}` : item.meta}
+        </span>
+      </div>
     </Link>
   )
 }

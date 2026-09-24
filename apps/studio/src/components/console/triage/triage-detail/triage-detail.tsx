@@ -24,11 +24,16 @@ export function TriageDetail({ item }: TriageDetailProps) {
       {item.kind === 'error' && <DetailStats item={item} owner={owner} />}
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-6 py-5">
-        <DetailAssistant item={item} actions={actions} />
-        {item.kind === 'error' && <ErrorDetail item={item} />}
-        {item.kind === 'review' && <ReviewDetail item={item} actions={actions} />}
-        {item.kind === 'log' && <LogDetail item={item} />}
-        <ItemThread item={item} onPost={actions.postComment} />
+        {item.kind === 'review' ? (
+          <ReviewDetail item={item} actions={actions} />
+        ) : (
+          <>
+            <DetailAssistant item={item} actions={actions} />
+            {item.kind === 'error' && <ErrorDetail item={item} />}
+            {item.kind === 'log' && <LogDetail item={item} />}
+            <ItemThread item={item} onPost={actions.postComment} />
+          </>
+        )}
       </div>
       <FixDrawerSlot item={item} actions={actions} />
     </div>

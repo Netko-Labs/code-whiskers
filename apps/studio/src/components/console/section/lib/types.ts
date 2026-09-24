@@ -10,6 +10,7 @@ import type {
   SectionTable,
   SectionView,
 } from '../../shared/console-model'
+import type { ConsoleScope } from '../../shared/console-scope'
 
 export type SectionViewProps = {
   section: SectionView
@@ -26,7 +27,11 @@ export type SectionCellProps = {
   cell: SectionCell
 }
 
-export type SectionHook = (tab: number, filters: SectionFilters) => SectionDefinition
+export type SectionHook = (
+  tab: number,
+  filters: SectionFilters,
+  scope: ConsoleScope,
+) => SectionDefinition
 
 export type SectionScreenProps = {
   section: SectionView
@@ -78,6 +83,11 @@ export type SectionFormActionProps = {
 
 export type SectionRowActionsProps = {
   actions: SectionRowAction[]
+}
+
+export type SectionRowFormActionProps = {
+  action: SectionRowAction
+  className: string
 }
 
 export type SetupStep = {

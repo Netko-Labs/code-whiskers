@@ -14,7 +14,7 @@ import { createWhiskersProject, whiskersProjectsQuery } from '@/integrations/whi
 import { formatAge } from '@/shared/format-date'
 import type { SectionAction, SectionDefinition, SectionTable } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
-import { dsnFor, textCell as text } from '../utils'
+import { dsnFor, linkRepositoryForm, repositoryOptionsOf, textCell as text } from '../utils'
 
 const TABS = ['Webhooks', 'Error ingest', 'GitHub App'] as const
 const KIND_OPTIONS = [
@@ -45,6 +45,7 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
       queryClient.invalidateQueries({ queryKey: integrationsQuery().queryKey })
     const refreshProjects = () =>
       queryClient.invalidateQueries({ queryKey: whiskersProjectsQuery().queryKey })
+    const repositoryOptions = repositoryOptionsOf(repos ?? [])
 
     const webhookTable: SectionTable = {
       grid: '1fr 110px 200px 140px 170px',
@@ -98,15 +99,19 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
     }
 
     const ingestTable: SectionTable = {
-      grid: '180px 1fr 90px 140px',
+      grid: '160px 190px 1fr 70px 120px',
       columns: [
         { label: 'Project' },
+        { label: 'Repository' },
         { label: 'DSN' },
         { label: 'Issues' },
         { label: 'Last event', align: 'end' },
       ],
       rows: sources.map((project) => [
         text(project.name, { strong: true }),
+        project.repository
+          ? text(project.repository, { mono: true })
+          : { kind: 'pill', text: 'not linked', tone: 'warn' },
         text(dsnFor(origin, project), { mono: true, tone: 'muted' }),
         text(String(project.issues), { mono: true }),
         text(project.lastEventAt ? `${formatAge(project.lastEventAt)} ago` : 'nothing yet', {
@@ -115,6 +120,13 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
         }),
       ]),
       rowActions: sources.map((project) => [
+        {
+          label: project.repository ? 'Change repository' : 'Link repository',
+          form: linkRepositoryForm(project, repositoryOptions, async (repository) => {
+            await refreshProjects()
+            flash(repository ? `${project.name} → ${repository}` : `${project.name} unlinked`)
+          }),
+        },
         {
           label: 'Copy DSN',
           onSelect: () => {
@@ -170,9 +182,19 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
               placeholder: 'web-frontend',
               isRequired: true,
             },
+            {
+              name: 'repository',
+              label: 'Repository',
+              kind: 'select',
+              options: repositoryOptions,
+              hint: 'Errors, logs and traces from this project show up under this repository.',
+            },
           ],
           onSubmit: async (values) => {
-            const project = await createWhiskersProject(values.name ?? '')
+            const project = await createWhiskersProject(
+              values.name ?? '',
+              values.repository || null,
+            )
             await refreshProjects()
             return {
               message: 'Pass this to Sentry.init({ dsn }) in the app that should report errors.',

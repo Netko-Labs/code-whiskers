@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { fetchWhiskers, postWhiskers } from './client'
 import {
   type LogQuery,
+  type ProjectScope,
   WHISKERS_QUERY_KEY,
   whiskersEventDetailSchema,
   whiskersHotspotListSchema,
@@ -27,13 +28,29 @@ export const whiskersOverviewQuery = () =>
     queryFn: () => fetchWhiskers('/overview', whiskersOverviewSchema),
   })
 
-export const whiskersIssuesQuery = (projectId?: string) =>
+const LIVE_REFRESH_MS = 5_000
+
+function params(values: Record<string, string | undefined>): string {
+  const defined = Object.entries(values).filter((entry): entry is [string, string] => !!entry[1])
+  return defined.length ? `?${new URLSearchParams(defined)}` : ''
+}
+
+/** A scope with no projects has nothing to read; answer empty instead of asking for everything. */
+function scoped<T>(projectIds: ProjectScope, read: (projectId?: string) => Promise<T[]>) {
+  if (projectIds?.length === 0) return Promise.resolve([] as T[])
+  return read(projectIds?.join(','))
+}
+
+function scopeKey(projectIds: ProjectScope): string | null {
+  return projectIds ? projectIds.join(',') || '-' : null
+}
+
+export const whiskersIssuesQuery = (projectIds?: ProjectScope) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'issues', projectId ?? null],
+    queryKey: [WHISKERS_QUERY_KEY, 'issues', scopeKey(projectIds)],
     queryFn: () =>
-      fetchWhiskers(
-        projectId ? `/issues?projectId=${encodeURIComponent(projectId)}` : '/issues',
-        whiskersIssueListSchema,
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/issues${params({ projectId })}`, whiskersIssueListSchema),
       ),
   })
 
@@ -67,39 +84,49 @@ export const whiskersProjectsQuery = () =>
     queryFn: () => fetchWhiskers('/projects', whiskersProjectListSchema),
   })
 
-export const createWhiskersProject = (name: string) =>
-  postWhiskers('/projects', { name }, whiskersProjectSchema)
+export const createWhiskersProject = (name: string, repository: string | null) =>
+  postWhiskers('/projects', { name, repository }, whiskersProjectSchema)
 
-export const whiskersReleasesQuery = () =>
+export const setWhiskersProjectRepository = (projectId: string, repository: string | null) =>
+  postWhiskers(
+    `/projects/${encodeURIComponent(projectId)}/repository`,
+    { repository },
+    whiskersProjectSchema,
+  )
+
+export const whiskersReleasesQuery = (projectIds?: ProjectScope) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'releases'],
-    queryFn: () => fetchWhiskers('/releases', whiskersReleaseListSchema),
+    queryKey: [WHISKERS_QUERY_KEY, 'releases', scopeKey(projectIds)],
+    queryFn: () =>
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/releases${params({ projectId })}`, whiskersReleaseListSchema),
+      ),
   })
 
-const LIVE_REFRESH_MS = 5_000
-
-function params(values: Record<string, string | undefined>): string {
-  const defined = Object.entries(values).filter((entry): entry is [string, string] => !!entry[1])
-  return defined.length ? `?${new URLSearchParams(defined)}` : ''
-}
-
-export const whiskersLogsQuery = (query: LogQuery) =>
+export const whiskersLogsQuery = ({ projectIds, ...query }: LogQuery) =>
   queryOptions({
     queryKey: [
       WHISKERS_QUERY_KEY,
       'logs',
+      scopeKey(projectIds),
       query.service ?? null,
       query.level ?? null,
       query.q ?? null,
     ],
-    queryFn: () => fetchWhiskers(`/logs${params(query)}`, whiskersLogListSchema),
+    queryFn: () =>
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/logs${params({ ...query, projectId })}`, whiskersLogListSchema),
+      ),
     refetchInterval: LIVE_REFRESH_MS,
   })
 
-export const whiskersTracesQuery = (service?: string) =>
+export const whiskersTracesQuery = (service?: string, projectIds?: ProjectScope) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'traces', service ?? null],
-    queryFn: () => fetchWhiskers(`/traces${params({ service })}`, whiskersTraceListSchema),
+    queryKey: [WHISKERS_QUERY_KEY, 'traces', scopeKey(projectIds), service ?? null],
+    queryFn: () =>
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/traces${params({ service, projectId })}`, whiskersTraceListSchema),
+      ),
   })
 
 export const whiskersTraceQuery = (traceId: string) =>
@@ -108,10 +135,13 @@ export const whiskersTraceQuery = (traceId: string) =>
     queryFn: () => fetchWhiskers(`/traces/${encodeURIComponent(traceId)}`, whiskersSpanListSchema),
   })
 
-export const whiskersServicesQuery = () =>
+export const whiskersServicesQuery = (projectIds?: ProjectScope) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'services'],
-    queryFn: () => fetchWhiskers('/services', whiskersServiceListSchema),
+    queryKey: [WHISKERS_QUERY_KEY, 'services', scopeKey(projectIds)],
+    queryFn: () =>
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/services${params({ projectId })}`, whiskersServiceListSchema),
+      ),
   })
 
 export const whiskersLatestEventQuery = (issueId: string) =>
@@ -120,10 +150,13 @@ export const whiskersLatestEventQuery = (issueId: string) =>
     queryFn: () => fetchWhiskers(`/issues/${issueId}/latest-event`, whiskersEventDetailSchema),
   })
 
-export const whiskersLogPatternsQuery = () =>
+export const whiskersLogPatternsQuery = (projectIds?: ProjectScope) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'log-patterns'],
-    queryFn: () => fetchWhiskers('/log-patterns', whiskersLogPatternListSchema),
+    queryKey: [WHISKERS_QUERY_KEY, 'log-patterns', scopeKey(projectIds)],
+    queryFn: () =>
+      scoped(projectIds, (projectId) =>
+        fetchWhiskers(`/log-patterns${params({ projectId })}`, whiskersLogPatternListSchema),
+      ),
   })
 
 export const rerunReview = (target: { owner: string; repo: string; prNumber: number }) =>

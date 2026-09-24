@@ -22,3 +22,11 @@ export type SectionSearchInput = {
   q?: string
   service?: string
 } & SearchSchemaInput
+
+export type ConsoleScopeSearch = {
+  scope?: string
+}
+
+export type ConsoleScopeSearchInput = {
+  scope?: string
+} & SearchSchemaInput
