@@ -40,3 +40,10 @@ export type ToneTextProps = {
   children: React.ReactNode
   className?: string
 }
+
+export type PersonAvatarProps = {
+  name: string
+  image?: string | null
+  isSelf?: boolean
+  className?: string
+}

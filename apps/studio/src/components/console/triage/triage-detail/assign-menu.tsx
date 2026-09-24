@@ -2,7 +2,8 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/components/popover'
 import { useState } from 'react'
 import type { Member } from '@/integrations/studio-api'
-import { initialsOf, useMembers } from '../../shared/console-data'
+import { useMembers } from '../../shared/console-data'
+import { PersonAvatar } from '../../shared/console-ui'
 import type { AssignMenuProps } from '../lib'
 
 const ROW = 'flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft'
@@ -27,9 +28,7 @@ export function AssignMenu({ assigneeUserId, isDisabled, onAssign }: AssignMenuP
         </span>
         {members.map((member) => (
           <button type="button" key={member.id} onClick={() => pick(member)} className={ROW}>
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-semibold text-[9px]">
-              {initialsOf(member.name)}
-            </span>
+            <PersonAvatar name={member.name} image={member.image} className="size-6" />
             <div className="flex min-w-0 flex-col">
               <span className="font-medium text-[13px]">{member.name}</span>
               <span className="truncate text-[11px] text-muted-foreground">

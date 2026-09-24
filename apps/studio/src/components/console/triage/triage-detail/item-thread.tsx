@@ -1,14 +1,11 @@
 import { Button } from '@code-whiskers/ui/components/button'
-import { cn } from '@code-whiskers/ui/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { triageCommentsQuery } from '@/integrations/studio-api'
 import { formatAge } from '@/shared/format-date'
-import { initialsOf, useViewer } from '../../shared/console-data'
+import { useViewer } from '../../shared/console-data'
+import { PersonAvatar } from '../../shared/console-ui'
 import { useConsoleStore } from '../../use-console-store'
 import { DRAFT_HINT, type ItemThreadProps } from '../lib'
-
-const AVATAR =
-  'flex size-[26px] shrink-0 items-center justify-center rounded-full font-semibold text-[9px]'
 
 export function ItemThread({ item, onPost }: ItemThreadProps) {
   const viewer = useViewer()
@@ -35,14 +32,7 @@ export function ItemThread({ item, onPost }: ItemThreadProps) {
         const who = comment.authorName ?? 'Former member'
         return (
           <div key={comment.id} className="flex items-start gap-2.5">
-            <span
-              className={cn(
-                AVATAR,
-                isSelf ? 'bg-foreground text-primary-foreground' : 'bg-muted text-foreground',
-              )}
-            >
-              {initialsOf(who)}
-            </span>
+            <PersonAvatar name={who} image={comment.authorImage} isSelf={isSelf} />
             <div className="flex min-w-0 flex-col gap-[3px]">
               <div className="flex items-baseline gap-2">
                 <span className="font-semibold text-[13px]">{who}</span>
@@ -59,9 +49,7 @@ export function ItemThread({ item, onPost }: ItemThreadProps) {
       })}
 
       <div className="flex items-start gap-2.5">
-        <span className={cn(AVATAR, 'bg-foreground text-primary-foreground')}>
-          {viewer ? initialsOf(viewer.name) : ''}
-        </span>
+        <PersonAvatar name={viewer?.name ?? ''} image={viewer?.image} isSelf />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <textarea
             value={draft}
