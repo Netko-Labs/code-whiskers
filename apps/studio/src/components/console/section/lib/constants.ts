@@ -6,6 +6,8 @@ import { useIntegrationsSection } from './hooks/use-integrations-section'
 import { useIssuesSection } from './hooks/use-issues-section'
 import { useMembersSection } from './hooks/use-members-section'
 import { usePullRequestsSection } from './hooks/use-pull-requests-section'
+import { useRegressionsSection } from './hooks/use-regressions-section'
+import { useReleasesSection } from './hooks/use-releases-section'
 import { useRepositoriesSection } from './hooks/use-repositories-section'
 import { useReviewRulesSection } from './hooks/use-review-rules-section'
 import type { SectionHook } from './types'
@@ -22,8 +24,8 @@ export const SECTION_HOOKS: Record<SectionView, SectionHook> = {
   'codebase-map': useCodebaseMapSection,
   'review-rules': useReviewRulesSection,
   issues: useIssuesSection,
-  regressions: sampleOf('regressions'),
-  releases: sampleOf('releases'),
+  regressions: useRegressionsSection,
+  releases: useReleasesSection,
   'alert-rules': sampleOf('alert-rules'),
   'live-logs': sampleOf('live-logs'),
   traces: sampleOf('traces'),

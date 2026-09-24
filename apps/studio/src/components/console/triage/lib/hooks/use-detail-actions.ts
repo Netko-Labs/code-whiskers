@@ -94,8 +94,12 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
           } else decide(queryClient, target, 'approved', `Approved ${item.handle} in CodeWhiskers`)
           return
         }
-        if (current === 'resolved') decide(queryClient, target, 'open', `Reopened ${item.handle}`)
-        else decide(queryClient, target, 'resolved', `Resolved ${item.handle}`)
+        const record = readTriage(queryClient, target)
+        const isRegressed =
+          current === 'resolved' && !!item.at && !!record && item.at > record.updatedAt
+        if (current === 'resolved' && !isRegressed) {
+          decide(queryClient, target, 'open', `Reopened ${item.handle}`)
+        } else decide(queryClient, target, 'resolved', `Resolved ${item.handle}`)
       },
 
       onSecondary: () => {

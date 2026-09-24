@@ -28,7 +28,7 @@ fallbacks go away as each lands.
 
 ## C · Whiskers telemetry (~1–2 days)
 
-- [ ] Releases ← `event.release`; Regressions ← resolved issues that come back
+- [x] Releases ← `event.release`; Regressions ← resolved issues that come back (also back in the inbox)
 - [ ] Live logs ← OTLP/HTTP logs → `log_line` (daily partitions, BRIN) + live tail
 - [ ] Traces + Services ← OTLP/HTTP traces → `span`, `service` rollup
 

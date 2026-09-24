@@ -14,6 +14,7 @@ export const whiskersIssueSchema = z.object({
   eventCount: z.number(),
   firstSeen: z.coerce.date(),
   lastSeen: z.coerce.date(),
+  lastRelease: z.string().nullable().default(null),
 })
 
 export const whiskersReviewSchema = z.object({
@@ -100,3 +101,15 @@ export const whiskersProjectSchema = z.object({
   lastEventAt: z.coerce.date().nullable().default(null),
 })
 export const whiskersProjectListSchema = z.array(whiskersProjectSchema)
+
+export const whiskersReleaseSchema = z.object({
+  projectId: z.string(),
+  release: z.string(),
+  environment: z.string().nullable(),
+  firstSeen: z.coerce.date(),
+  lastSeen: z.coerce.date(),
+  events: z.number(),
+  issues: z.number(),
+  newIssues: z.number(),
+})
+export const whiskersReleaseListSchema = z.array(whiskersReleaseSchema)

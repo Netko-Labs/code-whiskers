@@ -6,6 +6,7 @@ import type {
   whiskersIssueSchema,
   whiskersOverviewSchema,
   whiskersProjectSchema,
+  whiskersReleaseSchema,
   whiskersReviewDetailSchema,
   whiskersReviewSchema,
 } from './schemas'
@@ -18,3 +19,4 @@ export type WhiskersReviewDetail = z.infer<typeof whiskersReviewDetailSchema>
 export type WhiskersHotspot = z.infer<typeof whiskersHotspotSchema>
 export type WhiskersInstance = z.infer<typeof whiskersInstanceSchema>
 export type WhiskersProject = z.infer<typeof whiskersProjectSchema>
+export type WhiskersRelease = z.infer<typeof whiskersReleaseSchema>

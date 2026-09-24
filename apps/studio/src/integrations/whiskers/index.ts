@@ -7,6 +7,7 @@ export {
   whiskersIssuesQuery,
   whiskersOverviewQuery,
   whiskersProjectsQuery,
+  whiskersReleasesQuery,
   whiskersReviewQuery,
   whiskersReviewsQuery,
 } from './queries'

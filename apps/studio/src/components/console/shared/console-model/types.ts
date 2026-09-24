@@ -127,6 +127,8 @@ export type ErrorTab = 'stack' | 'crumbs' | 'logs' | 'tags'
 
 export type TriageStatus = {
   resolved: boolean
+  /** Resolved by a human, then seen again — no longer done, whatever the record says. */
+  regressed: boolean
   approved: boolean
   tracked: boolean
   /** Set only while the snooze is still running; an expired one reads as open. */

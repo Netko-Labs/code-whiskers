@@ -140,6 +140,7 @@ export function initialsOf(name: string): string {
 
 const UNDECIDED: TriageStatus = {
   resolved: false,
+  regressed: false,
   approved: false,
   tracked: false,
   snoozedUntil: null,
@@ -155,13 +156,19 @@ export function statusFor(
 ): TriageStatus {
   const record = item.triage ? records.get(triageKey(item.triage)) : undefined
   if (!record) return UNDECIDED
-  const resolved = record.status === 'resolved'
+  const regressed =
+    record.status === 'resolved' &&
+    item.kind === 'error' &&
+    !!item.at &&
+    item.at.getTime() > record.updatedAt.getTime()
+  const resolved = record.status === 'resolved' && !regressed
   const approved = record.status === 'approved'
   const tracked = record.status === 'tracked'
   const isSnoozing =
     record.status === 'snoozed' && record.snoozedUntil !== null && record.snoozedUntil > now
   return {
     resolved,
+    regressed,
     approved,
     tracked,
     snoozedUntil: isSnoozing ? record.snoozedUntil : null,

@@ -22,6 +22,7 @@ export function matchesQuery(item: ConsoleItem, query: string): boolean {
 }
 
 export function rowLabel(item: ConsoleItem, status: TriageStatus) {
+  if (status.regressed) return 'Regressed'
   if (status.resolved) return 'Resolved'
   if (status.approved) return 'Approved'
   if (status.tracked) return 'Tracked'
@@ -55,6 +56,12 @@ export function snoozeDeadline(now = new Date()): Date {
 
 export function bannerFor(item: ConsoleItem, status: TriageStatus): TriageBanner | null {
   const decided = status.decidedAt ? `saved ${formatAge(status.decidedAt)} ago` : ''
+  if (status.regressed)
+    return {
+      message: `Regressed — resolved ${status.decidedAt ? `${formatAge(status.decidedAt)} ago` : ''}, then seen again`,
+      meta: 'resolve it again once the fix ships',
+      tone: 'warn',
+    }
   if (status.resolved)
     return { message: 'Resolved — reopen it if it comes back', meta: decided, tone: 'ok' }
   if (status.approved)

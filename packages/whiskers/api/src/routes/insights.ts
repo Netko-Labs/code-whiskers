@@ -6,6 +6,7 @@ import {
   getIssues,
   getOverview,
   getProjects,
+  getReleases,
   getReview,
   getReviews,
 } from '@code-whiskers/whiskers-service'
@@ -25,6 +26,8 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
+  // (ﾉ≧∀≦)ﾉ what each release brought in
+  .get('/releases', () => getReleases())
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())
   // ʕ•ᴥ•ʔ every review the cat has done

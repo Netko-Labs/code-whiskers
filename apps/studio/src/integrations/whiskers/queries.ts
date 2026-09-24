@@ -8,6 +8,7 @@ import {
   whiskersOverviewSchema,
   whiskersProjectListSchema,
   whiskersProjectSchema,
+  whiskersReleaseListSchema,
   whiskersReviewDetailSchema,
   whiskersReviewListSchema,
 } from './lib'
@@ -60,3 +61,9 @@ export const whiskersProjectsQuery = () =>
 
 export const createWhiskersProject = (name: string) =>
   postWhiskers('/projects', { name }, whiskersProjectSchema)
+
+export const whiskersReleasesQuery = () =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'releases'],
+    queryFn: () => fetchWhiskers('/releases', whiskersReleaseListSchema),
+  })

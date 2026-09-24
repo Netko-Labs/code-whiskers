@@ -31,3 +31,14 @@ export interface InstanceStats {
     events7d: number
   }
 }
+
+export interface ReleaseSummary {
+  projectId: string
+  release: string
+  environment: string | null
+  firstSeen: Date
+  lastSeen: Date
+  events: number
+  issues: number
+  newIssues: number
+}
