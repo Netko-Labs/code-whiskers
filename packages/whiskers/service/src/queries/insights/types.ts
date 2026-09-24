@@ -1,6 +1,7 @@
 export interface Hotspot {
   repository: string
   directory: string
+  owners: string[]
   findings: number
   critical: number
   high: number
@@ -90,4 +91,9 @@ export interface LogPattern {
   lastSeen: Date
   hourly: number[]
   samples: { timestamp: Date; level: string; message: string }[]
+}
+
+export interface OwnerRule {
+  pattern: string
+  owners: string[]
 }

@@ -1,3 +1,4 @@
+export { ownersOf, parseCodeOwners } from './code-owners'
 export * from './get-hotspots'
 export * from './get-instance-stats'
 export * from './get-log-patterns'

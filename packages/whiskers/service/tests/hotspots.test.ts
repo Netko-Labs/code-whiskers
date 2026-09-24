@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { directoryOf, logPattern } from '../src/queries/insights'
+import { directoryOf, logPattern, ownersOf, parseCodeOwners } from '../src/queries/insights'
 
 describe('directoryOf', () => {
   test('keeps the first three directory levels', () => {
@@ -28,5 +28,25 @@ describe('logPattern', () => {
     expect(logPattern('lookup 550e8400-e29b-41d4-a716-446655440000 for jo@x.io')).toBe(
       'lookup <uuid> for <email>',
     )
+  })
+})
+
+describe('code owners', () => {
+  const rules = parseCodeOwners(`
+# comment
+*                 @netko/everyone
+apps/studio/      @netko/frontend
+/packages/whiskers/ @netko/worker @pejedev
+docs              @netko/docs
+`)
+
+  test('the last matching line wins, like GitHub', () => {
+    expect(ownersOf('apps/studio/src/_', rules)).toEqual(['@netko/frontend'])
+    expect(ownersOf('packages/whiskers/service/_', rules)).toEqual(['@netko/worker', '@pejedev'])
+    expect(ownersOf('scripts/_', rules)).toEqual(['@netko/everyone'])
+  })
+
+  test('an unanchored name matches at any depth', () => {
+    expect(ownersOf('apps/studio/docs/_', rules)).toEqual(['@netko/docs'])
   })
 })
