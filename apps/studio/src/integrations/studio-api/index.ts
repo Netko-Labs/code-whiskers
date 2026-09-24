@@ -1,10 +1,13 @@
 export * from './lib'
 export {
+  alertRulesQuery,
   apiKeysQuery,
   assignTriage,
+  createAlertRule,
   createApiKey,
   createIntegration,
   createRule,
+  deleteAlertRule,
   deleteIntegration,
   deleteRule,
   instanceQuery,
@@ -17,6 +20,7 @@ export {
   revokeApiKey,
   rulesQuery,
   STUDIO_QUERY_KEY,
+  setAlertRuleMuted,
   studioStorageQuery,
   syncGithub,
   testIntegration,

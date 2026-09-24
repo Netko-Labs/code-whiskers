@@ -42,3 +42,33 @@ export async function readFromStudio<T>(
     return { value: fallback, headers: new Headers() }
   }
 }
+
+/** Writes to studio's /api/internal/*; failures are the caller's to log, never to throw past. */
+export async function postToStudio(path: string, body: unknown): Promise<boolean> {
+  const token = whiskersEnvConfig.app.internalToken
+  if (!token) return false
+  try {
+    const response = await fetch(
+      new URL(`/api/internal/${path}`, whiskersEnvConfig.app.webBaseUrl),
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${token}`,
+          accept: 'application/json',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10_000),
+      },
+    )
+    if (!response.ok) logger.warn({ path, status: response.status }, 'studio write failed')
+    return response.ok
+  } catch (error) {
+    logger.warn({ path, err: String(error) }, 'studio unreachable')
+    return false
+  }
+}
+
+export function dropStudioCache(path: string): void {
+  for (const key of cache.keys()) if (key.includes(`/api/internal/${path}`)) cache.delete(key)
+}

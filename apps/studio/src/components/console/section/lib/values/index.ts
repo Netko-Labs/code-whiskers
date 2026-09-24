@@ -9,6 +9,7 @@ import { SAVED_QUERIES_SECTION, SERVICES_SECTION } from './service-sections'
 import { LIVE_LOGS_SECTION, TRACES_SECTION } from './telemetry-sections'
 
 export {
+  ALERT_RULES_SECTION,
   API_KEYS_SECTION,
   CODEBASE_MAP_SECTION,
   INSTANCE_SECTION,

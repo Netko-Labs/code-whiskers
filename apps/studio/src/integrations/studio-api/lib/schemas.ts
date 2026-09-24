@@ -139,3 +139,21 @@ export const integrationSchema = z.object({
 })
 export const integrationListSchema = z.array(integrationSchema)
 export const deliverySchema = z.object({ delivered: z.number(), failed: z.number() })
+
+export const ALERT_KINDS = ['new_issue', 'error_rate', 'review_failed', 'blocking_review'] as const
+
+export const alertRuleSchema = z.object({
+  id: z.string(),
+  installationId: z.number(),
+  organization: z.string(),
+  name: z.string(),
+  kind: z.enum(ALERT_KINDS),
+  projectId: z.string().nullable(),
+  threshold: z.number(),
+  windowMinutes: z.number(),
+  state: z.enum(['armed', 'firing', 'muted']),
+  lastFiredAt: z.coerce.date().nullable(),
+  lastEvaluatedAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+})
+export const alertRuleListSchema = z.array(alertRuleSchema)

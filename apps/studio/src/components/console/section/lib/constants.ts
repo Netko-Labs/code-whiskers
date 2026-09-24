@@ -1,4 +1,5 @@
 import type { SectionView } from '../../shared/console-model'
+import { useAlertRulesSection } from './hooks/use-alert-rules-section'
 import { useApiKeysSection } from './hooks/use-api-keys-section'
 import { useCodebaseMapSection } from './hooks/use-codebase-map-section'
 import { useInstanceSection } from './hooks/use-instance-section'
@@ -26,7 +27,7 @@ export const SECTION_HOOKS: Record<SectionView, SectionHook> = {
   issues: useIssuesSection,
   regressions: useRegressionsSection,
   releases: useReleasesSection,
-  'alert-rules': sampleOf('alert-rules'),
+  'alert-rules': useAlertRulesSection,
   'live-logs': sampleOf('live-logs'),
   traces: sampleOf('traces'),
   services: sampleOf('services'),

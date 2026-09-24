@@ -1,6 +1,13 @@
 import { timingSafeEqual } from 'node:crypto'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { getRulesForRepository, getSuppressions } from '@code-whiskers/studio-service'
+import { AlertFireSchema, IdParamSchema } from '@code-whiskers/studio-domain'
+import {
+  fireAlertRule,
+  getEvaluableRules,
+  getRulesForRepository,
+  getSuppressions,
+  quietAlertRule,
+} from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 
 /**
@@ -38,3 +45,28 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     if (!repo) return status(400, 'repo is required')
     return getRulesForRepository(repo)
   })
+  // (ﾟДﾟ;) the conditions to evaluate — never where they are delivered
+  .get('/alert-rules', ({ headers, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    return getEvaluableRules()
+  })
+  // (ﾟДﾟ;) a condition held: studio delivers, whiskers never sees a webhook URL
+  .post(
+    '/alert-rules/:id/fire',
+    { params: IdParamSchema, body: AlertFireSchema },
+    async ({ headers, params, body, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      const result = await fireAlertRule(params.id, body)
+      if (!result) return status(404, 'Not found')
+      return result
+    },
+  )
+  .post(
+    '/alert-rules/:id/quiet',
+    { params: IdParamSchema },
+    async ({ headers, params, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      await quietAlertRule(params.id)
+      return { ok: true }
+    },
+  )

@@ -24,7 +24,7 @@ fallbacks go away as each lands.
 - [x] API keys → `api_key` (hashed, shown once) — read access to `/v1`
 - [x] Integrations → `integration` (webhook targets) + error-ingest projects with DSNs + GitHub App status
 - [ ] Saved queries → `saved_query`
-- [ ] Alert rules → `alert_rule` + evaluator in whiskers
+- [x] Alert rules → `alert_rule` + evaluator in whiskers, delivered by studio
 
 ## C · Whiskers telemetry (~1–2 days)
 

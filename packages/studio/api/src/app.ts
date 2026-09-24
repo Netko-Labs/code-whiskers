@@ -1,5 +1,6 @@
 import { createLogger } from '@code-whiskers/logger'
 import { Elysia } from 'elysia'
+import { alertRoutes } from './routes/alerts'
 import { githubRoutes } from './routes/github'
 import { instanceRoutes } from './routes/instance'
 import { integrationRoutes } from './routes/integrations'
@@ -32,6 +33,8 @@ export const app = new Elysia({ prefix: '/api' })
   .use(instanceRoutes)
   // (ﾉ◕ヮ◕)ﾉ teammates, for assigning and the Members section
   .use(memberRoutes)
+  // (ﾟДﾟ;) alert rules
+  .use(alertRoutes)
   // (っ˘ω˘ς) webhooks alerts are delivered to
   .use(integrationRoutes)
   // (￣^￣)ゞ API keys for scripts reading /v1
