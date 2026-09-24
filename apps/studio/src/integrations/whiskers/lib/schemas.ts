@@ -71,6 +71,7 @@ export const whiskersHotspotSchema = z.object({
 export const whiskersHotspotListSchema = z.array(whiskersHotspotSchema)
 
 export const whiskersInstanceSchema = z.object({
+  telemetryRetentionDays: z.number().default(7),
   databaseBytes: z.number(),
   stores: z.array(
     z.object({
@@ -113,3 +114,50 @@ export const whiskersReleaseSchema = z.object({
   newIssues: z.number(),
 })
 export const whiskersReleaseListSchema = z.array(whiskersReleaseSchema)
+
+export const whiskersLogSchema = z.object({
+  id: z.number(),
+  projectId: z.string(),
+  service: z.string(),
+  level: z.string(),
+  message: z.string(),
+  attributes: z.record(z.string(), z.unknown()).default({}),
+  traceId: z.string().nullable(),
+  spanId: z.string().nullable(),
+  timestamp: z.coerce.date(),
+})
+export const whiskersLogListSchema = z.array(whiskersLogSchema)
+
+export const whiskersTraceSchema = z.object({
+  traceId: z.string(),
+  rootName: z.string(),
+  rootService: z.string(),
+  startedAt: z.coerce.date(),
+  durationMs: z.number(),
+  spans: z.number(),
+  errors: z.number(),
+})
+export const whiskersTraceListSchema = z.array(whiskersTraceSchema)
+
+export const whiskersSpanSchema = z.object({
+  spanId: z.string(),
+  parentSpanId: z.string().nullable(),
+  service: z.string(),
+  name: z.string(),
+  status: z.enum(['unset', 'ok', 'error']),
+  startTime: z.coerce.date(),
+  durationMs: z.number(),
+})
+export const whiskersSpanListSchema = z.array(whiskersSpanSchema)
+
+export const whiskersServiceSchema = z.object({
+  service: z.string(),
+  logs: z.number(),
+  logErrors: z.number(),
+  spans: z.number(),
+  spanErrors: z.number(),
+  p50Ms: z.number().nullable(),
+  p95Ms: z.number().nullable(),
+  lastSeen: z.coerce.date().nullable(),
+})
+export const whiskersServiceListSchema = z.array(whiskersServiceSchema)

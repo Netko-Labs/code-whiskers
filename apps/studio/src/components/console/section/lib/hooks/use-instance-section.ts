@@ -66,7 +66,7 @@ export function useInstanceSection(tab: number): SectionDefinition {
         text(store.rows, { mono: true }),
         text(store.oldest ? `${formatAge(store.oldest)}` : '—', { tone: 'muted', align: 'end' }),
       ]),
-      footer: 'Nothing is expired yet — retention arrives with telemetry ingest',
+      footer: `Logs and spans are deleted after ${worker?.telemetryRetentionDays ?? 7} days (TELEMETRY_RETENTION_DAYS) · reviews, issues and events are kept`,
     }
     const throughput: SectionTable = {
       grid: ACTIVITY_GRID,

@@ -8,4 +8,6 @@ export const STORES = [
   { table: 'issue', oldest: 'first_seen' },
   { table: 'event', oldest: 'received_at' },
   { table: 'project', oldest: 'created_at' },
+  { table: 'log_line', oldest: 'timestamp' },
+  { table: 'span', oldest: 'start_time' },
 ] as const

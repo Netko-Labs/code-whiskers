@@ -19,6 +19,7 @@ export interface StoreStats {
 }
 
 export interface InstanceStats {
+  telemetryRetentionDays: number
   databaseBytes: number
   stores: StoreStats[]
   activity: {
@@ -41,4 +42,32 @@ export interface ReleaseSummary {
   events: number
   issues: number
   newIssues: number
+}
+
+export interface LogFilter {
+  service?: string
+  level?: 'error' | 'warn'
+  query?: string
+  before?: number
+}
+
+export interface TraceSummary {
+  traceId: string
+  rootName: string
+  rootService: string
+  startedAt: Date
+  durationMs: number
+  spans: number
+  errors: number
+}
+
+export interface ServiceSummary {
+  service: string
+  logs: number
+  logErrors: number
+  spans: number
+  spanErrors: number
+  p50Ms: number | null
+  p95Ms: number | null
+  lastSeen: Date | null
 }

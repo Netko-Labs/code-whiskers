@@ -25,6 +25,9 @@ const whiskersConfig: WhiskersConfig = {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
     model: process.env.REVIEW_MODEL ?? 'openai/gpt-6-luna',
   },
+  telemetry: {
+    retentionDays: Number(process.env.TELEMETRY_RETENTION_DAYS ?? 7),
+  },
   fix: {
     maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),
     execTimeoutMs: Number(process.env.FIX_AGENT_EXEC_TIMEOUT_MS ?? 120_000),

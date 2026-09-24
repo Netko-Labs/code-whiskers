@@ -77,10 +77,22 @@ Migrations run as the pre-deployment command. Studio serves the public host; whi
 is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify network. A first deploy
 skips the pre-deployment command (no running container yet), so deploy twice.
 
-Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`,
-`WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`,
-`WEB_BASE_URL`, `CORS`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`,
-`GITHUB_BOT_HANDLE`, `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN`.
+Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY` (any length;
+encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`
+(default `code-whiskers`), `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`,
+`GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
+`OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
+`TELEMETRY_RETENTION_DAYS` (default 7).
+
+### Sending data in
+
+- **Errors** — create a project under Integrations → Error ingest and pass its DSN to any Sentry
+  SDK's `init`.
+- **Logs and traces** — OTLP over HTTP with JSON bodies: point an exporter at
+  `https://<host>/otlp` with `OTEL_EXPORTER_OTLP_PROTOCOL=http/json` and the header
+  `Authorization: Bearer <project public key>`. Protobuf is refused with a 415 that says so.
+- **Reading** — `/v1/*` answers a signed-in browser or `Authorization: Bearer cw_…` from an API key
+  (read-only).
 
 ## Verify
 

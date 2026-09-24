@@ -5,3 +5,8 @@ export function directoryOf(file: string, depth = HOTSPOT_DIRECTORY_DEPTH): stri
   const directories = file.split('/').slice(0, -1).filter(Boolean)
   return directories.slice(0, depth).join('/') || '.'
 }
+
+/** Raw SQL returns Date objects; stringifying one drops its milliseconds. */
+export function asDate(value: unknown): Date {
+  return value instanceof Date ? value : new Date(String(value))
+}

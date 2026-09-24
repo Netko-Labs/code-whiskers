@@ -1,7 +1,7 @@
 import { createLogger } from '@code-whiskers/logger'
 import { app } from '@code-whiskers/whiskers-api'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { startAlertLoop } from '@code-whiskers/whiskers-service'
+import { startAlertLoop, startRetentionLoop } from '@code-whiskers/whiskers-service'
 
 const logger = createLogger('whiskers')
 
@@ -10,3 +10,4 @@ app.listen(whiskersEnvConfig.app.port)
 const url = process.env.PORTLESS_URL ?? `http://localhost:${whiskersEnvConfig.app.port}`
 logger.info(`🚀 whiskers server listening on ${url}`)
 startAlertLoop()
+startRetentionLoop()

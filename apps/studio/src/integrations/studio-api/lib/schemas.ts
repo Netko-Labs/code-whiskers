@@ -157,3 +157,16 @@ export const alertRuleSchema = z.object({
   createdAt: z.coerce.date(),
 })
 export const alertRuleListSchema = z.array(alertRuleSchema)
+
+export const SAVED_QUERY_SECTIONS = ['live-logs', 'traces', 'issues'] as const
+
+export const savedQuerySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  section: z.enum(SAVED_QUERY_SECTIONS),
+  tab: z.number(),
+  query: z.string().nullable(),
+  service: z.string().nullable(),
+  createdAt: z.coerce.date(),
+})
+export const savedQueryListSchema = z.array(savedQuerySchema)

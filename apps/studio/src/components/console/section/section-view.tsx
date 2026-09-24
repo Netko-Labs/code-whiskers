@@ -7,24 +7,26 @@ import {
   type SectionViewProps,
 } from './lib'
 import { SectionActions } from './section-actions'
+import { SectionSearchBox } from './section-search-box'
 import { SectionTable } from './section-table'
 
 const TABLE_MIN_WIDTH = 1060
 
 /** Keyed by section so each one mounts only its own data hook. */
-export function SectionView({ section, tab }: SectionViewProps) {
+export function SectionView({ section, tab, filters }: SectionViewProps) {
   return (
     <SectionScreen
       key={section}
       section={section}
       tab={tab}
+      filters={filters}
       useDefinition={SECTION_HOOKS[section]}
     />
   )
 }
 
-function SectionScreen({ section, tab, useDefinition }: SectionScreenProps) {
-  const definition = useDefinition(tab)
+function SectionScreen({ section, tab, filters, useDefinition }: SectionScreenProps) {
+  const definition = useDefinition(tab, filters)
   const table = typeof definition.table === 'function' ? definition.table(tab) : definition.table
 
   return (
@@ -65,7 +67,7 @@ function SectionScreen({ section, tab, useDefinition }: SectionScreenProps) {
             key={label}
             to="/console/$section"
             params={{ section }}
-            search={{ tab: index }}
+            search={{ ...filters, tab: index }}
             className={cn(
               'rounded-lg border px-2.5 py-1 font-medium text-xs',
               index === tab
@@ -76,6 +78,14 @@ function SectionScreen({ section, tab, useDefinition }: SectionScreenProps) {
             {label}
           </Link>
         ))}
+        {(definition.searchPlaceholder || filters.service) && (
+          <SectionSearchBox
+            section={section}
+            tab={tab}
+            filters={filters}
+            placeholder={definition.searchPlaceholder ?? 'Search…'}
+          />
+        )}
         <span className="ml-auto text-muted-foreground text-xs">{table.rows.length} rows</span>
       </div>
 

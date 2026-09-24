@@ -1,5 +1,6 @@
 export * from './get-hotspots'
 export * from './get-instance-stats'
 export * from './get-releases'
+export * from './get-telemetry'
 export type * from './types'
 export { directoryOf } from './utils'

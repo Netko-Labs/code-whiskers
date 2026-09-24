@@ -22,7 +22,8 @@ async function storeOf(table: string, oldestColumn: string): Promise<StudioStore
     table,
     bytes: Number(row.bytes ?? 0),
     rows: Number(row.rows ?? 0),
-    oldest: row.oldest ? new Date(String(row.oldest)) : null,
+    oldest:
+      row.oldest instanceof Date ? row.oldest : row.oldest ? new Date(String(row.oldest)) : null,
   }
 }
 

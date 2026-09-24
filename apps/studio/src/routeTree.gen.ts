@@ -16,6 +16,7 @@ import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
+import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -56,6 +57,11 @@ const ConsoleSectionRoute = ConsoleSectionRouteImport.update({
   path: '/$section',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const OtlpSplatRoute = OtlpSplatRouteImport.update({
+  id: '/otlp/$',
+  path: '/otlp/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const V1SplatRoute = V1SplatRouteImport.update({
   id: '/v1/$',
   path: '/v1/$',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console/': typeof ConsoleIndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console': typeof ConsoleIndexRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console/': typeof ConsoleIndexRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/console/$section'
+    | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
     | '/console/'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/console/$section'
+    | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
     | '/console'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/console/$section'
+    | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
     | '/console/'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  OtlpSplatRoute: typeof OtlpSplatRoute
   V1SplatRoute: typeof V1SplatRoute
   WebhooksSplatRoute: typeof WebhooksSplatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleSectionRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/otlp/$': {
+      id: '/otlp/$'
+      path: '/otlp/$'
+      fullPath: '/otlp/$'
+      preLoaderRoute: typeof OtlpSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/v1/$': {
       id: '/v1/$'
       path: '/v1/$'
@@ -271,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiHealthRoute: ApiHealthRoute,
+  OtlpSplatRoute: OtlpSplatRoute,
   V1SplatRoute: V1SplatRoute,
   WebhooksSplatRoute: WebhooksSplatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

@@ -15,6 +15,13 @@
       "when": 1789793529365,
       "tag": "0001_deep_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790230835621,
+      "tag": "0002_tranquil_random",
+      "breakpoints": true
     }
   ]
 }

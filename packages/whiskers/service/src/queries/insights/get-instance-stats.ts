@@ -1,7 +1,9 @@
+import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { db } from '@code-whiskers/whiskers-repository'
 import { sql } from 'drizzle-orm'
 import { EXACT_COUNT_LIMIT, STORES } from './constants'
 import type { InstanceStats, StoreStats } from './types'
+import { asDate } from './utils'
 
 type Row = Record<string, unknown>
 
@@ -35,7 +37,7 @@ async function storeStats(table: string, oldestColumn: string): Promise<StoreSta
     bytes: num(meta.bytes),
     rows: isEstimate ? num(meta.estimate) : num(counted.rows),
     isEstimate,
-    oldest: counted.oldest ? new Date(String(counted.oldest)) : null,
+    oldest: counted.oldest ? asDate(counted.oldest) : null,
   }
 }
 
@@ -62,6 +64,7 @@ export const getInstanceStats = async (): Promise<InstanceStats> => {
   const review = first(reviews)
   const event = first(events)
   return {
+    telemetryRetentionDays: whiskersEnvConfig.telemetry.retentionDays,
     databaseBytes: num(first(size).bytes),
     stores,
     activity: {

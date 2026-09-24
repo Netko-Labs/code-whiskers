@@ -22,6 +22,9 @@ export const WhiskersConfigSchema = z.object({
     apiKey: z.string().default(''),
     model: z.string().default('openai/gpt-6-luna'),
   }),
+  telemetry: z.object({
+    retentionDays: z.number().int().positive().default(7),
+  }),
   fix: z.object({
     maxTurns: z.number().int().positive().default(12),
     execTimeoutMs: z.number().int().positive().default(120_000),

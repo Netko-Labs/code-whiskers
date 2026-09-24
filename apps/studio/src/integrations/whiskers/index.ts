@@ -5,9 +5,13 @@ export {
   whiskersHotspotsQuery,
   whiskersInstanceQuery,
   whiskersIssuesQuery,
+  whiskersLogsQuery,
   whiskersOverviewQuery,
   whiskersProjectsQuery,
   whiskersReleasesQuery,
   whiskersReviewQuery,
   whiskersReviewsQuery,
+  whiskersServicesQuery,
+  whiskersTraceQuery,
+  whiskersTracesQuery,
 } from './queries'

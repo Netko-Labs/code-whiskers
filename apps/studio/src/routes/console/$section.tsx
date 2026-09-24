@@ -4,11 +4,11 @@ import { parseSectionTab, toSectionView } from '@/components/console/shared/cons
 
 function SectionPage() {
   const { section } = Route.useParams()
-  const { tab } = Route.useSearch()
+  const { tab, q, service } = Route.useSearch()
   const view = toSectionView(section)
   if (!view) throw notFound()
 
-  return <SectionView section={view} tab={tab} />
+  return <SectionView section={view} tab={tab} filters={{ q, service }} />
 }
 
 export const Route = createFileRoute('/console/$section')({

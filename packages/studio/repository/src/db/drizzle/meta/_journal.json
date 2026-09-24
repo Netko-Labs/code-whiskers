@@ -71,6 +71,13 @@
       "when": 1790230622367,
       "tag": "0009_wandering_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790231168548,
+      "tag": "0010_huge_dagger",
+      "breakpoints": true
     }
   ]
 }

@@ -83,7 +83,15 @@ export type SectionRowAction = {
   tone?: 'danger'
 }
 
-export type SectionRowLink = { kind: 'triage'; itemId: string } | { kind: 'external'; href: string }
+export type SectionFilters = {
+  q?: string
+  service?: string
+}
+
+export type SectionRowLink =
+  | { kind: 'triage'; itemId: string }
+  | { kind: 'external'; href: string }
+  | { kind: 'section'; section: SectionView; tab?: number; filters?: SectionFilters }
 
 export type SectionTable = {
   grid: string
@@ -102,6 +110,8 @@ export type SectionDefinition = {
   tabs: string[]
   /** A fixture shown until the real source has rows; the view labels it. */
   sample?: boolean
+  /** Shows a search box bound to the `q` filter. */
+  searchPlaceholder?: string
   /** Tab-dependent sections return a different table per tab; the rest ignore the index. */
   table: SectionTable | ((tab: number) => SectionTable)
 }

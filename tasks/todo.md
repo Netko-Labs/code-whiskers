@@ -23,14 +23,14 @@ fallbacks go away as each lands.
 - [x] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
 - [x] API keys → `api_key` (hashed, shown once) — read access to `/v1`
 - [x] Integrations → `integration` (webhook targets) + error-ingest projects with DSNs + GitHub App status
-- [ ] Saved queries → `saved_query`
+- [x] Saved queries → `saved_query`, saved from Live logs / Traces
 - [x] Alert rules → `alert_rule` + evaluator in whiskers, delivered by studio
 
 ## C · Whiskers telemetry (~1–2 days)
 
 - [x] Releases ← `event.release`; Regressions ← resolved issues that come back (also back in the inbox)
-- [ ] Live logs ← OTLP/HTTP logs → `log_line` (daily partitions, BRIN) + live tail
-- [ ] Traces + Services ← OTLP/HTTP traces → `span`, `service` rollup
+- [x] Live logs ← OTLP/HTTP JSON → `log_line` (BRIN on time, retention loop) + 5s tail
+- [x] Traces + Services ← OTLP/HTTP JSON → `span`; waterfall per trace; services from logs+spans
 
 ## Acceptance
 

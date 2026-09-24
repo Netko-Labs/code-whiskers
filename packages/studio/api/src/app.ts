@@ -8,6 +8,7 @@ import { internalRoutes } from './routes/internal'
 import { keyRoutes } from './routes/keys'
 import { memberRoutes } from './routes/members'
 import { ruleRoutes } from './routes/rules'
+import { savedQueryRoutes } from './routes/saved-queries'
 import { sessionRoutes } from './routes/session'
 import { triageRoutes } from './routes/triage'
 import { forwardToWhiskers } from './shared'
@@ -41,6 +42,8 @@ export const app = new Elysia({ prefix: '/api' })
   .use(keyRoutes)
   // (｀・ω・´) review rules, written by humans, read by the reviewer
   .use(ruleRoutes)
+  // (￣▽￣)b saved telemetry views
+  .use(savedQueryRoutes)
   // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided
   .use(internalRoutes)
   // (•̀ᴗ•́) resolve, approve, dismiss — durable, not just in the browser

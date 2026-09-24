@@ -1,6 +1,7 @@
 import { db } from '@code-whiskers/whiskers-repository'
 import { sql } from 'drizzle-orm'
 import type { ReleaseSummary } from './types'
+import { asDate } from './utils'
 
 type Row = Record<string, unknown>
 
@@ -34,8 +35,8 @@ export const getReleases = async (): Promise<ReleaseSummary[]> => {
     projectId: String(row.project_id),
     release: String(row.release),
     environment: row.environment ? String(row.environment) : null,
-    firstSeen: new Date(String(row.first_seen)),
-    lastSeen: new Date(String(row.last_seen)),
+    firstSeen: asDate(row.first_seen),
+    lastSeen: asDate(row.last_seen),
     events: Number(row.events),
     issues: Number(row.issues),
     newIssues: Number(row.new_issues),

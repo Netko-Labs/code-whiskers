@@ -3,6 +3,7 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { Elysia } from 'elysia'
 import { ingestRoutes } from './routes/ingest'
 import { insightRoutes } from './routes/insights'
+import { otlpRoutes } from './routes/otlp'
 import { webhookRoutes } from './routes/webhooks'
 
 const logger = createLogger('whiskers-api')
@@ -41,5 +42,6 @@ export const app = new Elysia()
   .use(webhookRoutes)
   .use(ingestRoutes)
   .use(insightRoutes)
+  .use(otlpRoutes)
 
 export type App = typeof app

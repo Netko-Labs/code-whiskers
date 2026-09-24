@@ -1,14 +1,22 @@
-import { ProjectCreateSchema } from '@code-whiskers/whiskers-domain'
+import {
+  LogQuerySchema,
+  ProjectCreateSchema,
+  TraceQuerySchema,
+} from '@code-whiskers/whiskers-domain'
 import {
   createProject,
   getHotspots,
   getInstanceStats,
   getIssues,
+  getLogs,
   getOverview,
   getProjects,
   getReleases,
   getReview,
   getReviews,
+  getServices,
+  getTrace,
+  getTraces,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 import { z } from 'zod'
@@ -26,6 +34,15 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
+  // (｀-´)> log lines, newest first; `before` pages back by id
+  .get('/logs', { query: LogQuerySchema }, ({ query }) =>
+    getLogs({ service: query.service, level: query.level, query: query.q, before: query.before }),
+  )
+  // (｀-´)> traces from the last day, and one trace's spans
+  .get('/traces', { query: TraceQuerySchema }, ({ query }) => getTraces(query.service))
+  .get('/traces/:traceId', ({ params }) => getTrace(params.traceId))
+  // (｀-´)> every service that logged or traced today
+  .get('/services', () => getServices())
   // (ﾉ≧∀≦)ﾉ what each release brought in
   .get('/releases', () => getReleases())
   // (・_・ヾ where findings keep landing

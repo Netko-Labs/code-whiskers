@@ -16,6 +16,8 @@ import {
   type ReviewRuleInput,
   repositoryListSchema,
   reviewRuleListSchema,
+  type SavedQueryInput,
+  savedQueryListSchema,
   studioStorageSchema,
   syncResultSchema,
   type TriageDecision,
@@ -187,3 +189,15 @@ export const setAlertRuleMuted = (id: string, isMuted: boolean) =>
   fetchStudio(`/alerts/${id}`, okSchema, 'PATCH', { isMuted })
 
 export const deleteAlertRule = (id: string) => fetchStudio(`/alerts/${id}`, okSchema, 'DELETE')
+
+export const savedQueriesQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'saved-queries'],
+    queryFn: () => fetchStudio('/saved-queries', savedQueryListSchema),
+  })
+
+export const createSavedQuery = (input: SavedQueryInput) =>
+  fetchStudio('/saved-queries', createdSchema, 'POST', input)
+
+export const deleteSavedQuery = (id: string) =>
+  fetchStudio(`/saved-queries/${id}`, okSchema, 'DELETE')

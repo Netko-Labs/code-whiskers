@@ -20,7 +20,15 @@ export function parseTriageSearch(search: TriageSearchInput): TriageSearch {
   }
 }
 
+function text(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim().slice(0, 200) : undefined
+}
+
 export function parseSectionTab(search: SectionSearchInput): SectionSearch {
   const tab = Number(search.tab)
-  return { tab: Number.isInteger(tab) && tab >= 0 ? tab : 0 }
+  return {
+    tab: Number.isInteger(tab) && tab >= 0 ? tab : 0,
+    q: text(search.q),
+    service: text(search.service),
+  }
 }

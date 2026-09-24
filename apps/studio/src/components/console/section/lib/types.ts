@@ -2,6 +2,7 @@ import type {
   SectionAction,
   SectionCell,
   SectionDefinition,
+  SectionFilters,
   SectionForm,
   SectionFormResult,
   SectionRowAction,
@@ -12,6 +13,7 @@ import type {
 export type SectionViewProps = {
   section: SectionView
   tab: number
+  filters: SectionFilters
 }
 
 export type SectionTableProps = {
@@ -23,12 +25,20 @@ export type SectionCellProps = {
   cell: SectionCell
 }
 
-export type SectionHook = (tab: number) => SectionDefinition
+export type SectionHook = (tab: number, filters: SectionFilters) => SectionDefinition
 
 export type SectionScreenProps = {
   section: SectionView
   tab: number
+  filters: SectionFilters
   useDefinition: SectionHook
+}
+
+export type SectionSearchBoxProps = {
+  section: SectionView
+  tab: number
+  filters: SectionFilters
+  placeholder: string
 }
 
 export type SectionActionsProps = {

@@ -1,10 +1,13 @@
+import { createSavedQuery } from '@/integrations/studio-api'
 import type { WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
 import type {
   ConsoleSeverity,
   PillTone,
+  SectionAction,
   SectionCell,
+  SectionFilters,
   SectionTextCell,
 } from '../../shared/console-model'
 
@@ -97,4 +100,42 @@ export function textCell(
 export function dsnFor(origin: string, project: { id: string; publicKey: string }): string {
   const url = new URL(origin)
   return `${url.protocol}//${project.publicKey}@${url.host}/${project.id}`
+}
+
+/** "Save view" for any filterable section: the tab and filters as they are right now. */
+export function saveViewAction(
+  section: 'live-logs' | 'traces' | 'issues',
+  tab: number,
+  filters: SectionFilters,
+  onSaved: () => Promise<unknown>,
+): SectionAction {
+  return {
+    label: 'Save view',
+    variant: 'outline',
+    form: {
+      title: 'Save this view',
+      description: 'The tab, search and service filter come back exactly as they are now.',
+      submitLabel: 'Save',
+      fields: [
+        {
+          name: 'name',
+          label: 'Name',
+          kind: 'text',
+          placeholder: 'Checkout errors',
+          isRequired: true,
+        },
+      ],
+      onSubmit: async (values) => {
+        await createSavedQuery({
+          name: values.name ?? '',
+          section,
+          tab,
+          query: filters.q ?? null,
+          service: filters.service ?? null,
+        })
+        await onSaved()
+        return undefined
+      },
+    },
+  }
 }

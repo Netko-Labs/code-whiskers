@@ -13,8 +13,12 @@ export type TriageSearchInput = {
 
 export type SectionSearch = {
   tab: number
+  q?: string
+  service?: string
 }
 
 export type SectionSearchInput = {
   tab?: number
+  q?: string
+  service?: string
 } & SearchSchemaInput

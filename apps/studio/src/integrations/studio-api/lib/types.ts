@@ -11,6 +11,8 @@ import type {
   REVIEW_RULE_EFFECTS,
   repositorySchema,
   reviewRuleSchema,
+  SAVED_QUERY_SECTIONS,
+  savedQuerySchema,
   studioStorageSchema,
   syncResultSchema,
   TRIAGE_ITEM_KINDS,
@@ -69,4 +71,12 @@ export type AlertRuleInput = {
   projectId: string | null
   threshold: number
   windowMinutes: number
+}
+export type SavedQuery = z.infer<typeof savedQuerySchema>
+export type SavedQueryInput = {
+  name: string
+  section: (typeof SAVED_QUERY_SECTIONS)[number]
+  tab: number
+  query: string | null
+  service: string | null
 }

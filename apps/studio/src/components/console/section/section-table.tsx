@@ -57,6 +57,20 @@ export function SectionTable({ table, minWidth }: SectionTableProps) {
             </Link>
           )
         }
+        if (link?.kind === 'section') {
+          return (
+            <Link
+              key={key}
+              to="/console/$section"
+              params={{ section: link.section }}
+              search={{ tab: link.tab ?? 0, ...link.filters }}
+              className={className}
+              style={style}
+            >
+              {cells}
+            </Link>
+          )
+        }
         if (link?.kind === 'external') {
           return (
             <a
