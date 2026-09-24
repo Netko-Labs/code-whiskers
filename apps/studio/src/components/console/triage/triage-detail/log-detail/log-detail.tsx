@@ -28,7 +28,7 @@ export function LogDetail({ item }: { item: ConsoleItem }) {
           ))}
         </div>
         <div className="flex justify-between font-mono text-[10px] text-faint">
-          {AXIS.map((label) => (
+          {(item.axis ?? AXIS).map((label) => (
             <span key={label}>{label}</span>
           ))}
         </div>

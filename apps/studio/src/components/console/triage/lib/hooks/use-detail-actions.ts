@@ -88,6 +88,12 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         const target = live()
         if (!target) return
         const current = readTriage(queryClient, target)?.status
+        if (item.kind === 'log') {
+          if (current === 'tracked')
+            decide(queryClient, target, 'open', `Stopped tracking ${item.handle}`)
+          else decide(queryClient, target, 'tracked', `Tracking ${item.handle}`)
+          return
+        }
         if (item.kind === 'review') {
           if (current === 'approved') {
             decide(queryClient, target, 'open', `Approval withdrawn on ${item.handle}`)

@@ -1,5 +1,5 @@
 import type { TriageItemRef, TriageRecord } from '@/integrations/studio-api'
-import type { WhiskersIssue, WhiskersReview } from '@/integrations/whiskers'
+import type { WhiskersIssue, WhiskersLogPattern, WhiskersReview } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { ConsoleItem, ConsoleSeverity, TriageBucket, TriageStatus } from '../console-model'
 
@@ -187,4 +187,52 @@ export function inBucket(
   if (bucket === 'assigned') return !!viewerId && status.assigneeUserId === viewerId
   if (bucket === 'snoozed') return status.snoozedUntil !== null
   return status.snoozedUntil === null
+}
+
+const LOG_AXIS = ['-24h', '-18h', '-12h', '-6h', 'now']
+
+function logLevel(level: string): 'ERROR' | 'WARN' | 'INFO' {
+  if (level === 'ERROR' || level === 'FATAL') return 'ERROR'
+  return level === 'WARN' ? 'WARN' : 'INFO'
+}
+
+/** One triage item per error-log shape: what it says, where, and how often across the day. */
+export function logPatternToConsoleItem(pattern: WhiskersLogPattern): ConsoleItem {
+  const scope = `project:${pattern.projectId}`
+  const peak = Math.max(1, ...pattern.hourly)
+  const lastHour = pattern.hourly[pattern.hourly.length - 1] ?? 0
+  return {
+    id: `${scope}/log:${pattern.hash}`,
+    handle: `log ${pattern.hash.slice(0, 6)}`,
+    triage: { scope, itemKind: 'log', itemRef: pattern.hash },
+    at: pattern.lastSeen,
+    kind: 'log',
+    label: `Logs · ${pattern.service}`,
+    severity: lastHour > 0 ? 'critical' : 'warning',
+    age: formatAge(pattern.lastSeen),
+    title: pattern.pattern,
+    subtitle: `${pattern.service} · project ${pattern.projectId} · first ${formatAge(pattern.firstSeen)} ago`,
+    meta: `${pattern.count} ${pattern.count === 1 ? 'line' : 'lines'} in 24h`,
+    badge: 'LOG PATTERN',
+    badge2: `${pattern.count} ${pattern.count === 1 ? 'LINE' : 'LINES'}`,
+    confidence: 'grouped by message shape',
+    read: `${pattern.count} error lines from ${pattern.service} share this shape; ${lastHour} in the last hour.`,
+    fixLabel: '',
+    evidenceLabel: '',
+    metricLabel: 'Matching lines per hour',
+    metricSub: 'last 24 hours',
+    metric: pattern.count.toLocaleString(),
+    metricDelta: lastHour ? `${lastHour} this hour` : 'quiet this hour',
+    matchCount: `${pattern.samples.length} newest of ${pattern.count}`,
+    bars: pattern.hourly.map((count) => ({
+      percent: Math.round((count / peak) * 100),
+      hot: count === peak && count > 0,
+    })),
+    axis: LOG_AXIS,
+    lines: pattern.samples.map((line) => ({
+      time: line.timestamp.toLocaleTimeString(undefined, { hour12: false }),
+      level: logLevel(line.level),
+      message: line.message,
+    })),
+  }
 }

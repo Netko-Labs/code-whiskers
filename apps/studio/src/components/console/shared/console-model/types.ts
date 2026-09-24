@@ -102,6 +102,7 @@ export type ConsoleItem = {
   metricDelta?: string
   matchCount?: string
   bars?: MetricBar[]
+  axis?: string[]
   lines?: LogLine[]
 }
 

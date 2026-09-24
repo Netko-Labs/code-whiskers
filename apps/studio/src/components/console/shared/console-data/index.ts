@@ -11,6 +11,7 @@ export {
   initialsOf,
   issueToConsoleItem,
   latestReviewPerPullRequest,
+  logPatternToConsoleItem,
   reviewToConsoleItem,
   statusFor,
   triageKey,

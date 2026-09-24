@@ -9,6 +9,7 @@ import {
   getInstanceStats,
   getIssues,
   getLatestEvent,
+  getLogPatterns,
   getLogs,
   getOverview,
   getProjects,
@@ -39,6 +40,8 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   .get('/logs', { query: LogQuerySchema }, ({ query }) =>
     getLogs({ service: query.service, level: query.level, query: query.q, before: query.before }),
   )
+  // (｀-´)> error log lines grouped by shape — the log side of triage
+  .get('/log-patterns', () => getLogPatterns())
   // (｀-´)> traces from the last day, and one trace's spans
   .get('/traces', { query: TraceQuerySchema }, ({ query }) => getTraces(query.service))
   .get('/traces/:traceId', ({ params }) => getTrace(params.traceId))

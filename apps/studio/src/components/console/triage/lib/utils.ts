@@ -39,13 +39,12 @@ export function rowLabel(item: ConsoleItem, status: TriageStatus) {
 
 export function primaryLabel(item: ConsoleItem, status: TriageStatus) {
   if (item.kind === 'review') return status.approved ? 'Withdraw approval' : 'Approve'
-  if (item.kind === 'log') return status.tracked ? 'Tracked' : 'Create issue'
+  if (item.kind === 'log') return status.tracked ? 'Untrack' : 'Track'
   return status.resolved ? 'Reopen' : 'Resolve'
 }
 
 export function secondaryLabel(item: ConsoleItem, status: TriageStatus) {
   if (item.kind === 'review') return 'Open on GitHub'
-  if (item.kind === 'log') return 'Mute 1h'
   return status.snoozedUntil ? 'Unsnooze' : 'Snooze 1 day'
 }
 
@@ -77,7 +76,8 @@ export function bannerFor(item: ConsoleItem, status: TriageStatus): TriageBanner
       meta: decided,
       tone: 'ok',
     }
-  if (status.tracked) return { message: 'Tracked', meta: decided, tone: 'info' }
+  if (status.tracked)
+    return { message: 'Tracked — the team is on this pattern', meta: decided, tone: 'info' }
   if (status.snoozedUntil)
     return {
       message: `Snoozed until ${formatUntil(status.snoozedUntil)}`,

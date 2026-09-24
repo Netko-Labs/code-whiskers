@@ -198,3 +198,18 @@ export const whiskersEventDetailSchema = z.object({
     }),
   ),
 })
+
+export const whiskersLogPatternSchema = z.object({
+  hash: z.string(),
+  projectId: z.string(),
+  service: z.string(),
+  pattern: z.string(),
+  count: z.number(),
+  firstSeen: z.coerce.date(),
+  lastSeen: z.coerce.date(),
+  hourly: z.array(z.number()),
+  samples: z.array(
+    z.object({ timestamp: z.coerce.date(), level: z.string(), message: z.string() }),
+  ),
+})
+export const whiskersLogPatternListSchema = z.array(whiskersLogPatternSchema)

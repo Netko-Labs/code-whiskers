@@ -8,6 +8,7 @@ import {
   whiskersInstanceSchema,
   whiskersIssueListSchema,
   whiskersLogListSchema,
+  whiskersLogPatternListSchema,
   whiskersOverviewSchema,
   whiskersProjectListSchema,
   whiskersProjectSchema,
@@ -116,4 +117,10 @@ export const whiskersLatestEventQuery = (issueId: string) =>
   queryOptions({
     queryKey: [WHISKERS_QUERY_KEY, 'latest-event', issueId],
     queryFn: () => fetchWhiskers(`/issues/${issueId}/latest-event`, whiskersEventDetailSchema),
+  })
+
+export const whiskersLogPatternsQuery = () =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'log-patterns'],
+    queryFn: () => fetchWhiskers('/log-patterns', whiskersLogPatternListSchema),
   })

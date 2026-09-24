@@ -10,3 +10,19 @@ export function directoryOf(file: string, depth = HOTSPOT_DIRECTORY_DEPTH): stri
 export function asDate(value: unknown): Date {
   return value instanceof Date ? value : new Date(String(value))
 }
+
+/**
+ * Two log lines are the same problem when they differ only in ids, counts and quoted values —
+ * `user 42 failed` and `user 97 failed` group together.
+ */
+export function logPattern(message: string): string {
+  return message
+    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '<uuid>')
+    .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
+    .replace(/"[^"]*"|'[^']*'/g, '<str>')
+    .replace(/\b[0-9a-f]{8,}\b/gi, '<hex>')
+    .replace(/(?<![A-Za-z_\d])\d+(\.\d+)?/g, '<n>')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160)
+}

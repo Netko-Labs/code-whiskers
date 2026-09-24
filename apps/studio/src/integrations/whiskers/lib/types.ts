@@ -5,6 +5,7 @@ import type {
   whiskersHotspotSchema,
   whiskersInstanceSchema,
   whiskersIssueSchema,
+  whiskersLogPatternSchema,
   whiskersLogSchema,
   whiskersOverviewSchema,
   whiskersProjectSchema,
@@ -31,3 +32,4 @@ export type WhiskersSpan = z.infer<typeof whiskersSpanSchema>
 export type WhiskersService = z.infer<typeof whiskersServiceSchema>
 export type LogQuery = { service?: string; level?: 'error' | 'warn'; q?: string }
 export type WhiskersEventDetail = z.infer<typeof whiskersEventDetailSchema>
+export type WhiskersLogPattern = z.infer<typeof whiskersLogPatternSchema>

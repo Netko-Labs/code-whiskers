@@ -11,3 +11,7 @@ export const STORES = [
   { table: 'log_line', oldest: 'timestamp' },
   { table: 'span', oldest: 'start_time' },
 ] as const
+export const LOG_PATTERN_WINDOW_HOURS = 24
+export const LOG_PATTERN_SCAN_LIMIT = 5_000
+export const LOG_PATTERN_LIMIT = 50
+export const LOG_PATTERN_SAMPLES = 8

@@ -15,7 +15,7 @@ export const ERROR_TABS = [
 ] as const
 
 export const SNOOZE_MS = 24 * 60 * 60 * 1000
-export const DRAFT_HINT = 'Visible to everyone on this repository · ⌘↵ to post'
+export const DRAFT_HINT = 'Visible to your team · ⌘↵ to post'
 export const KEYBOARD_HINT = 'j / k'
 export const LIVE_NOTE = 'Live — refreshes when you return to this tab'
 export const SAMPLE_ACTION_NOTE = 'Sample data — connect a repository to act on real items'

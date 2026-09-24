@@ -71,3 +71,15 @@ export interface ServiceSummary {
   p95Ms: number | null
   lastSeen: Date | null
 }
+
+export interface LogPattern {
+  hash: string
+  projectId: string
+  service: string
+  pattern: string
+  count: number
+  firstSeen: Date
+  lastSeen: Date
+  hourly: number[]
+  samples: { timestamp: Date; level: string; message: string }[]
+}
