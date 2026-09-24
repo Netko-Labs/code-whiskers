@@ -18,6 +18,9 @@ export const reviewTable = pgTable('review', {
   verdict: text('verdict', { enum: ['approve', 'request_changes', 'comment'] }),
   summary: text('summary'),
   model: text('model'),
+  inputTokens: integer('input_tokens'),
+  outputTokens: integer('output_tokens'),
+  reasoningTokens: integer('reasoning_tokens'),
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())
     .notNull(),

@@ -52,7 +52,12 @@ export const getInstanceStats = async (): Promise<InstanceStats> => {
         count(*) filter (where status = 'failed' and created_at > now() - interval '7 days') as failed_7d,
         count(*) filter (where status in ('pending', 'running')) as in_flight,
         percentile_cont(0.5) within group (order by extract(epoch from completed_at - created_at))
-          filter (where status = 'completed' and created_at > now() - interval '7 days') as median_seconds
+          filter (where status = 'completed' and created_at > now() - interval '7 days') as median_seconds,
+        coalesce(sum(input_tokens) filter (where created_at > now() - interval '7 days'), 0) as input_7d,
+        coalesce(sum(output_tokens) filter (where created_at > now() - interval '7 days'), 0) as output_7d,
+        coalesce(sum(reasoning_tokens) filter (where created_at > now() - interval '7 days'), 0) as reasoning_7d,
+        count(*) filter (where input_tokens is not null and created_at > now() - interval '7 days') as metered_7d,
+        (array_agg(model order by created_at desc) filter (where model is not null))[1] as model
       from review`),
     db.execute(sql`
       select
@@ -75,6 +80,13 @@ export const getInstanceStats = async (): Promise<InstanceStats> => {
       medianReviewSeconds: review.median_seconds === null ? null : num(review.median_seconds),
       events24h: num(event.events_24h),
       events7d: num(event.events_7d),
+    },
+    reviewer: {
+      model: review.model ? String(review.model) : null,
+      meteredReviews7d: num(review.metered_7d),
+      inputTokens7d: num(review.input_7d),
+      outputTokens7d: num(review.output_7d),
+      reasoningTokens7d: num(review.reasoning_7d),
     },
   }
 }

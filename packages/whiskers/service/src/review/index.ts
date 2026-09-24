@@ -141,6 +141,9 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       verdict: merged.verdict,
       summary: merged.summary,
       model: review.model,
+      inputTokens: tokens.input,
+      outputTokens: tokens.output,
+      reasoningTokens: tokens.reasoning,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -164,6 +167,9 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       verdict: null,
       summary: error instanceof Error ? error.message : String(error),
       model: review.model,
+      inputTokens: tokens.input,
+      outputTokens: tokens.output,
+      reasoningTokens: tokens.reasoning,
     })
   }
 }

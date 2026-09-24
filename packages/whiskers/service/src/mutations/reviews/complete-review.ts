@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm'
 
 export const completeReview = async (
   id: string,
-  data: Pick<Review, 'status' | 'verdict' | 'summary' | 'model'>,
+  data: Pick<Review, 'status' | 'verdict' | 'summary' | 'model'> &
+    Partial<Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens'>>,
 ): Promise<Review | undefined> => {
   return await db
     .update(reviewTable)

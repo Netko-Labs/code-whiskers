@@ -9,7 +9,7 @@ import { formatBytes, formatSeconds, textCell as text } from '../utils'
 import { INSTANCE_SECTION } from '../values'
 import { useSetupSteps } from './use-setup-steps'
 
-const TABS = ['Storage', 'Activity', 'Setup'] as const
+const TABS = ['Storage', 'Activity', 'Setup', 'Reviewer'] as const
 const STORAGE_GRID = '1fr 110px 1fr 120px 110px'
 const STORAGE_COLUMNS = [
   { label: 'Table' },
@@ -114,6 +114,37 @@ export function useInstanceSection(tab: number): SectionDefinition {
       rowLinks: steps.map((step) => step.link),
       footer: `${steps.filter((s) => s.isDone).length} of ${steps.length} done · each row opens where it is done`,
     }
+    const meter = worker?.reviewer
+    const per = (value: number) =>
+      meter?.meteredReviews7d ? Math.round(value / meter.meteredReviews7d).toLocaleString() : '—'
+    const reviewer: SectionTable = {
+      grid: '1fr 180px 180px',
+      columns: [
+        { label: 'Tokens' },
+        { label: 'Last 7 days' },
+        { label: 'Per review', align: 'end' },
+      ],
+      rows: meter
+        ? [
+            [
+              text('Input', { strong: true }),
+              text(meter.inputTokens7d.toLocaleString(), { mono: true }),
+              text(per(meter.inputTokens7d), { mono: true, align: 'end' }),
+            ],
+            [
+              text('Output', { strong: true }),
+              text(meter.outputTokens7d.toLocaleString(), { mono: true }),
+              text(per(meter.outputTokens7d), { mono: true, align: 'end' }),
+            ],
+            [
+              text('of which reasoning', { tone: 'muted' }),
+              text(meter.reasoningTokens7d.toLocaleString(), { mono: true, tone: 'muted' }),
+              text(per(meter.reasoningTokens7d), { mono: true, tone: 'muted', align: 'end' }),
+            ],
+          ]
+        : [],
+      footer: `${meter?.model ?? 'REVIEW_MODEL'} · ${meter?.meteredReviews7d ?? 0} reviews measured this week · counted across chunks, retries and splits`,
+    }
     const total = (worker?.databaseBytes ?? 0) + (studio?.databaseBytes ?? 0)
 
     return {
@@ -139,7 +170,7 @@ export function useInstanceSection(tab: number): SectionDefinition {
         },
       ],
       tabs: [...TABS],
-      table: tab === 2 ? setup : tab === 1 ? throughput : storage,
+      table: tab === 3 ? reviewer : tab === 2 ? setup : tab === 1 ? throughput : storage,
     }
   }, [worker, studio, steps, tab])
 }

@@ -91,6 +91,16 @@ export const whiskersInstanceSchema = z.object({
     events24h: z.number(),
     events7d: z.number(),
   }),
+  reviewer: z
+    .object({
+      model: z.string().nullable(),
+      meteredReviews7d: z.number(),
+      inputTokens7d: z.number(),
+      outputTokens7d: z.number(),
+      reasoningTokens7d: z.number(),
+    })
+    .nullable()
+    .default(null),
 })
 
 export const whiskersProjectSchema = z.object({

@@ -31,6 +31,13 @@ export interface InstanceStats {
     events24h: number
     events7d: number
   }
+  reviewer: {
+    model: string | null
+    meteredReviews7d: number
+    inputTokens7d: number
+    outputTokens7d: number
+    reasoningTokens7d: number
+  }
 }
 
 export interface ReleaseSummary {
