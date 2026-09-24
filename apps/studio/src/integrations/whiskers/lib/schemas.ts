@@ -161,3 +161,40 @@ export const whiskersServiceSchema = z.object({
   lastSeen: z.coerce.date().nullable(),
 })
 export const whiskersServiceListSchema = z.array(whiskersServiceSchema)
+
+export const whiskersEventDetailSchema = z.object({
+  receivedAt: z.coerce.date(),
+  level: z.string(),
+  message: z.string(),
+  environment: z.string().nullable(),
+  release: z.string().nullable(),
+  traceId: z.string().nullable(),
+  frames: z.array(
+    z.object({
+      file: z.string(),
+      function: z.string(),
+      line: z.number().nullable(),
+      column: z.number().nullable(),
+      isInApp: z.boolean(),
+      context: z.string().nullable(),
+    }),
+  ),
+  breadcrumbs: z.array(
+    z.object({
+      timestamp: z.string().nullable(),
+      category: z.string(),
+      level: z.string(),
+      message: z.string(),
+    }),
+  ),
+  tags: z.record(z.string(), z.string()),
+  request: z.object({ method: z.string().nullable(), url: z.string().nullable() }).nullable(),
+  logs: z.array(
+    z.object({
+      timestamp: z.coerce.date(),
+      level: z.string(),
+      service: z.string(),
+      message: z.string(),
+    }),
+  ),
+})

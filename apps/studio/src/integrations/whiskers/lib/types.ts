@@ -1,5 +1,6 @@
 import type { z } from 'zod'
 import type {
+  whiskersEventDetailSchema,
   whiskersFindingSchema,
   whiskersHotspotSchema,
   whiskersInstanceSchema,
@@ -29,3 +30,4 @@ export type WhiskersTrace = z.infer<typeof whiskersTraceSchema>
 export type WhiskersSpan = z.infer<typeof whiskersSpanSchema>
 export type WhiskersService = z.infer<typeof whiskersServiceSchema>
 export type LogQuery = { service?: string; level?: 'error' | 'warn'; q?: string }
+export type WhiskersEventDetail = z.infer<typeof whiskersEventDetailSchema>

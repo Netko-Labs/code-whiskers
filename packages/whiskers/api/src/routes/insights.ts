@@ -8,6 +8,7 @@ import {
   getHotspots,
   getInstanceStats,
   getIssues,
+  getLatestEvent,
   getLogs,
   getOverview,
   getProjects,
@@ -47,6 +48,15 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   .get('/releases', () => getReleases())
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())
+  // (・∀・) the newest event of one issue, read for a human
+  .get('/issues/:issueId/latest-event', async ({ params, set }) => {
+    const event = await getLatestEvent(params.issueId)
+    if (!event) {
+      set.status = 404
+      return { error: 'no events' }
+    }
+    return event
+  })
   // ʕ•ᴥ•ʔ every review the cat has done
   .get('/reviews', () => getReviews())
   // (=^･ω･^=) one review with its findings

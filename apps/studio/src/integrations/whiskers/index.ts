@@ -5,6 +5,7 @@ export {
   whiskersHotspotsQuery,
   whiskersInstanceQuery,
   whiskersIssuesQuery,
+  whiskersLatestEventQuery,
   whiskersLogsQuery,
   whiskersOverviewQuery,
   whiskersProjectsQuery,

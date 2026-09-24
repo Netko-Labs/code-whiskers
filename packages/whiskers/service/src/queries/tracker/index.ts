@@ -1,4 +1,7 @@
 export * from './get-issues'
+export * from './get-latest-event'
 export * from './get-overview'
 export * from './get-project'
 export * from './get-projects'
+export { normalizeEvent } from './normalize-event'
+export type * from './types'

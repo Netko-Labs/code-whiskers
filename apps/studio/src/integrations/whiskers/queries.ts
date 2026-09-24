@@ -3,6 +3,7 @@ import { fetchWhiskers, postWhiskers } from './client'
 import {
   type LogQuery,
   WHISKERS_QUERY_KEY,
+  whiskersEventDetailSchema,
   whiskersHotspotListSchema,
   whiskersInstanceSchema,
   whiskersIssueListSchema,
@@ -109,4 +110,10 @@ export const whiskersServicesQuery = () =>
   queryOptions({
     queryKey: [WHISKERS_QUERY_KEY, 'services'],
     queryFn: () => fetchWhiskers('/services', whiskersServiceListSchema),
+  })
+
+export const whiskersLatestEventQuery = (issueId: string) =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'latest-event', issueId],
+    queryFn: () => fetchWhiskers(`/issues/${issueId}/latest-event`, whiskersEventDetailSchema),
   })

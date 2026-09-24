@@ -1,7 +1,11 @@
 import type { Member } from '@/integrations/studio-api'
 import type { WhiskersFinding } from '@/integrations/whiskers'
 import type {
+  Breadcrumb,
   ConsoleItem,
+  IssueTag,
+  LogLine,
+  StackFrame,
   TriageBucket,
   TriageFilter,
   TriageStatus,
@@ -78,3 +82,12 @@ export type ItemThreadProps = {
 }
 
 export type { TriageStatus }
+
+export type IssueEvidence = {
+  frames: StackFrame[]
+  crumbs: Breadcrumb[]
+  logs: LogLine[]
+  tags: IssueTag[]
+  hiddenNote: string | undefined
+  isLoading: boolean
+}

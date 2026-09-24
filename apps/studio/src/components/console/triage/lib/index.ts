@@ -1,4 +1,5 @@
 export { useDetailActions } from './hooks/use-detail-actions'
+export { useIssueEvidence } from './hooks/use-issue-evidence'
 export { useItemStatus } from './hooks/use-item-status'
 export type { TriageItemsResult } from './hooks/use-triage-items'
 export { useTriageItems } from './hooks/use-triage-items'

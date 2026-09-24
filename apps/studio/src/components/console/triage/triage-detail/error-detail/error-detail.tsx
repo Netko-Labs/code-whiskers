@@ -2,12 +2,13 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { useState } from 'react'
 import type { ConsoleItem, ErrorTab } from '../../../shared/console-model'
 import { LogLines, StackTrace } from '../../../shared/console-ui'
-import { ERROR_TABS, HIDDEN_FRAMES_NOTE } from '../../lib'
+import { ERROR_TABS, useIssueEvidence } from '../../lib'
 import { ErrorBreadcrumbs } from './error-breadcrumbs'
 import { ErrorTags } from './error-tags'
 
 export function ErrorDetail({ item }: { item: ConsoleItem }) {
   const [tab, setTab] = useState<ErrorTab>('stack')
+  const evidence = useIssueEvidence(item)
   const meta = ERROR_TABS.find((entry) => entry.value === tab)?.meta ?? ''
 
   return (
@@ -32,17 +33,14 @@ export function ErrorDetail({ item }: { item: ConsoleItem }) {
       </div>
 
       {tab === 'stack' && (
-        <StackTrace
-          title={item.title}
-          frames={item.trace ?? []}
-          hiddenNote={item.trace?.length ? HIDDEN_FRAMES_NOTE : undefined}
-        />
+        <StackTrace title={item.title} frames={evidence.frames} hiddenNote={evidence.hiddenNote} />
       )}
-      {tab === 'crumbs' && <ErrorBreadcrumbs crumbs={item.crumbs ?? []} />}
-      {tab === 'logs' && (
-        <LogLines lines={item.logContext ?? []} className="flex-1 overflow-auto" />
+      {tab === 'crumbs' && <ErrorBreadcrumbs crumbs={evidence.crumbs} />}
+      {tab === 'logs' && <LogLines lines={evidence.logs} className="flex-1 overflow-auto" />}
+      {tab === 'tags' && <ErrorTags tags={evidence.tags} />}
+      {evidence.isLoading && (
+        <span className="px-4 py-3 text-muted-foreground text-xs">Reading the newest event…</span>
       )}
-      {tab === 'tags' && <ErrorTags tags={item.tags ?? []} />}
     </div>
   )
 }

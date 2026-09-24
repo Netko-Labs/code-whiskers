@@ -9,13 +9,12 @@ export const TRIAGE_FILTERS: { value: TriageFilter; label: string }[] = [
 
 export const ERROR_TABS = [
   { value: 'stack', label: 'Stack trace', meta: 'most recent call first' },
-  { value: 'crumbs', label: 'Breadcrumbs', meta: 'last 5 events' },
-  { value: 'logs', label: 'Log context', meta: 'surrounding lines' },
+  { value: 'crumbs', label: 'Breadcrumbs', meta: 'leading up to it' },
+  { value: 'logs', label: 'Log context', meta: 'same trace' },
   { value: 'tags', label: 'Tags', meta: 'issue tags' },
 ] as const
 
 export const SNOOZE_MS = 24 * 60 * 60 * 1000
-export const HIDDEN_FRAMES_NOTE = '3 frames hidden (node_modules)'
 export const DRAFT_HINT = 'Visible to everyone on this repository · ⌘↵ to post'
 export const KEYBOARD_HINT = 'j / k'
 export const LIVE_NOTE = 'Live — refreshes when you return to this tab'
