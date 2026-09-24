@@ -279,10 +279,20 @@ Timescale is the natural first move because nothing above the driver changes.
 1. `project` moves studio-ward; whiskers keeps a cached copy for ingest.
 2. `issue.status` drops in favour of `triage_state`.
 3. Whiskers gains `installation_id` and `repository_id` on `review`.
-4. Studio gains the GitHub, rules, access, triage and commercial tables.
+4. ~~Studio gains the GitHub, rules, access and triage tables.~~ Done (migrations 0003–0010):
+   `organization`, `organization_member`, `repository`, `triage_state`, `triage_comment`,
+   `review_rule`, `api_key`, `integration`, `alert_rule`, `saved_query`. No commercial tables —
+   this is a self-hosted tool.
 5. ~~`/api/internal/*` appears on studio.~~ Done: `GET /api/internal/suppressions?scope=`
    returns what a human dismissed, resolved or snoozed; whiskers caches it for 60s and
    feeds it into the review preamble. An unreachable studio degrades to "nothing
    suppressed" rather than failing the review. Newest 200 only; past that studio sets
    `x-suppressions-truncated: true` and whiskers logs it. `POST /api/triage` only
-   writes under an `owner/repo` scope the caller is a member of.
+   writes under an `owner/repo` scope the caller is a member of. Since then:
+   `/api/internal/rules`, `/api/internal/repository` (is it watched?),
+   `/api/internal/alert-rules` and `/api/internal/alert-rules/:id/fire|quiet` — whiskers
+   evaluates alert conditions every minute and studio delivers them to webhooks.
+6. Telemetry landed on Postgres as planned: `log_line` and `span` in whiskers (migration 0002),
+   BRIN on time, deleted by age after `TELEMETRY_RETENTION_DAYS` (default 7) by an hourly
+   pass. Ingest is OTLP/HTTP JSON at `/otlp/v1/logs|traces`, authenticated by the project's
+   public key. No partitioning or rollups yet; that is the next step if volume asks for it.
