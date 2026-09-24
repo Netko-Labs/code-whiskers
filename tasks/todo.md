@@ -1,3 +1,27 @@
+# Scope + review redesign (2026-09-24)
+
+Juan: "many things not associated with a repo or a project, so it's hard to filter; improve
+design and usability, especially reviews". References: Sentry project picker, Linear rows with a
+project chip, Graphite PR page with a status sidebar (Mobbin).
+
+- [x] `project.repository` (whiskers 0004, shipped alone first, healed by a manual redeploy)
+- [x] Telemetry reads take `projectId` (comma list): issues, logs, log patterns, traces, services,
+      releases; `POST /v1/projects/:id/repository`
+- [x] `?scope=` on `/console`, retained across navigation; picker in triage + 8 data sections
+- [x] Triage rows carry a repo/project chip; project names replace ids; header chip scopes
+- [x] Integrations → Error ingest: repository column, Link/Change repository, repo on create
+- [x] Review screen: outcome card, details sidebar, push timeline, findings grouped by file,
+      severity filter, dismissed toggle, collapsible read
+- [x] Studio app got `bun test` (scope resolution, file grouping, outcome)
+
+## Acceptance
+
+- [x] Local: linking a project puts its errors under the repo; scope survives nav; "All" clears it
+- [x] `check-types`, `fmt-lint`, `test` clean
+- [x] Prod: 72c2724 live on both apps, review screen renders, new project routes answer
+
+---
+
 # Finish the console — every section on real data
 
 All 16 sections read real data; each shows its labelled sample only while its source is empty.
