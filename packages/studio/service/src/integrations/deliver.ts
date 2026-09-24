@@ -1,3 +1,4 @@
+import { assertPublicHost } from './address-guard'
 import type { Notice } from './types'
 
 const DELIVERY_TIMEOUT_MS = 8_000
@@ -11,6 +12,7 @@ function payloadFor(kind: string, notice: Notice): unknown {
 }
 
 export async function postNotice(kind: string, url: string, notice: Notice): Promise<void> {
+  await assertPublicHost(url)
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

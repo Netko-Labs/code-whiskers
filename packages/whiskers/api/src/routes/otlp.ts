@@ -17,10 +17,32 @@ function keyFrom(request: Request): string | undefined {
   return bearer ?? request.headers.get('x-codewhiskers-key') ?? undefined
 }
 
+// Parsing happens before the per-request record cap, so the body itself must be bounded.
+const MAX_BODY_BYTES = 5 * 1024 * 1024
+
+class BodyTooLarge extends Error {}
+
 async function jsonBody(request: Request): Promise<unknown> {
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) throw new BodyTooLarge()
   const buffer = new Uint8Array(await request.arrayBuffer())
+  if (buffer.byteLength > MAX_BODY_BYTES) throw new BodyTooLarge()
   const bytes = request.headers.get('content-encoding') === 'gzip' ? Bun.gunzipSync(buffer) : buffer
+  if (bytes.byteLength > MAX_BODY_BYTES) throw new BodyTooLarge()
   return JSON.parse(new TextDecoder().decode(bytes))
+}
+
+async function readPayload(request: Request, set: { status?: number | string }) {
+  try {
+    return { payload: await jsonBody(request) }
+  } catch (error) {
+    set.status = error instanceof BodyTooLarge ? 413 : 400
+    return {
+      error:
+        error instanceof BodyTooLarge
+          ? 'OTLP body over 5 MB — lower the exporter batch size'
+          : 'body is not valid JSON',
+    }
+  }
 }
 
 /**
@@ -37,7 +59,9 @@ export const otlpRoutes = new Elysia({ name: 'otlp', prefix: '/otlp/v1' })
       set.status = 401
       return { error: 'unknown or missing project key' }
     }
-    const rows = parseLogs((await jsonBody(request)) as OtlpLogs)
+    const read = await readPayload(request, set)
+    if ('error' in read) return read
+    const rows = parseLogs(read.payload as OtlpLogs)
     await ingestLogs(project.id, rows)
     logger.info({ projectId: project.id, logs: rows.length }, 'otlp logs ingested')
     return { partialSuccess: {} }
@@ -51,7 +75,9 @@ export const otlpRoutes = new Elysia({ name: 'otlp', prefix: '/otlp/v1' })
       set.status = 401
       return { error: 'unknown or missing project key' }
     }
-    const rows = parseTraces((await jsonBody(request)) as OtlpTraces)
+    const read = await readPayload(request, set)
+    if ('error' in read) return read
+    const rows = parseTraces(read.payload as OtlpTraces)
     await ingestSpans(project.id, rows)
     logger.info({ projectId: project.id, spans: rows.length }, 'otlp spans ingested')
     return { partialSuccess: {} }

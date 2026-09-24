@@ -8,6 +8,7 @@ import { db } from '@code-whiskers/studio-repository'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { isInstallationMember } from '../queries/github'
 import { decrypt, encrypt } from '../shared'
+import { assertPublicHost } from './address-guard'
 import { postNotice } from './deliver'
 import type { DeliveryResult, IntegrationRecord, Notice } from './types'
 
@@ -43,6 +44,7 @@ export const createIntegration = async (
   input: IntegrationCreate,
 ): Promise<{ id: string } | null> => {
   if (!(await isInstallationMember(userId, input.installationId))) return null
+  await assertPublicHost(input.url)
   const [row] = await db
     .insert(integration)
     .values({

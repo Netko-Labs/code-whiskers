@@ -13,7 +13,13 @@ export const integrationRoutes = new Elysia({ name: 'integrations', prefix: '/in
   // (っ˘ω˘ς) where alerts go — the URL is never read back, only its host
   .get('', { auth: true }, ({ user }) => getIntegrationsForUser(user.id))
   .post('', { auth: true, body: IntegrationCreateSchema }, async ({ body, user, status }) => {
-    const created = await createIntegration(user.id, body)
+    const created = await createIntegration(user.id, body).catch((error: Error) => {
+      if (error.message.includes('private address')) return 'private' as const
+      throw error
+    })
+    if (created === 'private') {
+      return status(422, 'That webhook host points inside the network — use a public URL')
+    }
     if (!created) return status(403, 'Forbidden')
     return created
   })
