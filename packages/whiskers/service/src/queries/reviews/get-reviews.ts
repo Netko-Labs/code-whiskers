@@ -2,6 +2,9 @@ import { findingTable, type Review, reviewTable } from '@code-whiskers/whiskers-
 import { db } from '@code-whiskers/whiskers-repository'
 import { count, desc, eq } from 'drizzle-orm'
 
+/** Every push is a review, so a busy month outgrows 100 quickly; the console keeps one per PR. */
+const REVIEW_LIST_LIMIT = 500
+
 export type ReviewWithFindingCount = Review & { findingCount: number }
 
 /**
@@ -16,7 +19,7 @@ export const getReviews = async (): Promise<ReviewWithFindingCount[]> => {
     .leftJoin(findingTable, eq(findingTable.reviewId, reviewTable.id))
     .groupBy(reviewTable.id)
     .orderBy(desc(reviewTable.createdAt))
-    .limit(100)
+    .limit(REVIEW_LIST_LIMIT)
 
   return rows.map(({ review, findingCount }) => ({ ...review, findingCount }))
 }

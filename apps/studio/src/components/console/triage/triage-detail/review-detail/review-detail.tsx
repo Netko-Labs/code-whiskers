@@ -3,6 +3,7 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { CodeHunk, TONE_TEXT } from '../../../shared/console-ui'
 import type { DetailPaneProps } from '../../lib'
 import { ReviewFindings } from './review-findings'
+import { ReviewHistory } from './review-history'
 
 const CARD = 'flex flex-col gap-[3px] rounded-xl border border-border px-3.5 py-3'
 
@@ -89,6 +90,7 @@ export function ReviewDetail({ item, actions }: Omit<DetailPaneProps, 'status'>)
       )}
 
       {item.sourceId && <ReviewFindings item={item} actions={actions} />}
+      {item.sourceId && <ReviewHistory item={item} />}
     </div>
   )
 }
