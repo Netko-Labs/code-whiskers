@@ -39,7 +39,7 @@ The spec was the "Feature → home" table in docs/architecture.md.
 
 - [x] No section renders sample data once its source has rows (local sweep, 0 page errors)
 - [x] `bun run check-types`, `bun run fmt-lint`, `bun run test` clean
-- [x] Migrations deployed: studio 0005–0010, whiskers 0002; whiskers 0003 (review tokens) catching up
+- [x] Migrations deployed: studio 0005–0010, whiskers 0002–0003; prod smoke 26/26, signed-in reads 20/20
 
 ## Needs Juan
 
