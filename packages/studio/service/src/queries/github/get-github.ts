@@ -65,3 +65,20 @@ export const getRepositoryForUser = async (
     .limit(1)
   return row?.repository ?? null
 }
+
+export const isInstallationMember = async (
+  userId: string,
+  installationId: number,
+): Promise<boolean> => {
+  const [row] = await db
+    .select({ userId: organizationMember.userId })
+    .from(organizationMember)
+    .where(
+      and(
+        eq(organizationMember.userId, userId),
+        eq(organizationMember.installationId, installationId),
+      ),
+    )
+    .limit(1)
+  return !!row
+}

@@ -20,7 +20,7 @@ fallbacks go away as each lands.
 
 ## B · Studio-owned configuration, with forms (~1 day)
 
-- [ ] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
+- [x] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
 - [ ] API keys → `api_key` (hashed, shown once)
 - [ ] Integrations → `integration` (webhook targets) + GitHub App status
 - [ ] Saved queries → `saved_query`

@@ -97,3 +97,18 @@ export const studioStorageSchema = z.object({
     }),
   ),
 })
+
+export const REVIEW_RULE_EFFECTS = ['blocker', 'suggestion', 'filter', 'tone'] as const
+
+export const reviewRuleSchema = z.object({
+  id: z.string(),
+  installationId: z.number(),
+  organization: z.string(),
+  body: z.string(),
+  scope: z.string(),
+  effect: z.enum(REVIEW_RULE_EFFECTS),
+  isMuted: z.boolean(),
+  authorName: z.string().nullable(),
+  createdAt: z.coerce.date(),
+})
+export const reviewRuleListSchema = z.array(reviewRuleSchema)

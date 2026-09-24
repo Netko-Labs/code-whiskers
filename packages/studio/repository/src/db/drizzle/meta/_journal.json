@@ -43,6 +43,13 @@
       "when": 1790134497173,
       "tag": "0005_curved_gambit",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790229944519,
+      "tag": "0006_aberrant_skrulls",
+      "breakpoints": true
     }
   ]
 }

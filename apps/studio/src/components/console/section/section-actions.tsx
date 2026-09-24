@@ -1,12 +1,14 @@
 import { Button, buttonVariants } from '@code-whiskers/ui/components/button'
 import { Link } from '@tanstack/react-router'
 import type { SectionActionsProps } from './lib'
+import { SectionFormAction } from './section-form-action'
 
 export function SectionActions({ actions, sample }: SectionActionsProps) {
   return (
     <div className="flex shrink-0 gap-2">
       {actions.map((action) => {
         const variant = action.variant === 'outline' ? 'outline' : 'default'
+        if (action.form && !sample) return <SectionFormAction key={action.label} action={action} />
         if (!action.href || sample) {
           return (
             <Button

@@ -1,16 +1,20 @@
 export * from './lib'
 export {
   assignTriage,
+  createRule,
+  deleteRule,
   instanceQuery,
   membersQuery,
   organizationsQuery,
   postTriageComment,
   recordTriage,
   repositoriesQuery,
+  rulesQuery,
   STUDIO_QUERY_KEY,
   studioStorageQuery,
   syncGithub,
   triageCommentsQuery,
   triageQuery,
+  updateRule,
   viewerQuery,
 } from './queries'

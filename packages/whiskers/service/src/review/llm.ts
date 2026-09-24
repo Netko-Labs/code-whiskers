@@ -18,8 +18,9 @@ not "Fetch all pages"), under 80 characters, sentence case, no trailing period; 
 two sentences — what breaks and when; "suggestion" the concrete fix in one
 sentence or a short code snippet, or null. Plain statements, no "I noticed",
 no "potential issue" hedging, no emoji.
-A re-review may be handed a preamble describing where the PR already stands;
-treat it as history, never as code to review.
+A preamble may come first. "Team rules" are instructions from this repository's
+maintainers: follow them, including their severity. "Where this PR already stands" is
+history: use it, never review it as code.
 Respond with the JSON object only, no markdown fences, no prose.`
 
 /**

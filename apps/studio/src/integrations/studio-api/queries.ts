@@ -6,7 +6,9 @@ import {
   memberListSchema,
   okSchema,
   organizationListSchema,
+  type ReviewRuleInput,
   repositoryListSchema,
+  reviewRuleListSchema,
   studioStorageSchema,
   syncResultSchema,
   type TriageDecision,
@@ -17,6 +19,25 @@ import {
 } from './lib'
 
 export const STUDIO_QUERY_KEY = 'studio'
+
+const STATUS_MESSAGE: Record<number, string> = {
+  401: 'Your session ended — sign in again',
+  403: 'You do not have access to that',
+  404: 'That no longer exists',
+}
+
+/** Validation failures carry the field that failed; everything else gets a plain sentence. */
+async function failureMessage(response: Response): Promise<string> {
+  const known = STATUS_MESSAGE[response.status]
+  if (known) return known
+  const text = await response.text().catch(() => '')
+  try {
+    const body = JSON.parse(text) as { detail?: string; message?: string; summary?: string }
+    return body.summary ?? body.detail ?? body.message ?? `Request failed (${response.status})`
+  } catch {
+    return text || `Request failed (${response.status})`
+  }
+}
 
 /** Studio's own API is same-origin; these are browser-only like the whiskers ones. */
 async function fetchStudio<T>(
@@ -35,7 +56,7 @@ async function fetchStudio<T>(
       : { accept: 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (!response.ok) throw new Error(`studio ${path} responded ${response.status}`)
+  if (!response.ok) throw new Error(await failureMessage(response))
   return schema.parse(await response.json())
 }
 
@@ -104,3 +125,17 @@ export const assignTriage = (item: TriageItemRef, assigneeUserId: string | null)
 
 export const postTriageComment = (item: TriageItemRef, body: string) =>
   fetchStudio('/triage/comments', createdSchema, 'POST', { ...item, body })
+
+export const rulesQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'rules'],
+    queryFn: () => fetchStudio('/rules', reviewRuleListSchema),
+  })
+
+export const createRule = (input: ReviewRuleInput) =>
+  fetchStudio('/rules', createdSchema, 'POST', input)
+
+export const updateRule = (id: string, patch: Partial<ReviewRuleInput> & { isMuted?: boolean }) =>
+  fetchStudio(`/rules/${id}`, okSchema, 'PATCH', patch)
+
+export const deleteRule = (id: string) => fetchStudio(`/rules/${id}`, okSchema, 'DELETE')

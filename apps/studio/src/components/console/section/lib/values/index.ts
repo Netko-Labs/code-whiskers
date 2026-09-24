@@ -17,6 +17,7 @@ export {
   MEMBERS_SECTION,
   PULL_REQUESTS_SECTION,
   REPOSITORIES_SECTION,
+  REVIEW_RULES_SECTION,
 }
 
 export const SECTIONS: Record<SectionView, SectionDefinition> = {

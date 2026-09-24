@@ -2,11 +2,13 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import type { SectionTableProps } from './lib'
 import { SectionCell } from './section-cell'
+import { SectionRowActions } from './section-row-actions'
 
 const ROW = 'grid items-center gap-x-4 border-rule-soft border-b px-6 py-3 hover:bg-surface-subtle'
 
 export function SectionTable({ table, minWidth }: SectionTableProps) {
-  const style = { gridTemplateColumns: table.grid, minWidth: `${minWidth}px` }
+  const grid = table.rowActions ? `${table.grid} max-content` : table.grid
+  const style = { gridTemplateColumns: grid, minWidth: `${minWidth}px` }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-auto">
@@ -25,14 +27,21 @@ export function SectionTable({ table, minWidth }: SectionTableProps) {
             {column.label}
           </span>
         ))}
+        {table.rowActions && <span />}
       </div>
 
       {table.rows.map((row, index) => {
         const key = `${index}-${row[0]?.kind === 'text' ? row[0].text : index}`
         const className = cn(ROW, index % 2 === 1 ? 'bg-surface-alt' : 'bg-background')
-        const cells = row.map((cell, cellIndex) => (
-          <SectionCell key={`${cellIndex}-${cell.kind}`} cell={cell} />
-        ))
+        const actions = table.rowActions?.[index]
+        const cells = [
+          ...row.map((cell, cellIndex) => (
+            <SectionCell key={`${cellIndex}-${cell.kind}`} cell={cell} />
+          )),
+          ...(table.rowActions
+            ? [<SectionRowActions key="actions" actions={actions ?? []} />]
+            : []),
+        ]
         const link = table.rowLinks?.[index]
         if (link?.kind === 'triage') {
           return (

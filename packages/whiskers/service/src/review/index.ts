@@ -18,12 +18,14 @@ import {
 } from './github'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import { type ReviewReport, renderFailureComment } from './render'
+import { buildRulesContext, fetchRules } from './rules'
 import { fetchSuppressions } from './suppressions'
 
 export * from './chunk'
 export * from './github'
 export * from './llm'
 export * from './render'
+export * from './rules'
 export * from './suppressions'
 
 const logger = createLogger('whiskers-review')
@@ -56,15 +58,16 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   const tokens = createTokenTally()
 
   try {
-    const [diff, conversation, previous, reviewCount, suppressions] = await Promise.all([
+    const [diff, conversation, previous, reviewCount, suppressions, rules] = await Promise.all([
       fetchPrDiff(ref),
       fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
       getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
       countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
       fetchSuppressions(`${ref.owner}/${ref.repo}`),
+      fetchRules(`${ref.owner}/${ref.repo}`),
     ])
 
-    const context = buildPrContext({
+    const prContext = buildPrContext({
       reviewCount,
       previous: previous && {
         headSha: previous.review.headSha,
@@ -75,7 +78,13 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       suppressions,
       botHandle: whiskersEnvConfig.github.botHandle,
     })
-    if (context) logger.info({ ...ref, contextChars: context.length }, 'review has prior context')
+    const context = [buildRulesContext(rules), prContext].filter(Boolean).join('\n\n')
+    if (context) {
+      logger.info(
+        { ...ref, contextChars: context.length, rules: rules.length },
+        'review has context',
+      )
+    }
 
     const chunks = chunkDiff(diff)
     const outcomes = await mapWithConcurrency(chunks, (chunk) =>

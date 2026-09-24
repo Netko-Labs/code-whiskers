@@ -3,7 +3,9 @@ import type {
   instanceSchema,
   memberSchema,
   organizationSchema,
+  REVIEW_RULE_EFFECTS,
   repositorySchema,
+  reviewRuleSchema,
   studioStorageSchema,
   syncResultSchema,
   TRIAGE_ITEM_KINDS,
@@ -36,3 +38,11 @@ export type TriageDecision = TriageItemRef & {
   snoozedUntil?: Date
 }
 export type StudioStorage = z.infer<typeof studioStorageSchema>
+export type ReviewRule = z.infer<typeof reviewRuleSchema>
+export type ReviewRuleEffect = (typeof REVIEW_RULE_EFFECTS)[number]
+export type ReviewRuleInput = {
+  installationId: number
+  body: string
+  scope: string
+  effect: ReviewRuleEffect
+}

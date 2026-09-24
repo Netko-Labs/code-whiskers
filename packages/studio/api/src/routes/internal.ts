@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { getSuppressions } from '@code-whiskers/studio-service'
+import { getRulesForRepository, getSuppressions } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 
 /**
@@ -30,4 +30,11 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     // A header, not a wrapper object, so a whiskers still reading a bare array keeps working.
     if (isTruncated) set.headers['x-suppressions-truncated'] = 'true'
     return suppressions
+  })
+  // (｀・ω・´) the team's rules for the installation this repo belongs to
+  .get('/rules', async ({ headers, query, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    const repo = typeof query.repo === 'string' ? query.repo : ''
+    if (!repo) return status(400, 'repo is required')
+    return getRulesForRepository(repo)
   })
