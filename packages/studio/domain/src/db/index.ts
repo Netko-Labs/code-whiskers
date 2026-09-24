@@ -1,5 +1,6 @@
 export * from './auth'
 export * from './github'
+export * from './integrations'
 export * from './keys'
 export * from './rules'
 export * from './triage'

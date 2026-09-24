@@ -1,8 +1,11 @@
+import { ProjectCreateSchema } from '@code-whiskers/whiskers-domain'
 import {
+  createProject,
   getHotspots,
   getInstanceStats,
   getIssues,
   getOverview,
+  getProjects,
   getReview,
   getReviews,
 } from '@code-whiskers/whiskers-service'
@@ -13,6 +16,9 @@ import { z } from 'zod'
 export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   // (◕‿◕) the 10,000-foot view
   .get('/overview', () => getOverview())
+  // (ノ°▽°)ノ where error events come from, and the DSN each one uses
+  .get('/projects', () => getProjects())
+  .post('/projects', { body: ProjectCreateSchema }, ({ body }) => createProject(body.name))
   // (o･ω･o) grouped errors, newest churn first
   .get('/issues', { query: z.object({ projectId: z.string().optional() }) }, ({ query }) =>
     getIssues(query.projectId),

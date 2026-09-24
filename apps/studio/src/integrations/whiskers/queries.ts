@@ -1,11 +1,13 @@
 import { queryOptions } from '@tanstack/react-query'
-import { fetchWhiskers } from './client'
+import { fetchWhiskers, postWhiskers } from './client'
 import {
   WHISKERS_QUERY_KEY,
   whiskersHotspotListSchema,
   whiskersInstanceSchema,
   whiskersIssueListSchema,
   whiskersOverviewSchema,
+  whiskersProjectListSchema,
+  whiskersProjectSchema,
   whiskersReviewDetailSchema,
   whiskersReviewListSchema,
 } from './lib'
@@ -49,3 +51,12 @@ export const whiskersInstanceQuery = () =>
     queryKey: [WHISKERS_QUERY_KEY, 'instance'],
     queryFn: () => fetchWhiskers('/instance', whiskersInstanceSchema),
   })
+
+export const whiskersProjectsQuery = () =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'projects'],
+    queryFn: () => fetchWhiskers('/projects', whiskersProjectListSchema),
+  })
+
+export const createWhiskersProject = (name: string) =>
+  postWhiskers('/projects', { name }, whiskersProjectSchema)

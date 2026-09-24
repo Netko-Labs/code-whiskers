@@ -58,6 +58,18 @@ describe('forwardSignedInToWhiskers', () => {
     expect(received[0]?.authorization).toBeUndefined()
   })
 
+  test('a key cannot write', async () => {
+    const response = await forwardSignedInToWhiskers(
+      new Request('https://whiskers.netko.dev/v1/projects', {
+        method: 'POST',
+        headers: { authorization: 'Bearer cw_live', 'content-type': 'application/json' },
+        body: '{"name":"x"}',
+      }),
+    )
+    expect(response.status).toBe(401)
+    expect(received).toHaveLength(0)
+  })
+
   test('a revoked or unknown key is refused', async () => {
     const response = await forwardSignedInToWhiskers(bearer('cw_dead'))
     expect(response.status).toBe(401)

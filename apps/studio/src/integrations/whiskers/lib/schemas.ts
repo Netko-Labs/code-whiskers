@@ -90,3 +90,13 @@ export const whiskersInstanceSchema = z.object({
     events7d: z.number(),
   }),
 })
+
+export const whiskersProjectSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  publicKey: z.string(),
+  createdAt: z.coerce.date(),
+  issues: z.number().default(0),
+  lastEventAt: z.coerce.date().nullable().default(null),
+})
+export const whiskersProjectListSchema = z.array(whiskersProjectSchema)

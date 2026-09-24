@@ -1,7 +1,9 @@
 import type { z } from 'zod'
 import type {
   apiKeySchema,
+  INTEGRATION_KINDS,
   instanceSchema,
+  integrationSchema,
   memberSchema,
   organizationSchema,
   REVIEW_RULE_EFFECTS,
@@ -48,3 +50,11 @@ export type ReviewRuleInput = {
   effect: ReviewRuleEffect
 }
 export type ApiKey = z.infer<typeof apiKeySchema>
+export type Integration = z.infer<typeof integrationSchema>
+export type IntegrationKind = (typeof INTEGRATION_KINDS)[number]
+export type IntegrationInput = {
+  installationId: number
+  kind: IntegrationKind
+  name: string
+  url: string
+}

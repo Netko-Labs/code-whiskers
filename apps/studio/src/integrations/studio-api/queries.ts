@@ -4,7 +4,10 @@ import {
   apiKeyListSchema,
   createdKeySchema,
   createdSchema,
+  deliverySchema,
+  type IntegrationInput,
   instanceSchema,
+  integrationListSchema,
   memberListSchema,
   okSchema,
   organizationListSchema,
@@ -152,3 +155,18 @@ export const createApiKey = (name: string) =>
   fetchStudio('/keys', createdKeySchema, 'POST', { name })
 
 export const revokeApiKey = (id: string) => fetchStudio(`/keys/${id}`, okSchema, 'DELETE')
+
+export const integrationsQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'integrations'],
+    queryFn: () => fetchStudio('/integrations', integrationListSchema),
+  })
+
+export const createIntegration = (input: IntegrationInput) =>
+  fetchStudio('/integrations', createdSchema, 'POST', input)
+
+export const testIntegration = (id: string) =>
+  fetchStudio(`/integrations/${id}/test`, deliverySchema, 'POST', {})
+
+export const deleteIntegration = (id: string) =>
+  fetchStudio(`/integrations/${id}`, okSchema, 'DELETE')

@@ -19,3 +19,13 @@ export async function fetchWhiskers<T>(path: string, schema: ZodType<T>): Promis
 
   return schema.parse(await response.json())
 }
+
+export async function postWhiskers<T>(path: string, body: unknown, schema: ZodType<T>): Promise<T> {
+  const response = await fetch(resolve(path), {
+    method: 'POST',
+    headers: { accept: 'application/json', 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) throw new Error(`whiskers ${path} responded ${response.status}`)
+  return schema.parse(await response.json())
+}

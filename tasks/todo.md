@@ -22,7 +22,7 @@ fallbacks go away as each lands.
 
 - [x] Review rules → `review_rule`; whiskers reads `/api/internal/rules` into the prompt
 - [x] API keys → `api_key` (hashed, shown once) — read access to `/v1`
-- [ ] Integrations → `integration` (webhook targets) + GitHub App status
+- [x] Integrations → `integration` (webhook targets) + error-ingest projects with DSNs + GitHub App status
 - [ ] Saved queries → `saved_query`
 - [ ] Alert rules → `alert_rule` + evaluator in whiskers
 

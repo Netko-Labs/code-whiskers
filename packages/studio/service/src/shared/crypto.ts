@@ -1,12 +1,19 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
 
 const MASTER_KEY = studioEnvConfig.app.encryptionKey
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16
-const KEY_BUFFER = Buffer.from(MASTER_KEY, 'hex')
+// Hashed rather than hex-decoded: any length of secret works, and a short one cannot be
+// silently truncated into a weaker key.
+const KEY_BUFFER = createHash('sha256').update(MASTER_KEY).digest()
+
+function requireKey(): void {
+  if (!MASTER_KEY) throw new Error('ENCRYPTION_KEY is not set — secrets cannot be stored')
+}
 
 export const encrypt = (text: string) => {
+  requireKey()
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv(ALGORITHM, KEY_BUFFER, iv)
   const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
@@ -16,6 +23,7 @@ export const encrypt = (text: string) => {
 }
 
 export const decrypt = (hash: string) => {
+  requireKey()
   const [ivHex, authTagHex, encryptedHex] = hash.split(':')
 
   if (!ivHex || !authTagHex || !encryptedHex) {

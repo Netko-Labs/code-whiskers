@@ -27,7 +27,8 @@ export async function forwardToWhiskers(request: Request): Promise<Response> {
 
 async function isAllowed(request: Request): Promise<boolean> {
   const bearer = request.headers.get('authorization')?.match(/^Bearer (cw_\S+)$/)?.[1]
-  if (bearer) return (await verifyApiKey(bearer)) !== null
+  // API keys read; creating anything takes a person at a browser.
+  if (bearer) return request.method === 'GET' && (await verifyApiKey(bearer)) !== null
   const signedIn = await auth.api.getSession({ headers: request.headers })
   return !!signedIn?.user
 }

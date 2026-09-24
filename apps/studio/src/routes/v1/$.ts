@@ -6,5 +6,5 @@ function handler({ request }: { request: Request }) {
 }
 
 export const Route = createFileRoute('/v1/$')({
-  server: { handlers: { GET: handler } },
+  server: { handlers: { GET: handler, POST: handler } },
 })

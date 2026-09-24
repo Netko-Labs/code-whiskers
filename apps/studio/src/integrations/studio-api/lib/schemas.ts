@@ -123,3 +123,19 @@ export const apiKeySchema = z.object({
 })
 export const apiKeyListSchema = z.array(apiKeySchema)
 export const createdKeySchema = z.object({ id: z.string(), key: z.string() })
+
+export const INTEGRATION_KINDS = ['slack', 'discord', 'webhook'] as const
+
+export const integrationSchema = z.object({
+  id: z.string(),
+  installationId: z.number(),
+  organization: z.string(),
+  kind: z.enum(INTEGRATION_KINDS),
+  name: z.string(),
+  urlHost: z.string(),
+  lastDeliveredAt: z.coerce.date().nullable(),
+  lastError: z.string().nullable(),
+  createdAt: z.coerce.date(),
+})
+export const integrationListSchema = z.array(integrationSchema)
+export const deliverySchema = z.object({ delivered: z.number(), failed: z.number() })
