@@ -4,6 +4,17 @@ import { db } from '@code-whiskers/studio-repository'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { jwt, lastLoginMethod } from 'better-auth/plugins'
+import type { GithubProfile } from 'better-auth/social-providers'
+
+const { socialProviders, ...authOptions } = studioEnvConfig.auth
+
+/**
+ * A GitHub App's user token reads emails only with the App's "Email addresses" permission; without
+ * it, a user with a private email arrives with none and better-auth refuses the sign-in.
+ */
+function noreplyEmailWhenHidden(profile: GithubProfile) {
+  return profile.email ? {} : { email: `${profile.id}+${profile.login}@users.noreply.github.com` }
+}
 
 /**
  * GitHub only. The sync needs a GitHub token to read installations, so an
@@ -41,5 +52,12 @@ export const auth = betterAuth({
     }),
     lastLoginMethod(),
   ],
-  ...studioEnvConfig.auth,
+  ...authOptions,
+  socialProviders: {
+    ...socialProviders,
+    github: socialProviders.github && {
+      ...socialProviders.github,
+      mapProfileToUser: noreplyEmailWhenHidden,
+    },
+  },
 })
