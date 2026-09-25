@@ -61,3 +61,32 @@ export const countReviews = async (
     )
   return rows.length
 }
+
+// A review still "running" after this long crashed with the process; it no longer holds the head.
+const STALE_RUNNING_MS = 30 * 60 * 1000
+
+/** Whether this exact commit already has a review done or in flight — one review per push. */
+export const hasReviewOfHead = async (
+  owner: string,
+  repo: string,
+  prNumber: number,
+  headSha: string,
+  now = new Date(),
+): Promise<boolean> => {
+  const rows = await db
+    .select({ status: reviewTable.status, createdAt: reviewTable.createdAt })
+    .from(reviewTable)
+    .where(
+      and(
+        eq(reviewTable.owner, owner),
+        eq(reviewTable.repo, repo),
+        eq(reviewTable.prNumber, prNumber),
+        eq(reviewTable.headSha, headSha),
+      ),
+    )
+  return rows.some(
+    (row) =>
+      row.status === 'completed' ||
+      (row.status === 'running' && now.getTime() - row.createdAt.getTime() < STALE_RUNNING_MS),
+  )
+}

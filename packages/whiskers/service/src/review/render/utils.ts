@@ -59,10 +59,12 @@ export function summaryLines(summary: string): string[] {
   return [...new Set(lines)]
 }
 
-function verdictLine({ review }: ReviewReport): string {
+function verdictLine({ review, carried }: ReviewReport): string {
   const headline = review.verdict === 'approve' ? 'Approved' : 'Changes requested'
   const { findings } = review
-  if (findings.length === 0) return `**${headline}** · no findings`
+  if (findings.length === 0) {
+    return `**${headline}** · ${carried?.open ? 'no new findings' : 'no findings'}`
+  }
 
   const blocking = findings.filter((f) => BLOCKING_SEVERITIES.has(f.severity)).length
   const spread = `${plural(findings.length, 'finding')} across ${plural(new Set(findings.map((f) => f.file)).size, 'file')}`
@@ -120,6 +122,16 @@ function outsideDiff(findings: LlmFinding[], target: ReviewTarget): string {
   )
 }
 
+/** Earlier findings are not posted again; one line says they still count. */
+function carriedNote(report: ReviewReport): string {
+  const { open = 0, settled = 0 } = report.carried ?? {}
+  const parts = [
+    open > 0 ? `${plural(open, 'earlier finding')} still open on this PR` : '',
+    settled > 0 ? `${settled} answered by you and not raised again` : '',
+  ].filter(Boolean)
+  return parts.length > 0 ? `<sub>${parts.join(' · ')}</sub>` : ''
+}
+
 /**
  * Verdict, then where the problems are, then what the PR does. Low-severity notes and findings
  * GitHub cannot anchor inline stay collapsed so the blocking rows are the first thing read.
@@ -136,6 +148,7 @@ export function renderReviewBody(
   return [
     verdictLine(report),
     coverageNote(report.coverage),
+    carriedNote(report),
     notable.length > 0 ? findingsTable(notable, target) : '',
     notes.length > 0
       ? collapsed(plural(notes.length, 'low-severity note'), findingsTable(notes, target))

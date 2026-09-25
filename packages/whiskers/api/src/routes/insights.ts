@@ -95,7 +95,7 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   })
   // (ง'̀-'́)ง run the review again on the pull request's current head
   .post('/reviews/rerun', { body: ReviewRerunSchema }, ({ body }) => {
-    void runReview(body).catch(() => undefined)
+    void runReview(body, { force: true }).catch(() => undefined)
     return { queued: true }
   })
   // ʕ•ᴥ•ʔ every review the cat has done

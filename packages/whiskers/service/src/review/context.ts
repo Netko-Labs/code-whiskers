@@ -2,12 +2,14 @@ import type { Finding } from '@code-whiskers/whiskers-domain'
 import { isBotLogin } from '../fix/utils'
 import type { PrConversation } from './github'
 import type { Suppression } from './suppressions'
+import type { PriorThread } from './types'
 
 export interface PrContextInput {
   reviewCount: number
   previous?: { headSha: string; verdict: string | null; findings: Finding[] }
   conversation: PrConversation
   suppressions?: Suppression[]
+  threads?: PriorThread[]
   botHandle: string
 }
 
@@ -49,7 +51,7 @@ function humanNotes(conversation: PrConversation, botHandle: string): string[] {
   }
 
   for (const comment of conversation.inline) {
-    if (isBotLogin(comment.author, botHandle)) continue
+    if (comment.isReply || isBotLogin(comment.author, botHandle)) continue
     const body = condense(comment.body)
     if (!body) continue
     const where = comment.line ? `${comment.path}:${comment.line}` : comment.path
@@ -63,6 +65,18 @@ function humanNotes(conversation: PrConversation, botHandle: string): string[] {
   }
 
   return notes
+}
+
+/** What became of each inline comment already posted: the answer is the part that matters. */
+function ledgerLine(thread: PriorThread): string {
+  const where = thread.line ? `${thread.path}:${thread.line}` : thread.path
+  const reply = thread.replies[thread.replies.length - 1]
+  const fate = thread.isResolved
+    ? 'resolved'
+    : reply
+      ? `${reply.author} answered: ${condense(reply.body)}`
+      : 'no answer yet'
+  return `- ${where} ${condense(thread.title)} — ${fate}`
 }
 
 function section(title: string, lines: string[], limit: number): string {
@@ -82,7 +96,11 @@ export function buildPrContext(input: PrContextInput): string {
   const { reviewCount, previous, conversation, botHandle } = input
   const suppressions = input.suppressions ?? []
   const notes = humanNotes(conversation, botHandle)
-  const openFindings = previous?.findings ?? []
+  const threads = input.threads ?? []
+  const earlier =
+    threads.length > 0 ? threads.map(ledgerLine) : (previous?.findings ?? []).map(findingLine)
+  const earlierTitle =
+    threads.length > 0 ? 'What happened to my earlier comments' : 'Findings I raised last time'
 
   if (reviewCount === 0 && notes.length === 0 && suppressions.length === 0) return ''
 
@@ -98,7 +116,7 @@ export function buildPrContext(input: PrContextInput): string {
   )
 
   let body =
-    section('Findings I raised last time', openFindings.map(findingLine), MAX_FINDINGS) +
+    section(earlierTitle, earlier, MAX_FINDINGS) +
     section('What humans have asked for', notes, MAX_COMMENTS) +
     section('Already settled — do not raise again', silenced, MAX_COMMENTS)
 
@@ -109,7 +127,7 @@ export function buildPrContext(input: PrContextInput): string {
     if (findingLimit >= commentLimit) findingLimit -= 1
     else commentLimit -= 1
     body =
-      section('Findings I raised last time', openFindings.map(findingLine), findingLimit) +
+      section(earlierTitle, earlier, findingLimit) +
       section('What humans have asked for', notes, commentLimit) +
       section('Already settled — do not raise again', silenced, commentLimit)
   }
@@ -118,6 +136,7 @@ export function buildPrContext(input: PrContextInput): string {
 
 ${header}${body}
 
-Act on it: do not re-raise a finding this diff fixes, and do not re-raise anything a
-human argued against. Note resolved ones in the summary instead.`
+Act on it: do not re-raise a finding this diff fixes. A comment that was resolved or answered
+is settled — do not raise it again in any wording; a human already decided. Raise only what is
+new in this diff.`
 }

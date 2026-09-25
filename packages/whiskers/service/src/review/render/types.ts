@@ -11,8 +11,14 @@ export type ReviewCoverage = {
   total: number
 }
 
+export type CarriedFindings = {
+  open: number
+  settled: number
+}
+
 export type ReviewReport = {
   review: LlmReview
   model: string
   coverage: ReviewCoverage
+  carried?: CarriedFindings
 }

@@ -12,7 +12,7 @@ import type { ReviewDetailData } from '../types'
 
 const RERUN_SETTLE_MS = 30_000
 
-/** This push's review and findings, plus every other push on the same pull request. */
+/** This push's review and findings, plus every other push on the same pull request, once each. */
 export function useReviewDetail(item: ConsoleItem): ReviewDetailData {
   const queryClient = useQueryClient()
   const detail = useQuery({
@@ -31,6 +31,7 @@ export function useReviewDetail(item: ConsoleItem): ReviewDetailData {
           `#${review.prNumber}` === item.handle,
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .filter((push, index, all) => all.findIndex((p) => p.headSha === push.headSha) === index)
     const review = detail.data?.review
 
     return {

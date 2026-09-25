@@ -1,7 +1,11 @@
 import { createLogger } from '@code-whiskers/logger'
 import { app } from '@code-whiskers/whiskers-api'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { startAlertLoop, startRetentionLoop } from '@code-whiskers/whiskers-service'
+import {
+  failStaleReviews,
+  startAlertLoop,
+  startRetentionLoop,
+} from '@code-whiskers/whiskers-service'
 
 const logger = createLogger('whiskers')
 
@@ -11,3 +15,6 @@ const url = process.env.PORTLESS_URL ?? `http://localhost:${whiskersEnvConfig.ap
 logger.info(`🚀 whiskers server listening on ${url}`)
 startAlertLoop()
 startRetentionLoop()
+failStaleReviews()
+  .then((count) => count > 0 && logger.info({ count }, 'stale reviews marked failed'))
+  .catch((error: Error) => logger.warn({ err: error.message }, 'stale review sweep failed'))

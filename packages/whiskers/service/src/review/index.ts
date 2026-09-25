@@ -2,7 +2,7 @@ import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createFindings, createReview } from '../mutations'
-import { countReviews, getPreviousReview } from '../queries'
+import { countReviews, getPreviousReview, hasReviewOfHead } from '../queries'
 import { createTokenTally, mapWithConcurrency } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
 import { buildPrContext } from './context'
@@ -19,7 +19,10 @@ import {
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import { type ReviewReport, renderFailureComment } from './render'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
+import { settledVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
+import { fetchBotThreads } from './threads'
+import type { RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
 export * from './chunk'
@@ -27,7 +30,9 @@ export * from './github'
 export * from './llm'
 export * from './render'
 export * from './rules'
+export * from './settle'
 export * from './suppressions'
+export * from './threads'
 export * from './watching'
 
 const logger = createLogger('whiskers-review')
@@ -36,14 +41,42 @@ const logger = createLogger('whiskers-review')
 // webhook redeliveries and repeated failures must not pile up comments.
 const failureNotified = new Set<string>()
 const FAILURE_NOTIFIED_CAP = 1_000
+// GitHub delivers opened/reopened/ready_for_review (and redeliveries) for one head; one review each.
+const inFlight = new Set<string>()
 
-/** The whole pipeline: diff -> chunks -> LLM -> persist -> PR review on GitHub. */
-export async function runReview(ref: PrRef): Promise<Review | undefined> {
+/** The whole pipeline: diff -> chunks -> LLM -> settle against history -> PR review on GitHub. */
+export async function runReview(
+  ref: PrRef,
+  options: RunReviewOptions = {},
+): Promise<Review | undefined> {
   if (!(await isRepositoryWatched(`${ref.owner}/${ref.repo}`))) {
     logger.info(ref, 'repository is paused in CodeWhiskers — review skipped')
     return undefined
   }
   const head = await fetchPrHead(ref)
+  const headSha = head.sha
+  const headKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
+  if (inFlight.has(headKey)) {
+    logger.info({ ...ref, headSha }, 'this head is already being reviewed — skipped')
+    return undefined
+  }
+  inFlight.add(headKey)
+  try {
+    const isReviewed = await hasReviewOfHead(ref.owner, ref.repo, ref.prNumber, headSha)
+    if (isReviewed && !options.force) {
+      logger.info({ ...ref, headSha }, 'this head was already reviewed — skipped')
+      return undefined
+    }
+    return await reviewHead(ref, head)
+  } finally {
+    inFlight.delete(headKey)
+  }
+}
+
+async function reviewHead(
+  ref: PrRef,
+  head: Awaited<ReturnType<typeof fetchPrHead>>,
+): Promise<Review | undefined> {
   const headSha = head.sha
   const review = await createReview({
     owner: ref.owner,
@@ -64,14 +97,23 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
   const tokens = createTokenTally()
 
   try {
-    const [diff, conversation, previous, reviewCount, suppressions, rules] = await Promise.all([
-      fetchPrDiff(ref),
-      fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
-      getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-      countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-      fetchSuppressions(`${ref.owner}/${ref.repo}`),
-      fetchRules(`${ref.owner}/${ref.repo}`),
-    ])
+    const botHandle = whiskersEnvConfig.github.botHandle
+    const [diff, conversation, previous, reviewCount, suppressions, rules, threads] =
+      await Promise.all([
+        fetchPrDiff(ref),
+        fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
+        getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+        countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+        fetchSuppressions(`${ref.owner}/${ref.repo}`),
+        fetchRules(`${ref.owner}/${ref.repo}`),
+        fetchBotThreads(ref, botHandle).catch((error) => {
+          logger.warn(
+            { err: error instanceof Error ? error.message : String(error) },
+            'review threads unavailable — reviewing without memory',
+          )
+          return []
+        }),
+      ])
 
     const prContext = buildPrContext({
       reviewCount,
@@ -82,7 +124,8 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
       },
       conversation,
       suppressions,
-      botHandle: whiskersEnvConfig.github.botHandle,
+      threads,
+      botHandle,
     })
     const changedFiles = [...commentableLines(diff).keys()]
     const applicable = rulesForFiles(rules, changedFiles)
@@ -98,13 +141,28 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
     const outcomes = await mapWithConcurrency(chunks, (chunk) =>
       reviewChunkWithRetry(chunk, context, tokens),
     )
-    const { review: merged, coverage } = resolveOutcome(outcomes)
+    const { review: raw, coverage } = resolveOutcome(outcomes)
     if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
+    const { fresh, repeated, settled } = settleFindings(
+      raw.findings,
+      threads,
+      suppressedFindings(suppressions),
+    )
+    const remaining = [...fresh, ...repeated]
+    const merged = { ...raw, findings: remaining, verdict: settledVerdict(raw.verdict, remaining) }
     const report: ReviewReport = {
       review: merged,
       model: review.model ?? whiskersEnvConfig.openrouter.model,
       coverage,
     }
+    // GitHub sees only what is new; the console keeps every open finding.
+    const posted: ReviewReport = {
+      ...report,
+      review: { ...merged, findings: fresh },
+      carried: { open: repeated.length, settled: settled.length },
+    }
+    const isUnchanged =
+      fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
 
     await createFindings(
       merged.findings.map((f) => ({
@@ -118,7 +176,14 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
         suggestion: f.suggestion,
       })),
     )
-    await postPrReview(ref, headSha, report, commentableLines(diff))
+    if (isUnchanged) {
+      logger.info(
+        { ...ref, headSha },
+        'nothing new since the last review — no GitHub review posted',
+      )
+    } else {
+      await postPrReview(ref, headSha, posted, commentableLines(diff))
+    }
     await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
       logger.warn(
         { err: error instanceof Error ? error.message : String(error) },
@@ -130,7 +195,9 @@ export async function runReview(ref: PrRef): Promise<Review | undefined> {
         ...ref,
         reviewId: review.id,
         verdict: merged.verdict,
-        findings: merged.findings.length,
+        fresh: fresh.length,
+        repeated: repeated.length,
+        settled: settled.length,
         chunks: chunks.length,
         tokens,
       },

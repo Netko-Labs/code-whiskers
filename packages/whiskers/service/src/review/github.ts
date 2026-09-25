@@ -17,7 +17,7 @@ const installationCache = new Map<string, Octokit>()
  * App installation auth when GITHUB_APP_ID + key are configured (reviews post
  * as the app's bot identity); personal-token fallback otherwise (BYOK).
  */
-async function octokitFor(owner: string, repo: string): Promise<Octokit> {
+export async function octokitFor(owner: string, repo: string): Promise<Octokit> {
   if (!githubApp) return patOctokit
   const key = `${owner}/${repo}`
   const cached = installationCache.get(key)
@@ -96,8 +96,8 @@ export interface PrConversation {
   verdicts: { author: string; state: string; body: string }[]
   /** Top-level PR comments. */
   discussion: { author: string; body: string }[]
-  /** Inline thread comments, newest last. */
-  inline: { author: string; path: string; line: number | null; body: string }[]
+  /** Inline thread comments, newest last. Replies are read from the thread ledger instead. */
+  inline: { author: string; path: string; line: number | null; body: string; isReply?: boolean }[]
 }
 
 /**
@@ -148,6 +148,7 @@ export async function fetchPrConversation({
       path: c.path,
       line: c.line ?? c.original_line ?? null,
       body: c.body ?? '',
+      isReply: !!c.in_reply_to_id,
     })),
   }
 }
