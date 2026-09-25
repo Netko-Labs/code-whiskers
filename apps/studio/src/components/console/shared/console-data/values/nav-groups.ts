@@ -1,10 +1,14 @@
 import {
+  IconActivity,
   IconAlertCircle,
   IconArrowBackUp,
   IconBellRinging,
   IconBookmark,
   IconBoxMultiple,
+  IconBug,
+  IconBuildingCommunity,
   IconClock,
+  IconCode,
   IconFolders,
   IconGauge,
   IconGitCommit,
@@ -14,6 +18,7 @@ import {
   IconPlug,
   IconScale,
   IconScript,
+  IconStack2,
   IconTag,
   IconTopologyStar3,
   IconUser,
@@ -27,6 +32,7 @@ const SECTION_ROUTE = '/console/$section'
 export const NAV_GROUPS: ConsoleNavGroup[] = [
   {
     label: 'Triage',
+    icon: IconStack2,
     items: [
       {
         label: 'Inbox',
@@ -50,6 +56,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
   },
   {
     label: 'Code review',
+    icon: IconCode,
     items: [
       {
         label: 'Pull requests',
@@ -79,6 +86,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
   },
   {
     label: 'Errors',
+    icon: IconBug,
     items: [
       {
         label: 'Issues',
@@ -108,6 +116,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
   },
   {
     label: 'Telemetry',
+    icon: IconActivity,
     items: [
       {
         label: 'Live logs',
@@ -137,6 +146,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
   },
   {
     label: 'Organization',
+    icon: IconBuildingCommunity,
     items: [
       {
         label: 'Members',

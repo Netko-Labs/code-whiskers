@@ -13,6 +13,13 @@ export type ConsoleNavItemProps = {
 export type ConsoleNavGroupProps = {
   group: NavGroup
   counts: Record<string, number>
+  isCollapsed: boolean
+  onToggle: () => void
+}
+
+export type CollapsedGroups = {
+  collapsed: ReadonlySet<string>
+  toggle: (label: string) => void
 }
 
 export type ConsoleNavProps = {

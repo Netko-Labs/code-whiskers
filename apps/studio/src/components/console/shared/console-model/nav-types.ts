@@ -11,5 +11,6 @@ export type ConsoleNavItem = {
 
 export type ConsoleNavGroup = {
   label: string
+  icon: Icon
   items: ConsoleNavItem[]
 }
