@@ -130,7 +130,8 @@ export function useTracesSection(
       isScoped: true,
       subtitle: waterfall
         ? `${ms(trace?.durationMs ?? 0)} across ${spans?.length ?? 0} spans`
-        : (unlinkedScopeNote(scope) ?? 'Every trace from the last day'),
+        : 'Every trace from the last day',
+      note: unlinkedScopeNote(scope),
       actions: [
         saveViewAction('traces', tab, filters, () =>
           queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),

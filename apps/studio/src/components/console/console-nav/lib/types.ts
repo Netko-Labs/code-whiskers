@@ -8,6 +8,11 @@ import type {
 export type ConsoleNavItemProps = {
   item: ConsoleNavItem
   count: string
+  isQuiet?: boolean
+}
+
+export type ConsoleNavSettingsProps = {
+  group: NavGroup
 }
 
 export type ConsoleNavGroupProps = {

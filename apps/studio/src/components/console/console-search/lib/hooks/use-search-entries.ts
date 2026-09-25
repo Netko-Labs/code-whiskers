@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useMemo } from 'react'
-import { NAV_GROUPS, useConsoleItems } from '../../../shared/console-data'
+import { NAV_GROUPS, TRIAGE_BUCKET_ITEMS, useConsoleItems } from '../../../shared/console-data'
 import { useConsoleStore } from '../../../use-console-store'
 import type { SearchEntry } from '../types'
 
@@ -25,7 +25,8 @@ export function useSearchEntries(): SearchEntry[] {
         })
       },
     }))
-    const sectionEntries = NAV_GROUPS.flatMap((group) =>
+    const groups = [{ label: 'Triage', items: TRIAGE_BUCKET_ITEMS.slice(1) }, ...NAV_GROUPS]
+    const sectionEntries = groups.flatMap((group) =>
       group.items.map((nav) => ({
         id: `nav:${group.label}:${nav.label}`,
         group: group.label,

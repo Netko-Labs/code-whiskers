@@ -87,7 +87,8 @@ export function useServicesSection(
     return {
       title: 'Services',
       isScoped: true,
-      subtitle: unlinkedScopeNote(scope) ?? `${services.length} reporting today`,
+      subtitle: `${services.length} reporting today`,
+      note: unlinkedScopeNote(scope),
       actions: [],
       stats: [
         { label: 'Services', value: String(services.length), note: 'reporting today' },

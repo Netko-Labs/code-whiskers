@@ -7,7 +7,7 @@ const BUTTON =
 
 export function SectionRowActions({ actions }: SectionRowActionsProps) {
   return (
-    <div className="flex justify-end gap-1.5">
+    <div className="flex justify-end gap-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
       {actions.map((action) =>
         action.form ? (
           <SectionRowFormAction key={action.label} action={action} className={BUTTON} />

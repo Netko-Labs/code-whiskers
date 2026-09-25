@@ -59,14 +59,14 @@ export type DetailPaneProps = {
   actions: DetailActions
 }
 
+export type DetailHeaderProps = DetailPaneProps & {
+  banner: TriageBanner | null
+}
+
 export type AssignMenuProps = {
   assigneeUserId: string | null
   isDisabled: boolean
   onAssign: (member: Member | null) => void
-}
-
-export type DetailBannerProps = {
-  banner: TriageBanner
 }
 
 export type ItemThreadProps = {

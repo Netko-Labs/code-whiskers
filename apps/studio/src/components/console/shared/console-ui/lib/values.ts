@@ -27,12 +27,13 @@ export const SEVERITY_TEXT: Record<ConsoleSeverity, string> = {
   idle: 'text-muted-foreground',
 }
 
-export const PILL_TONE: Record<PillTone, string> = {
-  ok: 'text-severity-resolved-ink bg-severity-resolved/10',
-  warn: 'text-severity-warning-ink bg-severity-warning/10',
-  bad: 'text-severity-error-ink bg-severity-error/10',
-  info: 'text-severity-info-ink bg-severity-info/10',
-  neutral: 'text-body bg-muted',
+/** Brand rule: the color sits in the dot, the text stays ink. */
+export const PILL_DOT: Record<PillTone, string> = {
+  ok: 'bg-severity-resolved',
+  warn: 'bg-severity-warning',
+  bad: 'bg-severity-error',
+  info: 'bg-severity-info',
+  neutral: 'bg-rule-strong',
 }
 
 export const BAR_TONE: Record<PillTone, string> = {

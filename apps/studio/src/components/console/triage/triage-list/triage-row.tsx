@@ -1,8 +1,8 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { useMembers } from '../../shared/console-data'
-import { SEVERITY_TEXT } from '../../shared/console-ui'
-import { rowLabel, type TriageRowProps, useItemStatus } from '../lib'
+import { SEVERITY_BG } from '../../shared/console-ui'
+import { rowMeta, type TriageRowProps, useItemStatus } from '../lib'
 
 export function TriageRow({ bucket, item, active }: TriageRowProps) {
   const status = useItemStatus(item)
@@ -14,38 +14,31 @@ export function TriageRow({ bucket, item, active }: TriageRowProps) {
       params={{ bucket }}
       search={(prev) => ({ ...prev, sel: item.id })}
       className={cn(
-        'flex cursor-pointer flex-col gap-[5px] border-rule-soft border-b border-l-2 px-[18px] py-[13px]',
-        active ? 'border-l-foreground bg-surface-subtle' : 'border-l-transparent bg-background',
+        'flex cursor-pointer gap-3 border-rule-soft border-b border-l-2 py-3 pr-5 pl-[18px] transition-colors',
+        active
+          ? 'border-l-foreground bg-surface-subtle'
+          : 'border-l-transparent hover:bg-surface-subtle/60',
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <span
+        className={cn(
+          'mt-[6px] size-2 shrink-0 rounded-full',
+          status.done ? 'bg-rule-strong' : SEVERITY_BG[item.severity],
+        )}
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span
           className={cn(
-            'truncate font-semibold text-[13px]',
-            status.done ? SEVERITY_TEXT.ok : SEVERITY_TEXT[item.severity],
+            'line-clamp-2 text-[13.5px] leading-[19px] text-pretty',
+            active ? 'font-semibold' : 'font-medium',
+            status.done && 'text-muted-foreground',
           )}
         >
-          {rowLabel(item, status)}
+          {item.title}
         </span>
-        <span className="shrink-0 text-[11px] text-muted-foreground">{item.age}</span>
-      </div>
-      <span className={cn('text-[13px] leading-[18px] text-pretty', active && 'font-semibold')}>
-        {item.title}
-      </span>
-      <div className="flex min-w-0 items-center gap-2 font-mono text-[11px]">
-        <span
-          title={item.repository ?? item.scopeLabel}
-          className="max-w-[55%] shrink-0 truncate rounded-md border border-border px-1.5 py-px text-body"
-        >
-          {item.scopeLabel}
-        </span>
-        <span
-          className={cn(
-            'truncate',
-            status.done ? 'text-severity-resolved' : 'text-muted-foreground',
-          )}
-        >
-          {owner ? `assigned to ${owner}` : item.meta}
+        <span className="flex items-baseline gap-2 text-[12px] text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate">{rowMeta(item, status, owner)}</span>
+          <span className="shrink-0 font-mono text-[11px] text-faint tabular-nums">{item.age}</span>
         </span>
       </div>
     </Link>

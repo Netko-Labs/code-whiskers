@@ -33,6 +33,17 @@ export type SectionHook = (
   scope: ConsoleScope,
 ) => SectionDefinition
 
+export type SectionHeaderProps = {
+  definition: SectionDefinition
+}
+
+export type SectionToolbarProps = {
+  section: SectionView
+  tab: number
+  filters: SectionFilters
+  definition: SectionDefinition
+}
+
 export type SectionScreenProps = {
   section: SectionView
   tab: number

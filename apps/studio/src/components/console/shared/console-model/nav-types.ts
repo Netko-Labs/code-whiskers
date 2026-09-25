@@ -9,7 +9,10 @@ export type ConsoleNavItem = {
   params?: { bucket: TriageBucket } | { section: SectionView }
 }
 
+export type ConsoleNavGroupKind = 'primary' | 'explore' | 'settings'
+
 export type ConsoleNavGroup = {
+  kind: ConsoleNavGroupKind
   label: string
   items: ConsoleNavItem[]
 }

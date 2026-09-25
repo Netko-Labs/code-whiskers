@@ -87,11 +87,10 @@ export function useLiveLogsSection(
     return {
       title: 'Live logs',
       isScoped: true,
-      subtitle:
-        unlinkedScopeNote(scope) ??
-        (filters.service
-          ? `Lines from ${filters.service}, newest first`
-          : 'Every service, newest first'),
+      subtitle: filters.service
+        ? `Lines from ${filters.service}, newest first`
+        : 'Every service, newest first',
+      note: unlinkedScopeNote(scope),
       actions: [
         saveViewAction('live-logs', tab, filters, () =>
           queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),

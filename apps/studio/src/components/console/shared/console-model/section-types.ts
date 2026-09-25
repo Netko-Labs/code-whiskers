@@ -113,6 +113,8 @@ export type SectionDefinition = {
   tabs: string[]
   /** A fixture shown until the real source has rows; the view labels it. */
   sample?: boolean
+  /** One line that changes what the reader should do, e.g. why a scoped table is empty. */
+  note?: string | null
   /** Reads the console scope; shows the repository picker next to the tabs. */
   isScoped?: boolean
   /** Shows a search box bound to the `q` filter. */

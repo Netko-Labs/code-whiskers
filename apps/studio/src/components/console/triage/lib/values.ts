@@ -1,10 +1,16 @@
-import type { TriageFilter } from '../../shared/console-model'
+import type { TriageBucket, TriageFilter } from '../../shared/console-model'
 
 export const TRIAGE_FILTERS: { value: TriageFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'errors', label: 'Errors' },
+  { value: 'all', label: 'Everything' },
   { value: 'reviews', label: 'Reviews' },
+  { value: 'errors', label: 'Errors' },
   { value: 'logs', label: 'Logs' },
+]
+
+export const TRIAGE_BUCKETS: { value: TriageBucket; label: string }[] = [
+  { value: 'inbox', label: 'Inbox' },
+  { value: 'assigned', label: 'Assigned' },
+  { value: 'snoozed', label: 'Snoozed' },
 ]
 
 export const ERROR_TABS = [
@@ -16,7 +22,5 @@ export const ERROR_TABS = [
 
 export const SNOOZE_MS = 24 * 60 * 60 * 1000
 export const DRAFT_HINT = 'Visible to your team · ⌘↵ to post'
-export const KEYBOARD_HINT = 'j/k move · e act · s snooze'
-export const LIVE_NOTE = 'Live — refreshes when you return to this tab'
 export const SAMPLE_ACTION_NOTE = 'Sample data — connect a repository to act on real items'
 export const DISMISS_NOTE = 'dismissed in the CodeWhiskers console'

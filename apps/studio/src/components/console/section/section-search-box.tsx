@@ -25,13 +25,13 @@ export function SectionSearchBox({ section, tab, filters, placeholder }: Section
   }, [draft, filters, navigate, section, tab])
 
   return (
-    <div className="ml-3 flex items-center gap-1.5">
+    <div className="ml-auto flex items-center gap-1.5 py-2.5">
       <input
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-7 w-[240px] rounded-lg border border-border bg-transparent px-2.5 text-xs outline-none placeholder:text-faint focus-visible:border-ring"
+        className="h-8 w-[260px] rounded-lg border border-border bg-transparent px-3 text-[13px] outline-none transition-colors placeholder:text-faint focus-visible:border-ring"
       />
       {filters.service && (
         <button

@@ -68,7 +68,7 @@ export function usePullRequestsSection(
           strong: true,
           dot: reviewSeverityDot(review),
         },
-        { kind: 'text' as const, text: slug, mono: true },
+        { kind: 'text' as const, text: slug, mono: true, tone: 'muted' as const },
         verdictCell(review),
         { kind: 'text' as const, text: reviewDiff(review), mono: true },
         { kind: 'text' as const, text: review.author ?? '—', tone: 'muted' as const },
@@ -97,7 +97,7 @@ export function usePullRequestsSection(
       title: 'Pull requests',
       subtitle: `${rows.length} reviewed${scope.value ? ` in ${scope.label}` : ''} · Whiskers reviews every push`,
       isScoped: true,
-      actions: [{ label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' }],
+      actions: [],
       stats: [
         { label: 'Pull requests', value: String(rows.length), note: 'latest review each' },
         { label: 'Needs changes', value: String(needsChanges.length), note: 'blocking findings' },

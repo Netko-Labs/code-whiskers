@@ -90,7 +90,6 @@ export function useIssuesSection(
         saveViewAction('issues', tab, filters, () =>
           queryClient.invalidateQueries({ queryKey: savedQueriesQuery().queryKey }),
         ),
-        { label: 'Open triage', variant: 'solid', href: '/console/triage/inbox' },
       ],
       stats: [
         { label: 'Unresolved', value: String(unresolved.length), note: 'open groups' },

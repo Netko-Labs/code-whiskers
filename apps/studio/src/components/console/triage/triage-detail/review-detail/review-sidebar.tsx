@@ -83,7 +83,7 @@ export function ReviewSidebar({ item, detail, open }: ReviewSidebarProps) {
 
   return (
     <aside className="flex flex-col gap-4">
-      <ReviewOutcome review={review} open={open} className="hidden @[900px]:flex" />
+      <ReviewOutcome review={review} open={open} className="hidden @[720px]:flex" />
 
       <dl className="m-0 grid grid-cols-[88px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[12px]">
         {rows.map(([label, value]) => (

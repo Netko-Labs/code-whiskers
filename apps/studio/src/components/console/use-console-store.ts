@@ -4,7 +4,7 @@ import { NAV_COLLAPSE_WIDTH } from './lib'
 
 /** UI coordination only — triage decisions, comments and people are server state. */
 export const useConsoleStore = create<ConsoleStore>((set, get) => ({
-  navOpen: false,
+  navOpen: true,
   navPinned: false,
   orgLogin: null,
   readIds: {},

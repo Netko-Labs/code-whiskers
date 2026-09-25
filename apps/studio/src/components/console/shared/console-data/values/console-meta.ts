@@ -1,10 +1,4 @@
-import type { ConsoleOrg, TriageBucket } from '../../console-model'
-
-export const TRIAGE_TITLES: Record<TriageBucket, { title: string; sub: string }> = {
-  inbox: { title: 'Needs review', sub: 'newest first' },
-  assigned: { title: 'Assigned to me', sub: 'you own these' },
-  snoozed: { title: 'Snoozed', sub: 'back in the inbox when the snooze ends' },
-}
+import type { ConsoleOrg } from '../../console-model'
 
 export const ORGS: ConsoleOrg[] = [
   {

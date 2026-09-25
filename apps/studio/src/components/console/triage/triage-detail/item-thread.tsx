@@ -18,15 +18,15 @@ export function ItemThread({ item, onPost }: ItemThreadProps) {
 
   if (!item.triage) {
     return (
-      <div className="rounded-2xl border border-border p-3.5 text-[13px] text-muted-foreground">
+      <div className="border-rule-soft border-t pt-5 text-[13px] text-muted-foreground">
         Comments are saved once this is a real item — sample data stays read-only.
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border p-3.5">
-      <span className="font-semibold text-[13px]">Discussion</span>
+    <div className="flex flex-col gap-3 border-rule-soft border-t pt-5">
+      <span className="font-semibold text-[15px] tracking-[-0.01em]">Discussion</span>
       {comments.map((comment) => {
         const isSelf = comment.authorUserId === viewer?.id
         const who = comment.authorName ?? 'Former member'

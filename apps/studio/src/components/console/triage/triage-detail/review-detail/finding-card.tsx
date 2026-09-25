@@ -1,6 +1,6 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { IconArrowUpRight } from '@tabler/icons-react'
-import { type FindingCardProps, SEVERITY_CHIP } from './lib'
+import { type FindingCardProps, SEVERITY_DOT } from './lib'
 
 const ACTION =
   'rounded-md px-2 py-[3px] font-medium text-[11px] text-muted-foreground hover:bg-rule-soft hover:text-foreground'
@@ -16,12 +16,8 @@ export function FindingCard({ finding, isDismissed, url, onToggle }: FindingCard
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span
-          className={cn(
-            'rounded-md px-1.5 py-0.5 font-semibold text-[10px] uppercase tracking-wide',
-            SEVERITY_CHIP[finding.severity],
-          )}
-        >
+        <span className="flex items-center gap-1.5 font-medium text-[12px] capitalize">
+          <span className={cn('size-1.5 rounded-full', SEVERITY_DOT[finding.severity])} />
           {finding.severity}
         </span>
         <span className="text-[11px] text-muted-foreground">{finding.category}</span>

@@ -30,15 +30,6 @@ export function matchesQuery(item: ConsoleItem, query: string): boolean {
     .includes(needle)
 }
 
-export function rowLabel(item: ConsoleItem, status: TriageStatus) {
-  if (status.regressed) return 'Regressed'
-  if (status.resolved) return 'Resolved'
-  if (status.approved) return 'Approved'
-  if (status.tracked) return 'Tracked'
-  if (status.snoozedUntil) return 'Snoozed'
-  return item.label
-}
-
 export function primaryLabel(item: ConsoleItem, status: TriageStatus) {
   if (item.kind === 'review') return status.approved ? 'Withdraw approval' : 'Approve'
   if (item.kind === 'log') return status.tracked ? 'Untrack' : 'Track'
@@ -189,4 +180,31 @@ export function isTyping(target: EventTarget | null): boolean {
     target instanceof HTMLElement &&
     (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
   )
+}
+
+function statusWord(status: TriageStatus): string | null {
+  if (status.regressed) return 'Regressed'
+  if (status.resolved) return 'Resolved'
+  if (status.approved) return 'Approved'
+  if (status.tracked) return 'Tracked'
+  if (status.snoozedUntil) return 'Snoozed'
+  return null
+}
+
+/** One quiet line under the title: where it lives, what it is, and the one fact worth knowing. */
+export function rowMeta(
+  item: ConsoleItem,
+  status: TriageStatus,
+  owner: string | undefined,
+): string {
+  const what =
+    item.kind === 'review' ? item.handle : item.kind === 'log' ? 'log pattern' : item.label
+  const fact = owner ? `→ ${owner}` : item.meta
+  return [statusWord(status), item.scopeLabel, what, fact].filter(Boolean).join(' · ')
+}
+
+/** The item's state in words, for the header: badges read as sentence case, not shouted. */
+export function stateLine(item: ConsoleItem): string {
+  const text = (item.badge2 || item.badge).toLowerCase()
+  return text.charAt(0).toUpperCase() + text.slice(1)
 }

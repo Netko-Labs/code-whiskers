@@ -12,7 +12,7 @@ import {
 } from './lib'
 import { ReviewFileGroup } from './review-file-group'
 
-const CHIP = 'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-medium text-xs'
+const TOGGLE = 'flex items-center gap-1.5 text-[12px] transition-colors'
 
 export function ReviewFindings({ item, detail, decisions, actions }: ReviewFindingsProps) {
   const [severity, setSeverity] = useState<SeverityFilter>('all')
@@ -27,7 +27,7 @@ export function ReviewFindings({ item, detail, decisions, actions }: ReviewFindi
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h3 className="m-0 mr-2 font-semibold text-[15px] tracking-[-0.01em]">
           Findings <span className="font-normal text-muted-foreground">{open.length}</span>
         </h3>
@@ -40,17 +40,17 @@ export function ReviewFindings({ item, detail, decisions, actions }: ReviewFindi
               key={option}
               onClick={() => setSeverity(option)}
               className={cn(
-                CHIP,
+                TOGGLE,
                 option === severity
-                  ? 'border-foreground bg-foreground text-primary-foreground'
-                  : 'border-border bg-background text-body hover:bg-surface-subtle',
+                  ? 'font-medium text-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {option !== 'all' && (
                 <span className={cn('size-[7px] rounded-full', SEVERITY_DOT[option])} />
               )}
               <span className="capitalize">{option}</span>
-              <span className="font-mono opacity-70">{count}</span>
+              <span className="font-mono text-[11px] text-faint tabular-nums">{count}</span>
             </button>
           )
         })}

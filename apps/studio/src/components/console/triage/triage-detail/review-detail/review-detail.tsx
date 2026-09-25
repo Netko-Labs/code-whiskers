@@ -12,12 +12,12 @@ export function ReviewDetail({ item, actions }: ReviewDetailProps) {
 
   return (
     <div className="@container">
-      <div className="grid gap-6 @[900px]:grid-cols-[minmax(0,1fr)_260px]">
+      <div className="grid gap-6 @[720px]:grid-cols-[minmax(0,1fr)_260px]">
         <div className="flex min-w-0 flex-col gap-5">
           <ReviewOutcome
             review={detail.review}
             open={decisions.open}
-            className="flex @[900px]:hidden"
+            className="flex @[720px]:hidden"
           />
           <ReviewRead item={item} />
           <ReviewSampleEvidence item={item} actions={actions} />
@@ -27,7 +27,7 @@ export function ReviewDetail({ item, actions }: ReviewDetailProps) {
           <ItemThread item={item} onPost={actions.postComment} />
         </div>
         <div>
-          <div className="@[900px]:sticky @[900px]:top-0">
+          <div className="@[720px]:sticky @[720px]:top-0">
             <ReviewSidebar item={item} detail={detail} open={decisions.open} />
           </div>
         </div>
