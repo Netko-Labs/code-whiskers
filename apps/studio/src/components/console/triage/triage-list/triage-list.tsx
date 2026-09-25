@@ -2,45 +2,24 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ScopePicker } from '../../scope-picker'
-import {
-  matchesQuery,
-  TRIAGE_BUCKETS,
-  TRIAGE_FILTERS,
-  type TriageListProps,
-  useTriageKeys,
-} from '../lib'
+import { TRIAGE_TITLES } from '../../shared/console-data'
+import { matchesQuery, TRIAGE_FILTERS, type TriageListProps, useTriageKeys } from '../lib'
 import { TriageRow } from './triage-row'
 
 export function TriageList({ bucket, filter, items, selectedId, sampleNote }: TriageListProps) {
   const [query, setQuery] = useState('')
+  const heading = TRIAGE_TITLES[bucket]
   const shown = query ? items.filter((item) => matchesQuery(item, query)) : items
   useTriageKeys(shown, selectedId, bucket)
 
   return (
     <div className="flex min-w-[260px] shrink basis-[360px] flex-col border-border border-r">
-      <nav className="flex items-center gap-5 border-border border-b px-5">
-        {TRIAGE_BUCKETS.map((option) => (
-          <Link
-            key={option.value}
-            to="/console/triage/$bucket"
-            params={{ bucket: option.value }}
-            search={(prev) => ({ ...prev, sel: undefined })}
-            className={cn(
-              '-mb-px flex items-center gap-1.5 border-b-2 py-3.5 text-[13px] transition-colors',
-              option.value === bucket
-                ? 'border-foreground font-medium text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {option.label}
-            {option.value === bucket && (
-              <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
-                {shown.length}
-              </span>
-            )}
-          </Link>
-        ))}
-      </nav>
+      <div className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-1">
+        <h1 className="m-0 font-semibold text-[17px] tracking-[-0.015em]">{heading.title}</h1>
+        <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+          {shown.length}
+        </span>
+      </div>
 
       <div className="flex flex-col gap-2.5 border-border border-b px-5 py-3">
         <div className="flex gap-2">

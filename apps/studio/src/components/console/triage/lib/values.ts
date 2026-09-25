@@ -1,16 +1,10 @@
-import type { TriageBucket, TriageFilter } from '../../shared/console-model'
+import type { TriageFilter } from '../../shared/console-model'
 
 export const TRIAGE_FILTERS: { value: TriageFilter; label: string }[] = [
   { value: 'all', label: 'Everything' },
   { value: 'reviews', label: 'Reviews' },
   { value: 'errors', label: 'Errors' },
   { value: 'logs', label: 'Logs' },
-]
-
-export const TRIAGE_BUCKETS: { value: TriageBucket; label: string }[] = [
-  { value: 'inbox', label: 'Inbox' },
-  { value: 'assigned', label: 'Assigned' },
-  { value: 'snoozed', label: 'Snoozed' },
 ]
 
 export const ERROR_TABS = [

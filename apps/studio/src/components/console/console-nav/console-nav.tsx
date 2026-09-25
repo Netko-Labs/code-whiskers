@@ -3,7 +3,6 @@ import { IconSearch } from '@tabler/icons-react'
 import { NAV_GROUPS } from '../shared/console-data'
 import { useConsoleStore } from '../use-console-store'
 import { ConsoleNavGroup } from './console-nav-group'
-import { ConsoleNavSettings } from './console-nav-settings'
 import { ConsoleNotifications } from './console-notifications'
 import { ConsoleOrgSwitcher } from './console-org-switcher'
 import { ConsoleUserMenu } from './console-user-menu'
@@ -35,16 +34,13 @@ export function ConsoleNav() {
 
       <ConsoleOrgSwitcher />
 
-      <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-6 overflow-auto px-1 pt-1">
-        {NAV_GROUPS.filter((group) => group.kind !== 'settings').map((group) => (
+      <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto px-1">
+        {NAV_GROUPS.map((group) => (
           <ConsoleNavGroup key={group.label} group={group} counts={counts} />
         ))}
       </div>
 
-      <div className="mt-auto flex flex-col gap-2 border-zinc-900 border-t pt-3">
-        {NAV_GROUPS.filter((group) => group.kind === 'settings').map((group) => (
-          <ConsoleNavSettings key={group.label} group={group} />
-        ))}
+      <div className="mt-auto flex flex-col gap-2.5 border-zinc-900 border-t pt-3">
         <ConsoleUserMenu />
       </div>
     </nav>
