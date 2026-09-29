@@ -1,7 +1,8 @@
 import { timingSafeEqual } from 'node:crypto'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { AlertFireSchema, IdParamSchema } from '@code-whiskers/studio-domain'
+import { AlertFireSchema, FindingDismissSchema, IdParamSchema } from '@code-whiskers/studio-domain'
 import {
+  dismissFinding,
   fireAlertRule,
   getEvaluableRules,
   getRepositoryWatch,
@@ -38,6 +39,12 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     // A header, not a wrapper object, so a whiskers still reading a bare array keeps working.
     if (isTruncated) set.headers['x-suppressions-truncated'] = 'true'
     return suppressions
+  })
+  // (￣ー￣)ゞ an insider said `@code-whiskers ignore` on one of the reviewer's threads
+  .post('/findings/dismiss', { body: FindingDismissSchema }, async ({ headers, body, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    if (!(await dismissFinding(body))) return status(404, 'Not found')
+    return { ok: true }
   })
   // (｀・ω・´) the team's rules for the installation this repo belongs to
   .get('/rules', async ({ headers, query, status }) => {

@@ -5,7 +5,7 @@ import {
   type FixTarget,
   isBotLogin,
   isBotMention,
-  runFix,
+  runMention,
   runReview,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
@@ -57,7 +57,7 @@ function handlePullRequest(raw: string) {
   return { ok: true, queued: { owner, repo, prNumber } }
 }
 
-// @<botHandle> in a PR comment or a review thread queues a fix reply.
+// @<botHandle> in a PR comment or a review thread: fix, review, ignore, or a question.
 function handleMention(event: string, raw: string) {
   const payload = JSON.parse(raw) as {
     action?: string
@@ -101,10 +101,14 @@ function handleMention(event: string, raw: string) {
         }
       : { commentId: null, path: null, startLine: null, line: null, body, author }
 
-  void runFix({ owner, repo, prNumber }, target).catch((error) => {
-    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'fix crashed')
+  const source = {
+    commentId: payload.comment?.id ?? null,
+    isReviewComment: event === 'pull_request_review_comment',
+  }
+  void runMention({ owner, repo, prNumber }, target, source).catch((error) => {
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'mention crashed')
   })
-  return { ok: true, queued: { owner, repo, prNumber, fix: true } }
+  return { ok: true, queued: { owner, repo, prNumber, mention: true } }
 }
 
 export const webhookRoutes = new Elysia({ name: 'webhooks', prefix: '/webhooks' })

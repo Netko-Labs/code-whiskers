@@ -1,5 +1,5 @@
-import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
-import type { ReviewCoverage } from './render'
+import type { LlmFinding, LlmReview, Review } from '@code-whiskers/whiskers-domain'
+import type { ReviewCoverage, ReviewReport } from './render'
 
 /** `reviewed`/`attempted` count leaf sections, so a split chunk reports each half. */
 export type ChunkOutcome = {
@@ -41,4 +41,27 @@ export type SettledFindings = {
 
 export type RunReviewOptions = {
   force?: boolean
+}
+
+export type ConventionFile = {
+  path: string
+  content: string
+}
+
+export type PipelineResult = {
+  report: ReviewReport
+  merged: LlmReview
+}
+
+export type ReviewUsage = Pick<Review, 'model'> &
+  Partial<Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens'>>
+
+/** Carried across attempts of one review, so a retry never repeats what already reached GitHub. */
+export type PipelineAttempt = {
+  isPosted: boolean
+}
+
+export type HttpFailure = {
+  status?: number
+  statusCode?: number
 }
