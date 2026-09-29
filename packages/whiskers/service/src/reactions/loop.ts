@@ -6,6 +6,10 @@ import { scanPullRequest } from './scan'
 const logger = createLogger('whiskers-reactions')
 let isScanning = false
 
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 async function scanActive(): Promise<void> {
   if (isScanning) return
   isScanning = true
@@ -13,12 +17,12 @@ async function scanActive(): Promise<void> {
     const active = await getActivePullRequests(new Date(Date.now() - ACTIVE_WINDOW_MS))
     for (const ref of active) {
       await scanPullRequest(ref).catch((error) =>
-        logger.warn(
-          { ...ref, err: error instanceof Error ? error.message : String(error) },
-          'reaction scan failed',
-        ),
+        logger.warn({ ...ref, err: messageOf(error) }, 'reaction scan failed'),
       )
     }
+  } catch (error) {
+    // The timers discard this promise; a database blip must be logged, never crash the worker.
+    logger.warn({ err: messageOf(error) }, 'reaction scan could not list pull requests')
   } finally {
     isScanning = false
   }

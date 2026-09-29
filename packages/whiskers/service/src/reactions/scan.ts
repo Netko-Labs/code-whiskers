@@ -79,9 +79,11 @@ async function reactorOf(ref: PrRef, pending: PendingReaction): Promise<string |
     { owner: ref.owner, repo: ref.repo, comment_id: pending.rootId, content: pending.content },
   )
   const botHandle = whiskersEnvConfig.github.botHandle
+  // The `content` filter is GitHub's; the check is ours — another emoji must never authorize this one.
   for (const reaction of data) {
     const login = reaction.user?.login
-    if (login && !isBotLogin(login, botHandle) && (await isTrusted(ref, login))) return login
+    if (reaction.content !== pending.content || !login || isBotLogin(login, botHandle)) continue
+    if (await isTrusted(ref, login)) return login
   }
   return null
 }
