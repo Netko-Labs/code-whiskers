@@ -62,6 +62,7 @@ export async function runPipeline(
       line: f.line,
       title: f.title,
       isResolved: false,
+      isDownvoted: false,
       replies: [],
     }))
   const commentable = commentableLines(diff)

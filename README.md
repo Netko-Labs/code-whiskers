@@ -100,7 +100,15 @@ Mention `@code-whiskers` in a PR comment or on one of its review threads (repo i
 | `@code-whiskers ignore [why]` | on a review thread: dismisses the finding for the whole repo and resolves the thread |
 | `@code-whiskers <question>` | answers from the finding, the file at head or the diff |
 
-A reply or a resolved thread counts as an answer: that finding is not raised again on the PR.
+Or skip typing — react on one of its review comments (checked every minute, insiders only):
+
+| React | Same as |
+| --- | --- |
+| 👎 | `@code-whiskers ignore` |
+| 🚀 | `@code-whiskers fix` |
+| 😕 | `@code-whiskers why?` |
+
+A reply, a 👎 or a resolved thread counts as an answer: that finding is not raised again on the PR.
 
 ### Sending data in
 

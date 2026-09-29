@@ -1,6 +1,7 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { App, Octokit } from 'octokit'
 import {
+  REACTION_HINT,
   type ReviewReport,
   type ReviewTarget,
   renderAnnotation,
@@ -402,7 +403,7 @@ export async function postPrReview(
       // SAFETY: filter above guarantees line is non-null for inline findings
       line: f.line as number,
       side: 'RIGHT' as const,
-      body: renderFinding(f),
+      body: `${renderFinding(f)}\n\n${REACTION_HINT}`,
     })),
   }
   try {
