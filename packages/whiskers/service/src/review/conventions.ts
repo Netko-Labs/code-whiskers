@@ -7,6 +7,8 @@ const CONVENTION_NAMES = new Set(['CLAUDE.md', 'AGENTS.md'])
 const BUDGET_CHARS = 9_000
 const MAX_FILES = 6
 const MAX_IMPORTS = 4
+// A truncated tree falls back to asking for each candidate path; bounded, shallowest first.
+const MAX_PROBED_DIRS = 8
 const IMPORT = /(?:^|\s)@((?:\.{1,2}\/)?[\w-][\w./-]*\.md)\b/g
 
 /** The root and every ancestor directory of a changed file: where a convention file applies. */
@@ -36,6 +38,14 @@ function depthOf(path: string): number {
   return path.split('/').length
 }
 
+/** Where a convention file would sit for these directories, root first. */
+export function candidatePaths(dirs: Set<string>): string[] {
+  return [...dirs]
+    .sort((a, b) => (a === '' ? 0 : depthOf(a)) - (b === '' ? 0 : depthOf(b)))
+    .slice(0, MAX_PROBED_DIRS)
+    .flatMap((dir) => [...CONVENTION_NAMES].map((name) => (dir ? `${dir}/${name}` : name)))
+}
+
 /**
  * The repository's own instructions for agents — CLAUDE.md and AGENTS.md at the root and above
  * each changed file, plus what they import — read at the head being reviewed.
@@ -53,19 +63,23 @@ export async function fetchConventions(
     recursive: '1',
   })
   const dirs = applicableDirectories(changedFiles)
-  const paths = data.tree
-    .filter((entry) => entry.type === 'blob' && entry.path)
-    .map((entry) => entry.path as string)
-    .filter((path) => CONVENTION_NAMES.has(posix.basename(path)))
-    .filter((path) => dirs.has(posix.dirname(path) === '.' ? '' : posix.dirname(path)))
-    .sort((a, b) => depthOf(a) - depthOf(b))
-    .slice(0, MAX_FILES)
+  // A huge repository gets a truncated tree; listing it would silently miss conventions.
+  const listed = data.truncated
+    ? candidatePaths(dirs)
+    : data.tree
+        .filter((entry) => entry.type === 'blob' && entry.path)
+        .map((entry) => entry.path as string)
+        .filter((path) => CONVENTION_NAMES.has(posix.basename(path)))
+        .filter((path) => dirs.has(posix.dirname(path) === '.' ? '' : posix.dirname(path)))
+        .sort((a, b) => depthOf(a) - depthOf(b))
 
   const read = (path: string) =>
     fetchFileAtRef(ref, path, headSha)
       .then((content) => ({ path, content }))
       .catch(() => null)
-  const files = (await Promise.all(paths.map(read))).filter((file) => file !== null)
+  const files = (await Promise.all(listed.map(read)))
+    .filter((file) => file !== null)
+    .slice(0, MAX_FILES)
   const seen = new Set(files.map((file) => file.path))
   const imported = files
     .flatMap((file) => importsOf(file.content, file.path))

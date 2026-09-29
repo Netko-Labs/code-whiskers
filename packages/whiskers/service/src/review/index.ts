@@ -14,7 +14,8 @@ import {
 } from './github'
 import { runPipeline } from './pipeline'
 import { renderFailureComment } from './render'
-import type { ReviewUsage, RunReviewOptions } from './types'
+import { isTransient, RETRY_DELAYS_MS } from './retry'
+import type { PipelineAttempt, ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
 export * from './chunk'
@@ -22,6 +23,7 @@ export * from './conventions'
 export * from './github'
 export * from './llm'
 export * from './render'
+export * from './retry'
 export * from './rules'
 export * from './settle'
 export * from './suppressions'
@@ -36,8 +38,6 @@ const failureNotified = new Set<string>()
 const FAILURE_NOTIFIED_CAP = 1_000
 // GitHub delivers opened/reopened/ready_for_review (and redeliveries) for one head; one review each.
 const inFlight = new Set<string>()
-// Provider stalls and GitHub 5xx clear within minutes; a third failure is worth a human's look.
-const RETRY_DELAYS_MS = [30_000, 120_000]
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -100,9 +100,10 @@ async function reviewHead(ref: PrRef, head: PrHead): Promise<Review | undefined>
     reasoningTokens: tokens.reasoning,
   })
 
+  const progress: PipelineAttempt = { isPosted: false }
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const { report, merged } = await runPipeline(ref, headSha, review, tokens)
+      const { report, merged } = await runPipeline(ref, headSha, review, tokens, progress)
       await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
         logger.warn({ err: messageOf(error) }, 'check run update failed')
       })
@@ -114,7 +115,7 @@ async function reviewHead(ref: PrRef, head: PrHead): Promise<Review | undefined>
       })
     } catch (error) {
       const delay = RETRY_DELAYS_MS[attempt]
-      if (delay !== undefined) {
+      if (delay !== undefined && isTransient(error)) {
         logger.warn(
           { ...ref, headSha, attempt: attempt + 1, retryInMs: delay, err: messageOf(error) },
           'review attempt failed — retrying',

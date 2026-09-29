@@ -55,3 +55,13 @@ export type PipelineResult = {
 
 export type ReviewUsage = Pick<Review, 'model'> &
   Partial<Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens'>>
+
+/** Carried across attempts of one review, so a retry never repeats what already reached GitHub. */
+export type PipelineAttempt = {
+  isPosted: boolean
+}
+
+export type HttpFailure = {
+  status?: number
+  statusCode?: number
+}

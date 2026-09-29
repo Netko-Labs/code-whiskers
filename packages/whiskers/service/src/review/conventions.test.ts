@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import { applicableDirectories, buildConventionsContext, importsOf } from './conventions'
+import {
+  applicableDirectories,
+  buildConventionsContext,
+  candidatePaths,
+  importsOf,
+} from './conventions'
 
 describe('applicableDirectories', () => {
   test('the root and every ancestor of each changed file', () => {
@@ -41,5 +46,18 @@ describe('buildConventionsContext', () => {
     expect(context).toContain('### CLAUDE.md\nUse Bun.')
     expect(context).toContain('### AGENTS.md')
     expect(context.length).toBeLessThan(10_000)
+  })
+})
+
+describe('candidatePaths', () => {
+  test('a truncated tree probes the root first, then each ancestor', () => {
+    expect(candidatePaths(applicableDirectories(['apps/studio/a.ts']))).toEqual([
+      'CLAUDE.md',
+      'AGENTS.md',
+      'apps/CLAUDE.md',
+      'apps/AGENTS.md',
+      'apps/studio/CLAUDE.md',
+      'apps/studio/AGENTS.md',
+    ])
   })
 })

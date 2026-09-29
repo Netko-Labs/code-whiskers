@@ -14,7 +14,7 @@ import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { settledVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
-import type { PipelineResult } from './types'
+import type { PipelineAttempt, PipelineResult, PriorThread } from './types'
 
 const logger = createLogger('whiskers-review')
 
@@ -37,6 +37,7 @@ export async function runPipeline(
   headSha: string,
   review: Review,
   tokens: TokenTally,
+  attempt: PipelineAttempt,
 ): Promise<PipelineResult> {
   const slug = `${ref.owner}/${ref.repo}`
   const botHandle = whiskersEnvConfig.github.botHandle
@@ -50,8 +51,19 @@ export async function runPipeline(
       countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
       fetchSuppressions(slug),
       fetchRules(slug),
-      fetchBotThreads(ref, botHandle).catch(warnWithout('review threads', [])),
+      fetchBotThreads(ref, botHandle).catch(warnWithout('review threads', null)),
     ])
+  // Without the threads, the last review's findings stand in as unanswered ones: nothing already
+  // posted goes out again, and nothing a human settled is revived as fresh.
+  const priorThreads: PriorThread[] =
+    threads ??
+    (previous?.findings ?? []).map((f) => ({
+      path: f.file,
+      line: f.line,
+      title: f.title,
+      isResolved: false,
+      replies: [],
+    }))
   const commentable = commentableLines(diff)
   const changedFiles = [...commentable.keys()]
   const conventions = await fetchConventions(ref, headSha, changedFiles).catch(
@@ -67,7 +79,7 @@ export async function runPipeline(
     },
     conversation,
     suppressions,
-    threads,
+    threads: threads ?? [],
     botHandle,
   })
   const applicable = rulesForFiles(rules, changedFiles)
@@ -94,7 +106,7 @@ export async function runPipeline(
   if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
   const { fresh, repeated, settled } = settleFindings(
     raw.findings,
-    threads,
+    priorThreads,
     suppressedFindings(suppressions),
   )
   const remaining = [...fresh, ...repeated]
@@ -121,7 +133,9 @@ export async function runPipeline(
   // GitHub sees only what is new; the console keeps every open finding.
   const isUnchanged =
     fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
-  if (isUnchanged) {
+  if (attempt.isPosted) {
+    logger.info({ ...ref, headSha }, 'an earlier attempt already posted this review')
+  } else if (isUnchanged) {
     logger.info({ ...ref, headSha }, 'nothing new since the last review — no GitHub review posted')
   } else {
     await postPrReview(
@@ -134,6 +148,7 @@ export async function runPipeline(
       },
       commentable,
     )
+    attempt.isPosted = true
   }
   logger.info(
     {
