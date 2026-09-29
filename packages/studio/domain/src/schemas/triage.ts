@@ -33,3 +33,12 @@ export const TriageCommentSchema = TriageItemSchema.extend({
   body: z.string().trim().min(1).max(4_000),
 })
 export type TriageCommentBody = z.infer<typeof TriageCommentSchema>
+
+/** Whiskers relays an `@code-whiskers ignore` from a repo insider on one of its own threads. */
+export const FindingDismissSchema = z.object({
+  repo: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
+  file: z.string().min(1).max(400),
+  title: z.string().min(1).max(300),
+  note: z.string().max(500),
+})
+export type FindingDismissBody = z.infer<typeof FindingDismissSchema>
