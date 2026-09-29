@@ -105,11 +105,10 @@ export function settleFindings(
   return result
 }
 
-/** Settling can remove every blocker; the verdict must not keep blocking on what humans closed. */
-export function settledVerdict(
-  verdict: LlmReview['verdict'],
-  remaining: LlmFinding[],
-): LlmReview['verdict'] {
-  if (verdict !== 'request_changes') return verdict
-  return remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? verdict : 'comment'
+/**
+ * Settling can remove every blocker, so the verdict is recomputed from what is left — with the
+ * same binary policy as `resolveVerdict`: a bare COMMENT review is never posted.
+ */
+export function settledVerdict(remaining: LlmFinding[]): LlmReview['verdict'] {
+  return remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
 }

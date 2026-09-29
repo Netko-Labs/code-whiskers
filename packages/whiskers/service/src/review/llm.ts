@@ -19,7 +19,9 @@ two sentences — what breaks and when; "suggestion" the concrete fix in one
 sentence or a short code snippet, or null. Plain statements, no "I noticed",
 no "potential issue" hedging, no emoji.
 A preamble may come first. "Team rules" are instructions from this repository's
-maintainers: follow them, including their severity. "Where this PR already stands" is
+maintainers: follow them, including their severity. "Project conventions" are the
+repository's CLAUDE.md / AGENTS.md: report a clear violation in a changed line as category
+"convention", never flag code that follows them. "Where this PR already stands" is
 history: use it, never review it as code.
 Respond with the JSON object only, no markdown fences, no prose.`
 

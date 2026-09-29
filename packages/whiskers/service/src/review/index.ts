@@ -1,31 +1,24 @@
 import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
-import { completeReview, createFindings, createReview } from '../mutations'
-import { countReviews, getPreviousReview, hasReviewOfHead } from '../queries'
-import { createTokenTally, mapWithConcurrency } from '../shared/llm'
-import { chunkDiff, commentableLines } from './chunk'
-import { buildPrContext } from './context'
+import { completeReview, createReview } from '../mutations'
+import { hasReviewOfHead } from '../queries'
+import { createTokenTally } from '../shared/llm'
 import {
   completeCheckRun,
-  fetchPrConversation,
-  fetchPrDiff,
   fetchPrHead,
+  type PrHead,
   type PrRef,
   postPrComment,
-  postPrReview,
   startCheckRun,
 } from './github'
-import { resolveOutcome, reviewChunkWithRetry } from './outcome'
-import { type ReviewReport, renderFailureComment } from './render'
-import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
-import { settledVerdict, settleFindings, suppressedFindings } from './settle'
-import { fetchSuppressions } from './suppressions'
-import { fetchBotThreads } from './threads'
-import type { RunReviewOptions } from './types'
+import { runPipeline } from './pipeline'
+import { renderFailureComment } from './render'
+import type { ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
 export * from './chunk'
+export * from './conventions'
 export * from './github'
 export * from './llm'
 export * from './render'
@@ -43,6 +36,14 @@ const failureNotified = new Set<string>()
 const FAILURE_NOTIFIED_CAP = 1_000
 // GitHub delivers opened/reopened/ready_for_review (and redeliveries) for one head; one review each.
 const inFlight = new Set<string>()
+// Provider stalls and GitHub 5xx clear within minutes; a third failure is worth a human's look.
+const RETRY_DELAYS_MS = [30_000, 120_000]
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 /** The whole pipeline: diff -> chunks -> LLM -> settle against history -> PR review on GitHub. */
 export async function runReview(
@@ -54,17 +55,16 @@ export async function runReview(
     return undefined
   }
   const head = await fetchPrHead(ref)
-  const headSha = head.sha
-  const headKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
+  const headKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${head.sha}`
   if (inFlight.has(headKey)) {
-    logger.info({ ...ref, headSha }, 'this head is already being reviewed — skipped')
+    logger.info({ ...ref, headSha: head.sha }, 'this head is already being reviewed — skipped')
     return undefined
   }
   inFlight.add(headKey)
   try {
-    const isReviewed = await hasReviewOfHead(ref.owner, ref.repo, ref.prNumber, headSha)
+    const isReviewed = await hasReviewOfHead(ref.owner, ref.repo, ref.prNumber, head.sha)
     if (isReviewed && !options.force) {
-      logger.info({ ...ref, headSha }, 'this head was already reviewed — skipped')
+      logger.info({ ...ref, headSha: head.sha }, 'this head was already reviewed — skipped')
       return undefined
     }
     return await reviewHead(ref, head)
@@ -73,10 +73,8 @@ export async function runReview(
   }
 }
 
-async function reviewHead(
-  ref: PrRef,
-  head: Awaited<ReturnType<typeof fetchPrHead>>,
-): Promise<Review | undefined> {
+/** One review row per head; retries stay inside it so a transient failure never reads as one. */
+async function reviewHead(ref: PrRef, head: PrHead): Promise<Review | undefined> {
   const headSha = head.sha
   const review = await createReview({
     owner: ref.owner,
@@ -95,148 +93,65 @@ async function reviewHead(
   // The visible face in the PR's checks section — App auth only, null under PAT.
   const checkRunId = await startCheckRun(ref, headSha).catch(() => null)
   const tokens = createTokenTally()
+  const usage = (): ReviewUsage => ({
+    model: review.model,
+    inputTokens: tokens.input,
+    outputTokens: tokens.output,
+    reasoningTokens: tokens.reasoning,
+  })
 
-  try {
-    const botHandle = whiskersEnvConfig.github.botHandle
-    const [diff, conversation, previous, reviewCount, suppressions, rules, threads] =
-      await Promise.all([
-        fetchPrDiff(ref),
-        fetchPrConversation(ref).catch(() => ({ verdicts: [], discussion: [], inline: [] })),
-        getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-        countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-        fetchSuppressions(`${ref.owner}/${ref.repo}`),
-        fetchRules(`${ref.owner}/${ref.repo}`),
-        fetchBotThreads(ref, botHandle).catch((error) => {
-          logger.warn(
-            { err: error instanceof Error ? error.message : String(error) },
-            'review threads unavailable — reviewing without memory',
-          )
-          return []
-        }),
-      ])
-
-    const prContext = buildPrContext({
-      reviewCount,
-      previous: previous && {
-        headSha: previous.review.headSha,
-        verdict: previous.review.verdict,
-        findings: previous.findings,
-      },
-      conversation,
-      suppressions,
-      threads,
-      botHandle,
-    })
-    const changedFiles = [...commentableLines(diff).keys()]
-    const applicable = rulesForFiles(rules, changedFiles)
-    const context = [buildRulesContext(applicable), prContext].filter(Boolean).join('\n\n')
-    if (context) {
-      logger.info(
-        { ...ref, contextChars: context.length, rules: applicable.length },
-        'review has context',
-      )
-    }
-
-    const chunks = chunkDiff(diff)
-    const outcomes = await mapWithConcurrency(chunks, (chunk) =>
-      reviewChunkWithRetry(chunk, context, tokens),
-    )
-    const { review: raw, coverage } = resolveOutcome(outcomes)
-    if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
-    const { fresh, repeated, settled } = settleFindings(
-      raw.findings,
-      threads,
-      suppressedFindings(suppressions),
-    )
-    const remaining = [...fresh, ...repeated]
-    const merged = { ...raw, findings: remaining, verdict: settledVerdict(raw.verdict, remaining) }
-    const report: ReviewReport = {
-      review: merged,
-      model: review.model ?? whiskersEnvConfig.openrouter.model,
-      coverage,
-    }
-    // GitHub sees only what is new; the console keeps every open finding.
-    const posted: ReviewReport = {
-      ...report,
-      review: { ...merged, findings: fresh },
-      carried: { open: repeated.length, settled: settled.length },
-    }
-    const isUnchanged =
-      fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
-
-    await createFindings(
-      merged.findings.map((f) => ({
-        reviewId: review.id,
-        file: f.file,
-        line: f.line,
-        severity: f.severity,
-        category: f.category,
-        title: f.title,
-        body: f.body,
-        suggestion: f.suggestion,
-      })),
-    )
-    if (isUnchanged) {
-      logger.info(
-        { ...ref, headSha },
-        'nothing new since the last review — no GitHub review posted',
-      )
-    } else {
-      await postPrReview(ref, headSha, posted, commentableLines(diff))
-    }
-    await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
-      logger.warn(
-        { err: error instanceof Error ? error.message : String(error) },
-        'check run update failed',
-      )
-    })
-    logger.info(
-      {
-        ...ref,
-        reviewId: review.id,
-        verdict: merged.verdict,
-        fresh: fresh.length,
-        repeated: repeated.length,
-        settled: settled.length,
-        chunks: chunks.length,
-        tokens,
-      },
-      'review completed',
-    )
-    return await completeReview(review.id, {
-      status: 'completed',
-      verdict: merged.verdict,
-      summary: merged.summary,
-      model: review.model,
-      inputTokens: tokens.input,
-      outputTokens: tokens.output,
-      reasoningTokens: tokens.reasoning,
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    logger.error({ err: message, tokens }, 'review failed')
-    await completeCheckRun(ref, headSha, checkRunId, { error: message }).catch(() => {})
-    const failureKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
-    if (!failureNotified.has(failureKey)) {
-      if (failureNotified.size >= FAILURE_NOTIFIED_CAP) failureNotified.clear()
-      failureNotified.add(failureKey)
-      await postPrComment(ref, renderFailureComment(headSha, message)).catch((commentError) => {
-        logger.warn(
-          {
-            err: commentError instanceof Error ? commentError.message : String(commentError),
-          },
-          'failure comment delivery failed',
-        )
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const { report, merged } = await runPipeline(ref, headSha, review, tokens)
+      await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
+        logger.warn({ err: messageOf(error) }, 'check run update failed')
       })
+      return await completeReview(review.id, {
+        status: 'completed',
+        verdict: merged.verdict,
+        summary: merged.summary,
+        ...usage(),
+      })
+    } catch (error) {
+      const delay = RETRY_DELAYS_MS[attempt]
+      if (delay !== undefined) {
+        logger.warn(
+          { ...ref, headSha, attempt: attempt + 1, retryInMs: delay, err: messageOf(error) },
+          'review attempt failed — retrying',
+        )
+        await sleep(delay)
+        continue
+      }
+      return await failReview(ref, headSha, review, checkRunId, messageOf(error), usage())
     }
-    return await completeReview(review.id, {
-      status: 'failed',
-      verdict: null,
-      summary: error instanceof Error ? error.message : String(error),
-      model: review.model,
-      inputTokens: tokens.input,
-      outputTokens: tokens.output,
-      reasoningTokens: tokens.reasoning,
+  }
+}
+
+async function failReview(
+  ref: PrRef,
+  headSha: string,
+  review: Review,
+  checkRunId: number | null,
+  message: string,
+  usage: ReviewUsage,
+): Promise<Review | undefined> {
+  logger.error(
+    { ...ref, headSha, err: message, attempts: RETRY_DELAYS_MS.length + 1 },
+    'review failed',
+  )
+  await completeCheckRun(ref, headSha, checkRunId, { error: message }).catch(() => {})
+  const failureKey = `${ref.owner}/${ref.repo}#${ref.prNumber}@${headSha}`
+  if (!failureNotified.has(failureKey)) {
+    if (failureNotified.size >= FAILURE_NOTIFIED_CAP) failureNotified.clear()
+    failureNotified.add(failureKey)
+    await postPrComment(ref, renderFailureComment(headSha, message)).catch((error) => {
+      logger.warn({ err: messageOf(error) }, 'failure comment delivery failed')
     })
   }
+  return await completeReview(review.id, {
+    status: 'failed',
+    verdict: null,
+    summary: message,
+    ...usage,
+  })
 }

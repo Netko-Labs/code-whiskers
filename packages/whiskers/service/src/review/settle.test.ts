@@ -96,11 +96,9 @@ describe('settleFindings', () => {
 })
 
 describe('settledVerdict', () => {
-  test('stops blocking once every blocker is settled', () => {
-    expect(settledVerdict('request_changes', [finding('a.ts', 1, 'x', 'medium')])).toBe('comment')
-    expect(settledVerdict('request_changes', [finding('a.ts', 1, 'x', 'high')])).toBe(
-      'request_changes',
-    )
-    expect(settledVerdict('approve', [])).toBe('approve')
+  test('stops blocking once every blocker is settled, and never lands on a bare comment', () => {
+    expect(settledVerdict([finding('a.ts', 1, 'x', 'medium')])).toBe('approve')
+    expect(settledVerdict([finding('a.ts', 1, 'x', 'high')])).toBe('request_changes')
+    expect(settledVerdict([])).toBe('approve')
   })
 })

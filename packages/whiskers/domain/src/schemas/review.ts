@@ -1,7 +1,14 @@
 import { z } from 'zod'
 
 const SEVERITIES = ['low', 'medium', 'high', 'critical'] as const
-const CATEGORIES = ['bug', 'security', 'performance', 'style', 'maintainability'] as const
+const CATEGORIES = [
+  'bug',
+  'security',
+  'performance',
+  'style',
+  'maintainability',
+  'convention',
+] as const
 const VERDICTS = ['approve', 'request_changes', 'comment'] as const
 
 /**
