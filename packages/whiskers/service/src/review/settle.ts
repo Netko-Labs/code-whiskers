@@ -77,8 +77,8 @@ export function suppressedFindings(suppressions: Suppression[]): Suppressed[] {
 }
 
 /**
- * A finding a human already answered — resolved its thread, replied to it, or dismissed it in the
- * console — is settled and never raised again. One still waiting on an answer is a repeat: kept,
+ * A finding a human already answered — resolved its thread, replied to it, reacted 👎, or dismissed
+ * it in the console — is settled and never raised again. One still waiting on an answer is a repeat: kept,
  * but not posted a second time.
  */
 export function settleFindings(
@@ -94,7 +94,9 @@ export function settleFindings(
     const thread = threads.find((t) =>
       isSameFinding(finding, { file: t.path, line: t.line, title: t.title }),
     )
-    if (isDismissed || thread?.isResolved || (thread && thread.replies.length > 0)) {
+    const isAnswered =
+      thread !== undefined && (thread.isResolved || thread.isDownvoted || thread.replies.length > 0)
+    if (isDismissed || isAnswered) {
       result.settled.push(finding)
     } else if (thread) {
       result.repeated.push(finding)

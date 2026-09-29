@@ -16,7 +16,13 @@ interface ThreadsPage {
           path: string
           line: number | null
           originalLine: number | null
-          comments: { nodes: Array<{ author: { login: string } | null; body: string }> }
+          comments: {
+            nodes: Array<{
+              author: { login: string } | null
+              body: string
+              reactions: { nodes: Array<{ user: { login: string } | null }> }
+            }>
+          }
         }>
       }
     }
@@ -41,7 +47,12 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
               pageInfo { hasNextPage endCursor }
               nodes {
                 isResolved path line originalLine
-                comments(first: 20) { nodes { author { login } body } }
+                comments(first: 20) {
+                  nodes {
+                    author { login } body
+                    reactions(content: THUMBS_DOWN, first: 10) { nodes { user { login } } }
+                  }
+                }
               }
             }
           }
@@ -60,6 +71,9 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
         line: node.line ?? node.originalLine,
         title,
         isResolved: node.isResolved,
+        isDownvoted: root.reactions.nodes.some(
+          (reaction) => !isBotLogin(reaction.user?.login, botHandle),
+        ),
         replies: rest
           .filter((comment) => !isBotLogin(comment.author?.login, botHandle))
           .map((comment) => ({ author: comment.author?.login ?? 'someone', body: comment.body })),

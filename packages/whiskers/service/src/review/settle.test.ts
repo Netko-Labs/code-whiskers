@@ -13,7 +13,15 @@ function finding(
 }
 
 function thread(path: string, line: number, title: string, extra: Partial<PriorThread> = {}) {
-  return { path, line, title, isResolved: false, replies: [], ...extra } satisfies PriorThread
+  return {
+    path,
+    line,
+    title,
+    isResolved: false,
+    isDownvoted: false,
+    replies: [],
+    ...extra,
+  } satisfies PriorThread
 }
 
 const BARREL = 'packages/studio/service/src/utils/index.ts'
@@ -68,6 +76,15 @@ describe('settleFindings', () => {
     )
     expect(result.settled).toHaveLength(2)
     expect(result.fresh).toHaveLength(0)
+  })
+
+  test('a 👎 on the comment settles it too', () => {
+    const result = settleFindings(
+      [finding('a.tsx', 65, raised)],
+      [thread('a.tsx', 65, raised, { isDownvoted: true })],
+      [],
+    )
+    expect(result.settled).toHaveLength(1)
   })
 
   test('an unanswered thread is a repeat, not a new comment', () => {

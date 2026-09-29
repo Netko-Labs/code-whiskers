@@ -14,3 +14,4 @@ export const BOT_NAME = 'CodeWhiskers'
 export const MAX_TABLE_ROWS = 25
 export const MAX_HIGHLIGHTS = 8
 export const MAX_FAILURE_CHARS = 500
+export const REACTION_HINT = '<sub>React 👎 to dismiss · 🚀 to fix · 😕 to explain</sub>'

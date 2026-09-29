@@ -8,6 +8,8 @@ import { acknowledge } from './thread'
 import type { MentionSource } from './types'
 import { parseMention } from './utils'
 
+export { answerQuestion } from './answer'
+export { ignoreFinding } from './ignore'
 export * from './types'
 export * from './utils'
 

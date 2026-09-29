@@ -5,7 +5,7 @@ import {
   reviewTable,
 } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { and, desc, eq, lt, ne } from 'drizzle-orm'
+import { and, desc, eq, gt, lt, ne } from 'drizzle-orm'
 
 export type PreviousReview = { review: Review; findings: Finding[] }
 
@@ -90,3 +90,14 @@ export const hasReviewOfHead = async (
       (row.status === 'running' && now.getTime() - row.createdAt.getTime() < STALE_RUNNING_MS),
   )
 }
+
+/** Pull requests reviewed since `since`: where a reaction on the reviewer's comments can matter. */
+export const getActivePullRequests = async (since: Date) =>
+  await db
+    .selectDistinct({
+      owner: reviewTable.owner,
+      repo: reviewTable.repo,
+      prNumber: reviewTable.prNumber,
+    })
+    .from(reviewTable)
+    .where(gt(reviewTable.createdAt, since))

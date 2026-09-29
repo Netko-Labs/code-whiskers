@@ -24,6 +24,7 @@ export type PriorThread = {
   line: number | null
   title: string
   isResolved: boolean
+  isDownvoted: boolean
   replies: ThreadReply[]
 }
 

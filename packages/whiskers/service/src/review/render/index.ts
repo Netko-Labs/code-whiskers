@@ -1,4 +1,4 @@
-export { BLOCKING_SEVERITIES } from './constants'
+export { BLOCKING_SEVERITIES, REACTION_HINT } from './constants'
 export type { ReviewCoverage, ReviewReport, ReviewTarget } from './types'
 export {
   renderAnnotation,

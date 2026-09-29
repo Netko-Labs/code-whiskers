@@ -33,9 +33,9 @@ function quoted(text: string): string {
 
 /**
  * On a review thread the answer is grounded in the finding and the file at head; anywhere else in
- * the PR diff. It replies where it was asked.
+ * the PR diff. It replies where it was asked; `marker` rides hidden in a thread reply.
  */
-export async function answerQuestion(ref: PrRef, target: FixTarget, question: string) {
+export async function answerQuestion(ref: PrRef, target: FixTarget, question: string, marker = '') {
   const asked = `Question from ${target.author}:\n${clampBody(question)}`
 
   if (target.commentId !== null && target.path) {
@@ -54,7 +54,7 @@ export async function answerQuestion(ref: PrRef, target: FixTarget, question: st
         .filter(Boolean)
         .join('\n\n'),
     )
-    await replyToReviewComment(ref, root.id, answer)
+    await replyToReviewComment(ref, root.id, `${answer}${marker}`)
     return
   }
 
