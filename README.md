@@ -84,6 +84,24 @@ encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECR
 `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
+### On a pull request
+
+Every push is reviewed once. The reviewer reads the repository's `CLAUDE.md` and `AGENTS.md` (the
+root one and any above the changed files, plus what they `@import`) and flags violations as
+`convention` findings. A failed review retries twice (after 30 s and 2 min) before it posts the
+failure; an alert rule of kind "A review fails" delivers that to Slack, Discord or a webhook.
+
+Mention `@code-whiskers` in a PR comment or on one of its review threads (repo insiders only):
+
+| Mention | Does |
+| --- | --- |
+| `@code-whiskers fix` | pushes the change for the thread, or proposes one for the PR |
+| `@code-whiskers review` | reviews the current head again, even if it was reviewed |
+| `@code-whiskers ignore [why]` | on a review thread: dismisses the finding for the whole repo and resolves the thread |
+| `@code-whiskers <question>` | answers from the finding, the file at head or the diff |
+
+A reply or a resolved thread counts as an answer: that finding is not raised again on the PR.
+
 ### Sending data in
 
 - **Errors** — create a project under Integrations → Error ingest and pass its DSN to any Sentry
