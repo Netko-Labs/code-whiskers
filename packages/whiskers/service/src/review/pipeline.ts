@@ -19,7 +19,7 @@ import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview
 import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
-import { dismissStaleBlocks } from './review-state'
+import { dismissStaleBlocks, isStillHead } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { reviewVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
@@ -175,8 +175,11 @@ export async function runPipeline(
   // GitHub sees only what is new; the console keeps every open finding.
   const isUnchanged =
     fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
+  const isCurrent = await isStillHead(ref, headSha)
   if (attempt.isPosted) {
     logger.info({ ...ref, headSha }, 'an earlier attempt already posted this review')
+  } else if (!isCurrent) {
+    logger.info({ ...ref, headSha }, 'a newer commit was pushed — its review speaks for the PR')
   } else if (isUnchanged) {
     logger.info({ ...ref, headSha }, 'nothing new since the last review — no GitHub review posted')
   } else {
@@ -196,7 +199,12 @@ export async function runPipeline(
     attempt.isPosted = true
   }
   // Only a complete, posted (or unchanged) clean review may lift the bot's own earlier blocks.
-  if (merged.verdict === 'approve' && isComplete && (attempt.isPosted || isUnchanged)) {
+  if (
+    merged.verdict === 'approve' &&
+    isComplete &&
+    isCurrent &&
+    (attempt.isPosted || isUnchanged)
+  ) {
     await dismissStaleBlocks(ref, headSha).catch(warnWithout('stale review dismissal', 0))
   }
   logger.info(

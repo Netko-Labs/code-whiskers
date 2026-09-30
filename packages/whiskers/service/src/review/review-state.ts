@@ -1,6 +1,6 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { isBotLogin } from '../fix/utils'
-import { octokitFor, type PrRef } from './github'
+import { fetchPrHead, octokitFor, type PrRef } from './github'
 
 /**
  * GitHub keeps a reviewer's "changes requested" standing until that reviewer dismisses it. Once
@@ -34,4 +34,14 @@ export async function dismissStaleBlocks(ref: PrRef, headSha: string): Promise<n
     )
   }
   return stale.length
+}
+
+/**
+ * Whether this commit is still the PR's head. A slow review of an older push must not post over,
+ * or dismiss the block of, the review of a newer one. Unknown counts as current.
+ */
+export async function isStillHead(ref: PrRef, sha: string): Promise<boolean> {
+  return await fetchPrHead(ref)
+    .then((head) => head.sha === sha)
+    .catch(() => true)
 }
