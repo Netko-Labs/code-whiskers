@@ -17,6 +17,7 @@ const finding: LlmFinding = {
   title: 'a finding',
   body: 'details',
   suggestion: null,
+  evidence: '',
 }
 const review: LlmReview = { findings: [finding], summary: 'reviewed', verdict: 'approve' }
 const timeout = Object.assign(new Error('The operation timed out.'), { name: 'TimeoutError' })

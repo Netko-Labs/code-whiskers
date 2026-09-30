@@ -8,6 +8,7 @@ import { chunkDiff, commentableLines } from './chunk'
 import { buildPrContext } from './context'
 import { buildConventionsContext, fetchConventions } from './conventions'
 import { fetchPrConversation, fetchPrDiff, type PrRef, postPrReview } from './github'
+import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
@@ -84,7 +85,12 @@ export async function runPipeline(
     botHandle,
   })
   const applicable = rulesForFiles(rules, changedFiles)
-  const context = [buildRulesContext(applicable), buildConventionsContext(conventions), prContext]
+  const context = [
+    buildRulesContext(applicable),
+    buildConventionsContext(conventions),
+    buildFileManifest(diff),
+    prContext,
+  ]
     .filter(Boolean)
     .join('\n\n')
   if (context) {

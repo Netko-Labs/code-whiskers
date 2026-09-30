@@ -10,6 +10,7 @@ const finding = (severity: LlmFinding['severity']): LlmFinding => ({
   title: 'a finding',
   body: 'details',
   suggestion: null,
+  evidence: '',
 })
 
 const review = (verdict: LlmReview['verdict'], findings: LlmFinding[] = []): LlmReview => ({

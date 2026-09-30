@@ -9,7 +9,7 @@ function finding(
   title: string,
   severity: LlmFinding['severity'] = 'high',
 ): LlmFinding {
-  return { file, line, title, severity, category: 'bug', body: '', suggestion: null }
+  return { file, line, title, severity, category: 'bug', body: '', suggestion: null, evidence: '' }
 }
 
 function thread(path: string, line: number, title: string, extra: Partial<PriorThread> = {}) {
