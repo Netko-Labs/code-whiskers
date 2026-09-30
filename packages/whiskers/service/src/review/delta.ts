@@ -39,6 +39,8 @@ export function buildDescriptionContext(body: string): string {
     text.length > MAX_DESCRIPTION_CHARS ? `${text.slice(0, MAX_DESCRIPTION_CHARS - 1)}…` : text
   return `## The author's description — decisions stated here are intentional
 
+Do not file what this description decides on purpose unless the shown code contradicts it.
+
 ${clipped}`
 }
 
