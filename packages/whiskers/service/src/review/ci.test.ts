@@ -38,6 +38,7 @@ describe('isCompileClaim', () => {
       'The webhook contract returns 500 to callers on retries',
       'External API consumers receive unpaginated results',
       "The webhook payload no longer matches the server's expected schema",
+      'The handler passes typecheck but crashes when the body is empty',
     ]) {
       expect(isCompileClaim(finding(title))).toBe(false)
     }
