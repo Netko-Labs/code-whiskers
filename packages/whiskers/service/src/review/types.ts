@@ -72,3 +72,8 @@ export type GroundedFindings = {
   outsideSlice: number
   unquoted: number
 }
+
+export type ShownLine = {
+  number: number
+  text: string
+}

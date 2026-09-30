@@ -1,56 +1,80 @@
 import type { LlmFinding } from '@code-whiskers/whiskers-domain'
 import parseDiff from 'parse-diff'
-import type { GroundedFindings } from './types'
+import type { GroundedFindings, ShownLine } from './types'
 
 const MAX_MANIFEST_FILES = 150
 // A quote may run past a shown line, but only a substantial one — `}` is inside everything.
 const MIN_CONTAINED_CHARS = 12
+const LINE_WINDOW = 6
 
 function squash(text: string): string {
   return text.replace(/\s+/g, ' ').trim()
 }
 
-/** Every line the new side of each file shows in this slice of the diff, squashed. */
-export function newSideLines(diff: string): Map<string, string[]> {
-  const files = new Map<string, string[]>()
+/** Every line the new side of each file shows in this slice, with its new-side number. */
+export function newSideLines(diff: string): Map<string, ShownLine[]> {
+  const files = new Map<string, ShownLine[]>()
   for (const file of parseDiff(diff)) {
     if (!file.to || file.to === '/dev/null') continue
-    const lines = file.chunks
-      .flatMap((chunk) => chunk.changes)
-      .filter((change) => change.type !== 'del')
-      .map((change) => squash(change.content.slice(1)))
-      .filter(Boolean)
+    const lines: ShownLine[] = []
+    for (const change of file.chunks.flatMap((chunk) => chunk.changes)) {
+      if (change.type === 'del') continue
+      const number = change.type === 'add' ? change.ln : change.ln2
+      const text = squash(change.content.slice(1))
+      if (text) lines.push({ number, text })
+    }
     files.set(file.to, lines)
   }
   return files
 }
 
-function isQuoted(evidence: string, lines: string[]): boolean {
-  const wanted = evidence
+function matches(shown: string, quoted: string): boolean {
+  return shown.includes(quoted) || (shown.length >= MIN_CONTAINED_CHARS && quoted.includes(shown))
+}
+
+/**
+ * Where the evidence's first line sits — near the reported line when there is one, since models
+ * misnumber by a few lines but a quote from elsewhere in the file supports a different claim.
+ */
+function quotedAt(finding: LlmFinding, lines: ShownLine[]): number | null {
+  const wanted = finding.evidence
     .split('\n')
     .map(squash)
     .filter((line) => line.length > 2)
-  if (wanted.length === 0) return false
-  return wanted.every((line) =>
-    lines.some(
-      (shown) =>
-        shown.includes(line) || (shown.length >= MIN_CONTAINED_CHARS && line.includes(shown)),
+  const [first, ...rest] = wanted
+  if (!first) return null
+  const candidates = lines.filter(
+    (shown) =>
+      matches(shown.text, first) &&
+      (finding.line === null || Math.abs(shown.number - finding.line) <= LINE_WINDOW),
+  )
+  // The rest of a multi-line quote must follow the first line, not appear anywhere in the file.
+  const hit = candidates.find((shown) =>
+    rest.every((line) =>
+      lines.some(
+        (other) =>
+          other.number > shown.number &&
+          other.number <= shown.number + rest.length + 2 &&
+          matches(other.text, line),
+      ),
     ),
   )
+  return hit ? hit.number : null
 }
 
 /**
  * A finding stands on the lines it was shown: its file must be in this slice, and its evidence —
- * the line it quotes — must be there too. Everything else is speculation about unseen code.
+ * the line it quotes — must be there, near the line it reports; the finding moves onto that line. Everything else is speculation about unseen code.
  */
 export function groundFindings(findings: LlmFinding[], diff: string): GroundedFindings {
   const shown = newSideLines(diff)
   const result: GroundedFindings = { kept: [], outsideSlice: 0, unquoted: 0 }
   for (const finding of findings) {
     const lines = shown.get(finding.file)
+    const at = lines ? quotedAt(finding, lines) : null
     if (!lines) result.outsideSlice += 1
-    else if (!isQuoted(finding.evidence, lines)) result.unquoted += 1
-    else result.kept.push(finding)
+    else if (at === null) result.unquoted += 1
+    else result.kept.push({ ...finding, line: at })
   }
   return result
 }

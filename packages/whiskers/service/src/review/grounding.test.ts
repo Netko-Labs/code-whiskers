@@ -20,10 +20,10 @@ new file mode 100644
 +# Hello
 `
 
-function finding(file: string, evidence: string): LlmFinding {
+function finding(file: string, evidence: string, line: number | null = 3): LlmFinding {
   return {
     file,
-    line: 3,
+    line,
     severity: 'high',
     category: 'security',
     title: 't',
@@ -45,6 +45,14 @@ describe('groundFindings', () => {
       DIFF,
     )
     expect(result.kept).toHaveLength(1)
+    expect(result.kept[0]?.line).toBe(3)
+  })
+
+  test('a quote far from the reported line does not ground it; a near one snaps it', () => {
+    const quote = 'if (await isTrusted(reaction.user.login)) return reaction.user.login'
+    expect(groundFindings([finding('src/scan.ts', quote, 40)], DIFF).kept).toHaveLength(0)
+    expect(groundFindings([finding('src/scan.ts', quote, 5)], DIFF).kept[0]?.line).toBe(3)
+    expect(groundFindings([finding('src/scan.ts', quote, null)], DIFF).kept[0]?.line).toBe(3)
   })
 
   test('drops findings on files outside the slice, and ones whose quote is not there', () => {
