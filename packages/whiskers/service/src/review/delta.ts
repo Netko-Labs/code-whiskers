@@ -1,4 +1,5 @@
 import { octokitFor, type PrRef } from './github'
+import type { ReviewCoverage } from './render'
 
 /**
  * What changed since the last reviewed commit — only when that commit is still an ancestor of
@@ -58,4 +59,19 @@ export function buildDeltaNote(fromSha: string): string {
 
 You review only what changed since ${fromSha.slice(0, 7)}, the last reviewed commit. Earlier
 code was reviewed already; report only problems these lines introduce.`
+}
+
+const PARTIAL_PREFIX = 'Partial review'
+
+/**
+ * A review that skipped sections says so in its summary — readers see it in the console, and the
+ * next push reads the whole PR again instead of trusting it as a base.
+ */
+export function partialSummary(summary: string, coverage: ReviewCoverage): string {
+  const skipped = coverage.total - coverage.reviewed
+  return `${PARTIAL_PREFIX} — ${skipped} of ${coverage.total} sections could not be reviewed.\n${summary}`
+}
+
+export function isPartialSummary(summary: string | null): boolean {
+  return summary?.startsWith(PARTIAL_PREFIX) ?? false
 }

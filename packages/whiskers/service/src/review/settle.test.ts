@@ -86,6 +86,23 @@ describe('isSameFinding across files', () => {
     ).toBe(true)
   })
 
+  test('the same title in a different feature under a shared prefix is not', () => {
+    expect(
+      isSameFinding(
+        finding(
+          'apps/studio/src/components/chat/chat-example/chat-example.tsx',
+          3,
+          'Todos page depends on fields the hook does not return',
+        ),
+        {
+          file: `${Todos}/todos-example.tsx`,
+          line: 3,
+          title: 'Todos page depends on fields the hook does not return',
+        },
+      ),
+    ).toBe(false)
+  })
+
   test('a similar title in an unrelated tree is not', () => {
     expect(
       isSameFinding(

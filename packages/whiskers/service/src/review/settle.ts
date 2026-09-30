@@ -57,6 +57,17 @@ function titleWords(title: string): Set<string> {
   )
 }
 
+/**
+ * Siblings in one feature folder: the paths share at least three folders and differ by no more
+ * than one level below the shallower one — `todos-example/` and `todos-example/lib/hooks/` do,
+ * `components/todos/` and `components/chat/` do not.
+ */
+function isSameFeature(a: string, b: string): boolean {
+  const shared = sharedDirectories(a, b)
+  const shallower = Math.min(a.split('/').length, b.split('/').length) - 1
+  return shared >= CROSS_FILE_SHARED_DIRS && shared >= shallower - 1
+}
+
 function sharedDirectories(a: string, b: string): number {
   const left = a.split('/').slice(0, -1)
   const right = b.split('/').slice(0, -1)
@@ -77,10 +88,7 @@ export function titleSimilarity(a: string, b: string): number {
 export function isSameFinding(finding: LlmFinding, prior: PriorClaim): boolean {
   const score = titleSimilarity(finding.title, prior.title)
   if (finding.file !== prior.file) {
-    return (
-      sharedDirectories(finding.file, prior.file) >= CROSS_FILE_SHARED_DIRS &&
-      score >= CROSS_FILE_TITLE
-    )
+    return isSameFeature(finding.file, prior.file) && score >= CROSS_FILE_TITLE
   }
   if (score >= SAME_TITLE) return true
   const isNearby =

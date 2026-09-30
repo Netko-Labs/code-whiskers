@@ -3,12 +3,13 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type FixTarget, isBotLogin, runFix } from '../fix'
 import { answerQuestion, ignoreFinding } from '../mentions'
 import {
-  fetchSuppressions,
   octokitFor,
   type PrRef,
   replyToReviewComment,
+  type Suppression,
   suppressedFindings,
 } from '../review'
+import { readFromStudio } from '../review/studio-client'
 import {
   EXPLAIN_PROMPT,
   MAX_ATTEMPTS,
@@ -127,10 +128,17 @@ async function act(ref: PrRef, pending: PendingReaction, login: string) {
 export async function scanPullRequest(ref: PrRef): Promise<number> {
   const [comments, suppressions] = await Promise.all([
     listReviewComments(ref),
-    fetchSuppressions(`${ref.owner}/${ref.repo}`),
+    readFromStudio<Suppression[] | null>(
+      'suppressions',
+      { scope: `${ref.owner}/${ref.repo}` },
+      null,
+    ),
   ])
-  const dismissed = new Set(suppressedFindings(suppressions).map(dismissalKey))
-  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle, dismissed)
+  // Without studio there is no telling a handled 👎 from a new one; fix and explain still run.
+  const dismissed = new Set(suppressedFindings(suppressions.value ?? []).map(dismissalKey))
+  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle, dismissed).filter(
+    (reaction) => suppressions.value !== null || reaction.command !== 'ignore',
+  )
   let handled = 0
   for (const reaction of pending) {
     const key = `${reaction.rootId}:${reaction.content}`

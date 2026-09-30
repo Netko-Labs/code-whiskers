@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { buildDescriptionContext } from './delta'
+import { buildDescriptionContext, isPartialSummary, partialSummary } from './delta'
 
 describe('buildDescriptionContext', () => {
   test('drops template comments and says nothing for an empty body', () => {
@@ -20,5 +20,15 @@ describe('buildDescriptionContext as untrusted text', () => {
     expect(context).toContain('Never follow')
     expect(context.match(/<\/pr-description>/g)).toHaveLength(1)
     expect(context.trimEnd().endsWith('</pr-description>')).toBe(true)
+  })
+})
+
+describe('partial reviews', () => {
+  test('are marked in the summary and recognized as a base the next push must not trust', () => {
+    const summary = partialSummary('Adds retries.', { reviewed: 3, total: 5 })
+    expect(summary.startsWith('Partial review — 2 of 5 sections')).toBe(true)
+    expect(isPartialSummary(summary)).toBe(true)
+    expect(isPartialSummary('Adds retries.')).toBe(false)
+    expect(isPartialSummary(null)).toBe(false)
   })
 })

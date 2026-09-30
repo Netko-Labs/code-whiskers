@@ -8,7 +8,13 @@ import { chunkDiff, commentableLines } from './chunk'
 import { isCompileClaim, typecheckOutcome } from './ci'
 import { buildPrContext } from './context'
 import { buildConventionsContext, fetchConventions } from './conventions'
-import { buildDeltaNote, buildDescriptionContext, fetchDeltaDiff } from './delta'
+import {
+  buildDeltaNote,
+  buildDescriptionContext,
+  fetchDeltaDiff,
+  isPartialSummary,
+  partialSummary,
+} from './delta'
 import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
@@ -75,7 +81,10 @@ export async function runPipeline(
     }))
   // A push after a review is reviewed for what it changes; a forced re-review reads it all.
   const deltaFrom =
-    !options.force && previous && previous.review.headSha !== headSha
+    !options.force &&
+    previous &&
+    previous.review.headSha !== headSha &&
+    !isPartialSummary(previous.review.summary)
       ? previous.review.headSha
       : null
   const delta = deltaFrom
@@ -155,7 +164,8 @@ export async function runPipeline(
   // An approval lifts the bot's own earlier block, so a review that skipped sections keeps it.
   const holdsBlock = !isComplete && previous?.review.verdict === 'request_changes'
   const verdict = holdsBlock ? 'request_changes' : settledVerdict(remaining, stillBlocking)
-  const merged = { ...raw, findings: remaining, verdict }
+  const summary = isComplete ? raw.summary : partialSummary(raw.summary, coverage)
+  const merged = { ...raw, summary, findings: remaining, verdict }
   const report: ReviewReport = {
     review: merged,
     model: review.model ?? whiskersEnvConfig.openrouter.model,
