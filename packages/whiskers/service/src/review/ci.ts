@@ -55,7 +55,9 @@ export async function typecheckOutcome(
     const hasWaitedToAppear = Date.now() - started >= APPEAR_GRACE_MS
     if (runs.length === 0 && hasWaitedToAppear) return 'unknown'
     if (runs.some((run) => run.conclusion === 'failure')) return 'failed'
-    const isDone = runs.length > 0 && runs.every((run) => run.status === 'completed')
+    // A fast check finishing first must not vouch for a typecheck that has not been created yet.
+    const isDone =
+      hasWaitedToAppear && runs.length > 0 && runs.every((run) => run.status === 'completed')
     // Every matching run must succeed — a cancelled or skipped typecheck proves nothing.
     if (isDone) return runs.every((run) => run.conclusion === 'success') ? 'passed' : 'unknown'
     if (Date.now() + POLL_MS > deadline) return 'unknown'
