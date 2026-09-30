@@ -5,7 +5,7 @@ import { clearFindings, createFindings } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
 import { mapWithConcurrency, type TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
-import { isCompileClaim, typecheckOutcome } from './ci'
+import { withoutDisprovedCompileClaims } from './ci'
 import { buildPrContext } from './context'
 import { buildConventionsContext, fetchConventions } from './conventions'
 import {
@@ -144,21 +144,7 @@ export async function runPipeline(
   )
   const { review: raw, coverage } = resolveOutcome(outcomes)
   if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
-  // A green typecheck on this head disproves "callers not updated / missing / does not compile".
-  const hasCompileClaims = raw.findings.some(isCompileClaim)
-  const typecheck = hasCompileClaims
-    ? await typecheckOutcome(ref, headSha).catch(
-        warnWithout('typecheck status', 'unknown' as const),
-      )
-    : 'unknown'
-  const checked =
-    typecheck === 'passed' ? raw.findings.filter((f) => !isCompileClaim(f)) : raw.findings
-  if (checked.length < raw.findings.length) {
-    logger.info(
-      { ...ref, dropped: raw.findings.length - checked.length },
-      'compile claims dropped — the head typechecks',
-    )
-  }
+  const checked = await withoutDisprovedCompileClaims(ref, headSha, raw.findings)
   const { fresh, repeated, settled } = settleFindings(
     checked,
     priorThreads,

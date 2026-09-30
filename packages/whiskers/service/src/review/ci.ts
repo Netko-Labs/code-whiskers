@@ -1,3 +1,4 @@
+import { createLogger } from '@code-whiskers/logger'
 import type { LlmFinding } from '@code-whiskers/whiskers-domain'
 import { octokitFor, type PrRef } from './github'
 import type { TypecheckOutcome } from './types'
@@ -5,6 +6,7 @@ import type { TypecheckOutcome } from './types'
 // Names CI jobs use for "the code compiles": typecheck, build, the repo's quality gate.
 const TYPECHECK_CHECK = /type|tsc|check-types|quality|build|compile/i
 const OWN_CHECK = /code-whiskers/i
+const logger = createLogger('whiskers-review')
 const POLL_MS = 20_000
 const WAIT_MS = 4 * 60 * 1000
 
@@ -48,4 +50,24 @@ export async function typecheckOutcome(
     if (Date.now() + POLL_MS > deadline) return 'unknown'
     await new Promise((resolve) => setTimeout(resolve, POLL_MS))
   }
+}
+
+/**
+ * The review step: when any finding is a compile claim, wait for the head's typecheck, and drop
+ * those claims once it is green — the compiler already proved them wrong.
+ */
+export async function withoutDisprovedCompileClaims(
+  ref: PrRef,
+  sha: string,
+  findings: LlmFinding[],
+): Promise<LlmFinding[]> {
+  if (!findings.some(isCompileClaim)) return findings
+  const outcome = await typecheckOutcome(ref, sha).catch(() => 'unknown' as const)
+  if (outcome !== 'passed') return findings
+  const kept = findings.filter((finding) => !isCompileClaim(finding))
+  logger.info(
+    { ...ref, dropped: findings.length - kept.length },
+    'compile claims dropped — the head typechecks',
+  )
+  return kept
 }
