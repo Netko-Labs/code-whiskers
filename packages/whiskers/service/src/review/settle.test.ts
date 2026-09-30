@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { LlmFinding } from '@code-whiskers/whiskers-domain'
-import { isSameFinding, settledVerdict, settleFindings, suppressedFindings } from './settle'
+import {
+  isSameFinding,
+  openBlockers,
+  settledVerdict,
+  settleFindings,
+  suppressedFindings,
+} from './settle'
 import type { PriorThread } from './types'
 
 function finding(
@@ -17,7 +23,9 @@ function thread(path: string, line: number, title: string, extra: Partial<PriorT
     path,
     line,
     title,
+    severity: 'high',
     isResolved: false,
+    isOutdated: false,
     isDownvoted: false,
     replies: [],
     ...extra,
@@ -155,5 +163,25 @@ describe('settledVerdict', () => {
     expect(settledVerdict([finding('a.ts', 1, 'x', 'medium')])).toBe('approve')
     expect(settledVerdict([finding('a.ts', 1, 'x', 'high')])).toBe('request_changes')
     expect(settledVerdict([])).toBe('approve')
+  })
+})
+
+describe('openBlockers', () => {
+  test('an unanswered, current, blocking thread keeps the PR blocked', () => {
+    const open = thread('a.ts', 1, 'Tokens leak into logs')
+    expect(openBlockers([open])).toHaveLength(1)
+    expect(settledVerdict([], openBlockers([open]))).toBe('request_changes')
+  })
+
+  test('answered, resolved, outdated, downvoted or non-blocking threads do not', () => {
+    const threads = [
+      thread('a.ts', 1, 'x', { replies: [{ author: 'juan', body: 'intended' }] }),
+      thread('a.ts', 2, 'x', { isResolved: true }),
+      thread('a.ts', 3, 'x', { isOutdated: true }),
+      thread('a.ts', 4, 'x', { isDownvoted: true }),
+      thread('a.ts', 5, 'x', { severity: 'medium' }),
+    ]
+    expect(openBlockers(threads)).toHaveLength(0)
+    expect(settledVerdict([], openBlockers(threads))).toBe('approve')
   })
 })

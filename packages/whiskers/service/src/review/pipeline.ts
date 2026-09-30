@@ -15,7 +15,7 @@ import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
 import { dismissStaleBlocks } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
-import { settledVerdict, settleFindings, suppressedFindings } from './settle'
+import { openBlockers, settledVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
 import type { PipelineAttempt, PipelineResult, PriorThread, RunReviewOptions } from './types'
@@ -67,7 +67,9 @@ export async function runPipeline(
       path: f.file,
       line: f.line,
       title: f.title,
+      severity: f.severity,
       isResolved: false,
+      isOutdated: false,
       isDownvoted: false,
       replies: [],
     }))
@@ -148,10 +150,12 @@ export async function runPipeline(
     suppressedFindings(suppressions),
   )
   const remaining = [...fresh, ...repeated]
-  const merged = { ...raw, findings: remaining, verdict: settledVerdict(remaining) }
-  if (merged.verdict === 'approve') {
-    await dismissStaleBlocks(ref, headSha).catch(warnWithout('stale review dismissal', 0))
-  }
+  const stillBlocking = openBlockers(priorThreads)
+  const isComplete = coverage.reviewed === coverage.total
+  // An approval lifts the bot's own earlier block, so a review that skipped sections keeps it.
+  const holdsBlock = !isComplete && previous?.review.verdict === 'request_changes'
+  const verdict = holdsBlock ? 'request_changes' : settledVerdict(remaining, stillBlocking)
+  const merged = { ...raw, findings: remaining, verdict }
   const report: ReviewReport = {
     review: merged,
     model: review.model ?? whiskersEnvConfig.openrouter.model,
@@ -185,11 +189,18 @@ export async function runPipeline(
       {
         ...report,
         review: { ...merged, findings: fresh },
-        carried: { open: repeated.length, settled: settled.length },
+        carried: {
+          open: Math.max(repeated.length, stillBlocking.length),
+          settled: settled.length,
+        },
       },
       commentable,
     )
     attempt.isPosted = true
+  }
+  // Only a complete, posted (or unchanged) clean review may lift the bot's own earlier blocks.
+  if (merged.verdict === 'approve' && isComplete && (attempt.isPosted || isUnchanged)) {
+    await dismissStaleBlocks(ref, headSha).catch(warnWithout('stale review dismissal', 0))
   }
   logger.info(
     {

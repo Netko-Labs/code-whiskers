@@ -34,6 +34,8 @@ describe('isCompileClaim', () => {
       'Other todo writes can erase an unfinished create form',
       'A failed active-PR query becomes an unhandled rejection',
       'A different reaction can authorize the command',
+      'The webhook contract returns 500 to callers on retries',
+      'External API consumers receive unpaginated results',
     ]) {
       expect(isCompileClaim(finding(title))).toBe(false)
     }

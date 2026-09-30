@@ -9,11 +9,12 @@ const POLL_MS = 20_000
 const WAIT_MS = 4 * 60 * 1000
 
 /**
- * A claim a compiler settles: callers or consumers not updated, a contract or signature that no
- * longer matches, something missing, unexported or unresolvable. A green typecheck disproves it.
+ * A claim only a compiler settles: something no longer compiles or type-checks, a shape that no
+ * longer matches its use, a module missing, unexported or unresolvable. Runtime words like
+ * "contract" or "callers" alone are not enough — a green typecheck cannot disprove those.
  */
 const COMPILE_CLAIM =
-  /\b(type[- ]?check|compil(e|es|ation)|type error|cannot (resolve|find)|not exported|no longer (match|type|compile|satisf)|callers?|consumers?|signature|contract|missing (file|module|export|import|migration|key)|removed (field|export|prop)|does not (exist|export)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing))/i
+  /\b(type[- ]?checks?|no longer (compile|type[- ]?check)|compil(e|ation) (error|fail)|type error|cannot (resolve|find) (module|name|import)|not exported|no longer (match|matches|satisf\w*)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing)|missing (file|module|export|import|migration)|does not (export|exist in)|callers? (were|was|are|is) not updated|not updated (for|to match) the (new|changed) (signature|type|props))/i
 
 export function isCompileClaim(finding: LlmFinding): boolean {
   return COMPILE_CLAIM.test(`${finding.title} ${finding.body}`)

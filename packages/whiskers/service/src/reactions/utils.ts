@@ -14,10 +14,15 @@ export function reactionMarker(content: ReactionContent): string {
  * Command reactions on the bot's own finding comments that no bot reply in the thread has
  * handled yet. Counts only — who reacted is checked afterwards, and only for these.
  */
+/** The key studio stores a dismissal under — `file:title`, exactly as the ignore flow writes it. */
+export function dismissalKey(finding: { file: string; title: string }): string {
+  return `${finding.file}:${finding.title}`
+}
+
 export function pendingReactions(
   comments: ScannedComment[],
   botHandle: string,
-  resolvedRoots: ReadonlySet<number> = new Set(),
+  dismissed: ReadonlySet<string> = new Set(),
 ): PendingReaction[] {
   const handled = new Map<number, Set<string>>()
   for (const comment of comments) {
@@ -34,8 +39,16 @@ export function pendingReactions(
       (Object.keys(REACTION_COMMANDS) as ReactionContent[])
         .filter((content) => (root.reactions[content] ?? 0) > 0)
         .filter((content) => !handled.get(root.id)?.has(content))
-        // A 👎 resolves silently; a resolved thread is its "handled" mark.
-        .filter((content) => !(content === '-1' && resolvedRoots.has(root.id)))
+        // A 👎 leaves no reply; the dismissal recorded in studio is its "handled" mark.
+        .filter(
+          (content) =>
+            !(
+              content === '-1' &&
+              dismissed.has(
+                dismissalKey({ file: root.path, title: findingTitleOf(root.body) ?? '' }),
+              )
+            ),
+        )
         .map((content) => ({
           rootId: root.id,
           path: root.path,

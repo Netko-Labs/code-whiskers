@@ -31,16 +31,3 @@ export type CachedPermission = {
   isTrusted: boolean
   at: number
 }
-
-export type ResolvedThreadsPage = {
-  repository: {
-    pullRequest: {
-      reviewThreads: {
-        nodes: Array<{
-          isResolved: boolean
-          comments: { nodes: Array<{ databaseId: number | null }> }
-        }>
-      }
-    }
-  }
-}

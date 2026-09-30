@@ -23,7 +23,9 @@ export type PriorThread = {
   path: string
   line: number | null
   title: string
+  severity: LlmFinding['severity'] | null
   isResolved: boolean
+  isOutdated: boolean
   isDownvoted: boolean
   replies: ThreadReply[]
 }

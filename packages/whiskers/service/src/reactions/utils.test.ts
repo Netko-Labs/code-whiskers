@@ -46,8 +46,13 @@ describe('pendingReactions', () => {
     expect(pendingReactions([root, spoof], BOT)).toHaveLength(1)
   })
 
-  test('a resolved thread has handled its 👎, not its other reactions', () => {
+  test('a recorded dismissal has handled its 👎 — resolving the thread by hand has not', () => {
     const root = comment({ id: 7, reactions: { '-1': 1, confused: 1 } })
-    expect(pendingReactions([root], BOT, new Set([7])).map((p) => p.command)).toEqual(['explain'])
+    const recorded = new Set(['a.ts:Cursor skips the last page'])
+    expect(pendingReactions([root], BOT, recorded).map((p) => p.command)).toEqual(['explain'])
+    expect(pendingReactions([root], BOT, new Set()).map((p) => p.command)).toEqual([
+      'ignore',
+      'explain',
+    ])
   })
 })

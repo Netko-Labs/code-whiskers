@@ -8,7 +8,7 @@ const SAME_TITLE = 0.5
 const NEARBY_TITLE = 0.3
 const LINE_WINDOW = 6
 // The same claim re-anchored on a sibling file — the hook, then the page, then the types.
-const CROSS_FILE_TITLE = 0.4
+const CROSS_FILE_TITLE = 0.55
 const CROSS_FILE_SHARED_DIRS = 3
 const STOPWORDS = new Set([
   'the',
@@ -133,9 +133,31 @@ export function settleFindings(
 }
 
 /**
- * Settling can remove every blocker, so the verdict is recomputed from what is left — with the
- * same binary policy as `resolveVerdict`: a bare COMMENT review is never posted.
+ * A blocking thread from an earlier round nobody has answered, whose code has not changed since.
+ * A delta review cannot see it, so it must keep the PR blocked on its own.
  */
-export function settledVerdict(remaining: LlmFinding[]): LlmReview['verdict'] {
-  return remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
+export function openBlockers(threads: PriorThread[]): PriorThread[] {
+  return threads.filter(
+    (t) =>
+      t.severity !== null &&
+      BLOCKING_SEVERITIES.has(t.severity) &&
+      !t.isResolved &&
+      !t.isOutdated &&
+      !t.isDownvoted &&
+      t.replies.length === 0,
+  )
+}
+
+/**
+ * Settling can remove every blocker, so the verdict is recomputed from what is left — with the
+ * same binary policy as `resolveVerdict`: a bare COMMENT review is never posted. An unanswered
+ * blocker from an earlier round still blocks.
+ */
+export function settledVerdict(
+  remaining: LlmFinding[],
+  blockedBefore: PriorThread[] = [],
+): LlmReview['verdict'] {
+  const isBlocked =
+    blockedBefore.length > 0 || remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity))
+  return isBlocked ? 'request_changes' : 'approve'
 }
