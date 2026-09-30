@@ -18,7 +18,7 @@ const APPEAR_GRACE_MS = 60_000
  * "contract" or "callers" alone are not enough — a green typecheck cannot disprove those.
  */
 const COMPILE_CLAIM =
-  /\b((no longer|does not|doesn['’]t|will not|won['’]t) (compile|type[- ]?check)|compil(e|ation) (error|fail)|type error|cannot (resolve|find) (module|name|import)|not exported|no longer (match|matches|satisf\w*)\b[^.]{0,40}\b(types?|props?|signature|interface|return|shape|consumers|callers|usage)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing)|missing (file|module|export|import|migration)|does not (export|exist in)|callers? (were|was|are|is) not updated|not updated (for|to match) the (new|changed) (signature|type|props))/i
+  /\b((no longer|does not|doesn['’]t|will not|won['’]t) (compile|type[- ]?check)|compil(e|ation) (error|fail)|type error|cannot (resolve|find) (module|name|import)|not exported|no longer (match|matches|satisf\w*)\b[^.]{0,40}\b(types?|props?|signature|interface|return|shape|consumers|callers|usage)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing)|missing (file|module|export|import|migration)|does not export|callers? (were|was|are|is) not updated|not updated (for|to match) the (new|changed) (signature|type|props))/i
 
 export function isCompileClaim(finding: LlmFinding): boolean {
   return COMPILE_CLAIM.test(`${finding.title} ${finding.body}`)
@@ -51,7 +51,8 @@ export async function typecheckOutcome(
     if (runs.length === 0 && hasWaitedToAppear) return 'unknown'
     if (runs.some((run) => run.conclusion === 'failure')) return 'failed'
     const isDone = runs.length > 0 && runs.every((run) => run.status === 'completed')
-    if (isDone) return runs.some((run) => run.conclusion === 'success') ? 'passed' : 'unknown'
+    // Every matching run must succeed — a cancelled or skipped typecheck proves nothing.
+    if (isDone) return runs.every((run) => run.conclusion === 'success') ? 'passed' : 'unknown'
     if (Date.now() + POLL_MS > deadline) return 'unknown'
     await new Promise((resolve) => setTimeout(resolve, POLL_MS))
   }

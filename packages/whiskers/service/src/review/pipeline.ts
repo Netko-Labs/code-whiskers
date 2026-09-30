@@ -150,7 +150,6 @@ export async function runPipeline(
     remaining,
     priorThreads,
     isComplete,
-    previous: previous?.review.verdict ?? null,
   })
   const summary = isComplete ? raw.summary : partialSummary(raw.summary, coverage)
   const merged = { ...raw, summary, findings: remaining, verdict }

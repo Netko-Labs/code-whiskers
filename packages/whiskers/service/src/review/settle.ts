@@ -186,16 +186,14 @@ export function settledVerdict(
 
 /**
  * A review that skipped sections vouches for nothing: it never approves — an approval would lift
- * the bot's own earlier block or satisfy a required review — so it keeps an earlier block, or
- * posts as a plain comment. The one exception to the approve-or-block rule.
+ * the bot's own earlier block or satisfy a required review — so it posts as a plain comment.
+ * Blockers still open from earlier rounds already made the verdict request_changes.
  */
 export function partialVerdict(
   verdict: LlmReview['verdict'],
   isComplete: boolean,
-  previous: LlmReview['verdict'] | null,
 ): LlmReview['verdict'] {
-  if (isComplete || verdict !== 'approve') return verdict
-  return previous === 'request_changes' ? 'request_changes' : 'comment'
+  return !isComplete && verdict === 'approve' ? 'comment' : verdict
 }
 
 /**
@@ -206,7 +204,7 @@ export function reviewVerdict(input: VerdictInput): ReviewVerdict {
   const stillBlocking = openBlockers(input.priorThreads)
   const settled = settledVerdict(input.remaining, stillBlocking)
   return {
-    verdict: partialVerdict(settled, input.isComplete, input.previous),
+    verdict: partialVerdict(settled, input.isComplete),
     stillBlocking,
   }
 }

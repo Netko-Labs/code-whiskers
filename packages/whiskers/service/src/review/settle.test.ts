@@ -228,27 +228,34 @@ describe('openBlockers', () => {
 })
 
 describe('partialVerdict', () => {
-  test('a review that skipped sections never approves', () => {
-    expect(partialVerdict('approve', false, null)).toBe('comment')
-    expect(partialVerdict('approve', false, 'approve')).toBe('comment')
-    expect(partialVerdict('approve', false, 'request_changes')).toBe('request_changes')
-    expect(partialVerdict('request_changes', false, null)).toBe('request_changes')
-    expect(partialVerdict('approve', true, 'request_changes')).toBe('approve')
+  test('a review that skipped sections never approves, and adds no block of its own', () => {
+    expect(partialVerdict('approve', false)).toBe('comment')
+    expect(partialVerdict('request_changes', false)).toBe('request_changes')
+    expect(partialVerdict('approve', true)).toBe('approve')
   })
 })
 
 describe('reviewVerdict', () => {
   test('earlier unanswered blockers and partial coverage both shape the posted verdict', () => {
     const blocker = thread('a.ts', 1, 'Tokens leak into logs')
+    expect(reviewVerdict({ remaining: [], priorThreads: [blocker], isComplete: true })).toEqual({
+      verdict: 'request_changes',
+      stillBlocking: [blocker],
+    })
+    expect(reviewVerdict({ remaining: [], priorThreads: [], isComplete: false }).verdict).toBe(
+      'comment',
+    )
+    expect(reviewVerdict({ remaining: [], priorThreads: [], isComplete: true }).verdict).toBe(
+      'approve',
+    )
+  })
+})
+
+describe('reviewVerdict after dismissals', () => {
+  test('a partial review over a dismissed earlier blocker comments instead of blocking', () => {
+    const dismissed = thread('a.ts', 1, 'Tokens leak into logs', { isDownvoted: true })
     expect(
-      reviewVerdict({ remaining: [], priorThreads: [blocker], isComplete: true, previous: null }),
-    ).toEqual({ verdict: 'request_changes', stillBlocking: [blocker] })
-    expect(
-      reviewVerdict({ remaining: [], priorThreads: [], isComplete: false, previous: 'approve' })
-        .verdict,
+      reviewVerdict({ remaining: [], priorThreads: [dismissed], isComplete: false }).verdict,
     ).toBe('comment')
-    expect(
-      reviewVerdict({ remaining: [], priorThreads: [], isComplete: true, previous: null }).verdict,
-    ).toBe('approve')
   })
 })

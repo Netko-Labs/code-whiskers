@@ -92,7 +92,6 @@ export type VerdictInput = {
   remaining: LlmFinding[]
   priorThreads: PriorThread[]
   isComplete: boolean
-  previous: LlmReview['verdict'] | null
 }
 
 export type ReviewVerdict = {

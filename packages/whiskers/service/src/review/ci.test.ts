@@ -39,6 +39,7 @@ describe('isCompileClaim', () => {
       'External API consumers receive unpaginated results',
       "The webhook payload no longer matches the server's expected schema",
       'The handler passes typecheck but crashes when the body is empty',
+      'The refund endpoint does not exist in production',
     ]) {
       expect(isCompileClaim(finding(title))).toBe(false)
     }
