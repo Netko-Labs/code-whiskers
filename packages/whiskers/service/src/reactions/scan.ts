@@ -10,7 +10,12 @@ import {
   REACTION_EMOJI,
   TRUSTED_PERMISSIONS,
 } from './constants'
-import type { CachedPermission, PendingReaction, ScannedComment } from './types'
+import type {
+  CachedPermission,
+  PendingReaction,
+  ResolvedThreadsPage,
+  ScannedComment,
+} from './types'
 import { pendingReactions, reactionMarker } from './utils'
 
 const logger = createLogger('whiskers-reactions')
@@ -51,6 +56,26 @@ async function listReviewComments(ref: PrRef): Promise<ScannedComment[]> {
     if (data.length < 100) break
   }
   return comments
+}
+
+async function resolvedRootIds(ref: PrRef): Promise<Set<number>> {
+  const octokit = await octokitFor(ref.owner, ref.repo)
+  const data: ResolvedThreadsPage = await octokit.graphql(
+    `query($owner: String!, $repo: String!, $pr: Int!) {
+      repository(owner: $owner, name: $repo) {
+        pullRequest(number: $pr) {
+          reviewThreads(first: 100) { nodes { isResolved comments(first: 1) { nodes { databaseId } } } }
+        }
+      }
+    }`,
+    { owner: ref.owner, repo: ref.repo, pr: ref.prNumber },
+  )
+  const ids = new Set<number>()
+  for (const thread of data.repository.pullRequest.reviewThreads.nodes) {
+    const id = thread.comments.nodes[0]?.databaseId
+    if (thread.isResolved && id) ids.add(id)
+  }
+  return ids
 }
 
 /** A reaction is a command only from someone who could push to the repository. */
@@ -103,7 +128,7 @@ async function act(ref: PrRef, pending: PendingReaction, login: string) {
   const marker = reactionMarker(pending.content)
   const reason = `reacted ${REACTION_EMOJI[pending.content]}`
   if (pending.command === 'ignore') {
-    await ignoreFinding(ref, targetFor(pending, login, ''), reason, marker)
+    await ignoreFinding(ref, targetFor(pending, login, ''), reason, marker, true)
   } else if (pending.command === 'explain') {
     await answerQuestion(ref, targetFor(pending, login, ''), EXPLAIN_PROMPT, marker)
   } else {
@@ -119,8 +144,11 @@ async function act(ref: PrRef, pending: PendingReaction, login: string) {
 
 /** Acts on every unhandled command reaction on one pull request. */
 export async function scanPullRequest(ref: PrRef): Promise<number> {
-  const comments = await listReviewComments(ref)
-  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle)
+  const [comments, resolved] = await Promise.all([
+    listReviewComments(ref),
+    resolvedRootIds(ref).catch(() => new Set<number>()),
+  ])
+  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle, resolved)
   let handled = 0
   for (const reaction of pending) {
     const key = `${reaction.rootId}:${reaction.content}`

@@ -12,7 +12,13 @@ const MAX_NOTE_CHARS = 500
  * `@code-whiskers ignore` on one of the reviewer's own threads: studio records the dismissal (so
  * no PR on this repo raises it again), the thread is resolved, and the reply says so.
  */
-export async function ignoreFinding(ref: PrRef, target: FixTarget, reason: string, marker = '') {
+export async function ignoreFinding(
+  ref: PrRef,
+  target: FixTarget,
+  reason: string,
+  marker = '',
+  isSilent = false,
+) {
   if (target.commentId === null || !target.path) {
     await postPrComment(ref, IGNORE_OUTSIDE_THREAD)
     return
@@ -34,6 +40,8 @@ export async function ignoreFinding(ref: PrRef, target: FixTarget, reason: strin
     note: note.slice(0, MAX_NOTE_CHARS),
   })
   await resolveThreadForComment(ref, root.id).catch(() => undefined)
+  // A 👎 needs no answer — every reply lands on the PR as one more "commented" review.
+  if (isSilent && isRecorded) return
   await replyToReviewComment(
     ref,
     root.id,

@@ -45,4 +45,9 @@ describe('pendingReactions', () => {
     })
     expect(pendingReactions([root, spoof], BOT)).toHaveLength(1)
   })
+
+  test('a resolved thread has handled its 👎, not its other reactions', () => {
+    const root = comment({ id: 7, reactions: { '-1': 1, confused: 1 } })
+    expect(pendingReactions([root], BOT, new Set([7])).map((p) => p.command)).toEqual(['explain'])
+  })
 })

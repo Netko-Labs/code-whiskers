@@ -1,12 +1,15 @@
 import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
 import { BLOCKING_SEVERITIES } from './render'
 import type { Suppression } from './suppressions'
-import type { PriorThread, SettledFindings, Suppressed } from './types'
+import type { PriorClaim, PriorThread, SettledFindings, Suppressed } from './types'
 
 // A model rewords the same finding on every run; titles are compared as word sets.
 const SAME_TITLE = 0.5
 const NEARBY_TITLE = 0.3
 const LINE_WINDOW = 6
+// The same claim re-anchored on a sibling file — the hook, then the page, then the types.
+const CROSS_FILE_TITLE = 0.4
+const CROSS_FILE_SHARED_DIRS = 3
 const STOPWORDS = new Set([
   'the',
   'and',
@@ -31,9 +34,17 @@ const STOPWORDS = new Set([
   'then',
   'only',
   'now',
+  'their',
 ])
 
-type Prior = { file: string; line: number | null; title: string }
+/** `matches`, `matched` and `matching` are one word to a reader. */
+function stem(word: string): string {
+  const base = word.replace(/['’]s$/, '')
+  if (base.length > 5 && base.endsWith('ing')) return base.slice(0, -3)
+  if (base.length > 4 && (base.endsWith('ed') || base.endsWith('es'))) return base.slice(0, -2)
+  if (base.length > 4 && base.endsWith('s')) return base.slice(0, -1)
+  return base
+}
 
 function titleWords(title: string): Set<string> {
   return new Set(
@@ -41,8 +52,17 @@ function titleWords(title: string): Set<string> {
       .toLowerCase()
       .replace(/[`'"()[\]{}.,:;!?]/g, ' ')
       .split(/\s+/)
-      .filter((word) => word.length > 2 && !STOPWORDS.has(word)),
+      .filter((word) => word.length > 2 && !STOPWORDS.has(word))
+      .map(stem),
   )
+}
+
+function sharedDirectories(a: string, b: string): number {
+  const left = a.split('/').slice(0, -1)
+  const right = b.split('/').slice(0, -1)
+  let depth = 0
+  while (depth < left.length && left[depth] === right[depth]) depth += 1
+  return depth
 }
 
 export function titleSimilarity(a: string, b: string): number {
@@ -54,9 +74,14 @@ export function titleSimilarity(a: string, b: string): number {
   return shared / (left.size + right.size - shared)
 }
 
-export function isSameFinding(finding: LlmFinding, prior: Prior): boolean {
-  if (finding.file !== prior.file) return false
+export function isSameFinding(finding: LlmFinding, prior: PriorClaim): boolean {
   const score = titleSimilarity(finding.title, prior.title)
+  if (finding.file !== prior.file) {
+    return (
+      sharedDirectories(finding.file, prior.file) >= CROSS_FILE_SHARED_DIRS &&
+      score >= CROSS_FILE_TITLE
+    )
+  }
   if (score >= SAME_TITLE) return true
   const isNearby =
     finding.line !== null &&

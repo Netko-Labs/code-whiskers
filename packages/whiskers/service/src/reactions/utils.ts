@@ -14,7 +14,11 @@ export function reactionMarker(content: ReactionContent): string {
  * Command reactions on the bot's own finding comments that no bot reply in the thread has
  * handled yet. Counts only — who reacted is checked afterwards, and only for these.
  */
-export function pendingReactions(comments: ScannedComment[], botHandle: string): PendingReaction[] {
+export function pendingReactions(
+  comments: ScannedComment[],
+  botHandle: string,
+  resolvedRoots: ReadonlySet<number> = new Set(),
+): PendingReaction[] {
   const handled = new Map<number, Set<string>>()
   for (const comment of comments) {
     if (comment.inReplyToId === null || !isBotLogin(comment.author, botHandle)) continue
@@ -30,6 +34,8 @@ export function pendingReactions(comments: ScannedComment[], botHandle: string):
       (Object.keys(REACTION_COMMANDS) as ReactionContent[])
         .filter((content) => (root.reactions[content] ?? 0) > 0)
         .filter((content) => !handled.get(root.id)?.has(content))
+        // A 👎 resolves silently; a resolved thread is its "handled" mark.
+        .filter((content) => !(content === '-1' && resolvedRoots.has(root.id)))
         .map((content) => ({
           rootId: root.id,
           path: root.path,

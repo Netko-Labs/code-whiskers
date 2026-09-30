@@ -68,14 +68,18 @@ export async function runReview(
       logger.info({ ...ref, headSha: head.sha }, 'this head was already reviewed — skipped')
       return undefined
     }
-    return await reviewHead(ref, head)
+    return await reviewHead(ref, head, options)
   } finally {
     inFlight.delete(headKey)
   }
 }
 
 /** One review row per head; retries stay inside it so a transient failure never reads as one. */
-async function reviewHead(ref: PrRef, head: PrHead): Promise<Review | undefined> {
+async function reviewHead(
+  ref: PrRef,
+  head: PrHead,
+  options: RunReviewOptions,
+): Promise<Review | undefined> {
   const headSha = head.sha
   const review = await createReview({
     owner: ref.owner,
@@ -104,7 +108,7 @@ async function reviewHead(ref: PrRef, head: PrHead): Promise<Review | undefined>
   const progress: PipelineAttempt = { isPosted: false }
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const { report, merged } = await runPipeline(ref, headSha, review, tokens, progress)
+      const { report, merged } = await runPipeline(ref, head, review, tokens, progress, options)
       await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
         logger.warn({ err: messageOf(error) }, 'check run update failed')
       })

@@ -77,3 +77,11 @@ export type ShownLine = {
   number: number
   text: string
 }
+
+export type TypecheckOutcome = 'passed' | 'failed' | 'unknown'
+
+export type PriorClaim = {
+  file: string
+  line: number | null
+  title: string
+}

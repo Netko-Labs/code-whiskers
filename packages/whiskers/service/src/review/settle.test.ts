@@ -58,6 +58,44 @@ describe('isSameFinding', () => {
   })
 })
 
+describe('isSameFinding across files', () => {
+  const Todos = 'apps/studio/src/components/todos/todos-example'
+
+  test('the same claim re-anchored on a sibling file is the same finding', () => {
+    expect(
+      isSameFinding(
+        finding(
+          `${Todos}/todos-example.tsx`,
+          3,
+          'Todos page depends on fields the hook no longer returns',
+        ),
+        {
+          file: `${Todos}/lib/hooks/use-todos-example.ts`,
+          line: 20,
+          title: 'The todos page depends on fields the hook does not return',
+        },
+      ),
+    ).toBe(true)
+  })
+
+  test('a similar title in an unrelated tree is not', () => {
+    expect(
+      isSameFinding(
+        finding(
+          'packages/api/src/hub.ts',
+          3,
+          'Todos page depends on fields the hook does not return',
+        ),
+        {
+          file: `${Todos}/todos-example.tsx`,
+          line: 3,
+          title: 'Todos page depends on fields the hook does not return',
+        },
+      ),
+    ).toBe(false)
+  })
+})
+
 describe('settleFindings', () => {
   const raised = 'Too-light primary colors can still be saved'
 

@@ -5,17 +5,20 @@ import { clearFindings, createFindings } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
 import { mapWithConcurrency, type TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
+import { isCompileClaim, typecheckOutcome } from './ci'
 import { buildPrContext } from './context'
 import { buildConventionsContext, fetchConventions } from './conventions'
-import { fetchPrConversation, fetchPrDiff, type PrRef, postPrReview } from './github'
+import { buildDeltaNote, buildDescriptionContext, fetchDeltaDiff } from './delta'
+import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
+import { dismissStaleBlocks } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { settledVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
-import type { PipelineAttempt, PipelineResult, PriorThread } from './types'
+import type { PipelineAttempt, PipelineResult, PriorThread, RunReviewOptions } from './types'
 
 const logger = createLogger('whiskers-review')
 
@@ -35,11 +38,13 @@ function warnWithout<T>(what: string, fallback: T) {
  */
 export async function runPipeline(
   ref: PrRef,
-  headSha: string,
+  head: PrHead,
   review: Review,
   tokens: TokenTally,
   attempt: PipelineAttempt,
+  options: RunReviewOptions,
 ): Promise<PipelineResult> {
+  const headSha = head.sha
   const slug = `${ref.owner}/${ref.repo}`
   const botHandle = whiskersEnvConfig.github.botHandle
   const [diff, conversation, previous, reviewCount, suppressions, rules, threads] =
@@ -66,6 +71,14 @@ export async function runPipeline(
       isDownvoted: false,
       replies: [],
     }))
+  // A push after a review is reviewed for what it changes; a forced re-review reads it all.
+  const deltaFrom =
+    !options.force && previous && previous.review.headSha !== headSha
+      ? previous.review.headSha
+      : null
+  const delta = deltaFrom
+    ? await fetchDeltaDiff(ref, deltaFrom, headSha).catch(warnWithout('delta diff', null))
+    : null
   const commentable = commentableLines(diff)
   const changedFiles = [...commentable.keys()]
   const conventions = await fetchConventions(ref, headSha, changedFiles).catch(
@@ -88,7 +101,9 @@ export async function runPipeline(
   const context = [
     buildRulesContext(applicable),
     buildConventionsContext(conventions),
+    buildDescriptionContext(head.body),
     buildFileManifest(diff),
+    delta && deltaFrom ? buildDeltaNote(deltaFrom) : '',
     prContext,
   ]
     .filter(Boolean)
@@ -100,24 +115,43 @@ export async function runPipeline(
         contextChars: context.length,
         rules: applicable.length,
         conventions: conventions.map((file) => file.path),
+        delta: delta ? deltaFrom : null,
       },
       'review has context',
     )
   }
 
-  const chunks = chunkDiff(diff)
+  const chunks = chunkDiff(delta ?? diff)
   const outcomes = await mapWithConcurrency(chunks, (chunk) =>
     reviewChunkWithRetry(chunk, context, tokens),
   )
   const { review: raw, coverage } = resolveOutcome(outcomes)
   if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
+  // A green typecheck on this head disproves "callers not updated / missing / does not compile".
+  const hasCompileClaims = raw.findings.some(isCompileClaim)
+  const typecheck = hasCompileClaims
+    ? await typecheckOutcome(ref, headSha).catch(
+        warnWithout('typecheck status', 'unknown' as const),
+      )
+    : 'unknown'
+  const checked =
+    typecheck === 'passed' ? raw.findings.filter((f) => !isCompileClaim(f)) : raw.findings
+  if (checked.length < raw.findings.length) {
+    logger.info(
+      { ...ref, dropped: raw.findings.length - checked.length },
+      'compile claims dropped — the head typechecks',
+    )
+  }
   const { fresh, repeated, settled } = settleFindings(
-    raw.findings,
+    checked,
     priorThreads,
     suppressedFindings(suppressions),
   )
   const remaining = [...fresh, ...repeated]
   const merged = { ...raw, findings: remaining, verdict: settledVerdict(remaining) }
+  if (merged.verdict === 'approve') {
+    await dismissStaleBlocks(ref, headSha).catch(warnWithout('stale review dismissal', 0))
+  }
   const report: ReviewReport = {
     review: merged,
     model: review.model ?? whiskersEnvConfig.openrouter.model,

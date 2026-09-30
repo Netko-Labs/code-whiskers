@@ -86,7 +86,13 @@ encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECR
 
 ### On a pull request
 
-Every push is reviewed once. The reviewer reads the repository's `CLAUDE.md` and `AGENTS.md` (the
+Every push is reviewed once: the first push reads the whole PR, later pushes only what changed
+since the last reviewed commit (a force-push or `@code-whiskers review` reads it all again). The
+PR description counts as intended design. When the head's typecheck-like CI check (`type`,
+`tsc`, `check-types`, `quality`, `build`) is green, "callers not updated / missing / does not
+compile" findings are dropped. Once a commit reviews clean, the reviewer dismisses its own
+earlier "changes requested". Generator templates (`*.hbs`, `turbo/generators/templates/**`) are
+not reviewed as text. The reviewer reads the repository's `CLAUDE.md` and `AGENTS.md` (the
 root one and any above the changed files, plus what they `@import`) and flags violations as
 `convention` findings. A failed review retries twice (after 30 s and 2 min) before it posts the
 failure; an alert rule of kind "A review fails" delivers that to Slack, Discord or a webhook.
@@ -104,7 +110,7 @@ Or skip typing — react on one of its review comments (checked every minute, in
 
 | React | Same as |
 | --- | --- |
-| 👎 | `@code-whiskers ignore` |
+| 👎 | `@code-whiskers ignore`, silently — the thread resolves, no reply |
 | 🚀 | `@code-whiskers fix` |
 | 😕 | `@code-whiskers why?` |
 

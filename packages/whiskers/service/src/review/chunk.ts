@@ -35,6 +35,9 @@ const SKIP_PATTERNS = [
   // Bulk data and translations
   /\.(csv|tsv|parquet|sqlite|db)$/,
   /\.(po|mo|xliff|strings)$/,
+  // Generator templates render into an app CI builds and typechecks; as text they mislead
+  /\.(hbs|handlebars)$/,
+  /(^|\/)turbo\/generators\/templates\//,
   // Release plumbing
   /(^|\/)CHANGELOG\.md$/,
   /(^|\/)LICENSE(\.[a-z]+)?$/i,
