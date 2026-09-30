@@ -39,9 +39,12 @@ export async function ignoreFinding(
     title,
     note: note.slice(0, MAX_NOTE_CHARS),
   })
-  await resolveThreadForComment(ref, root.id).catch(() => undefined)
-  // A 👎 needs no answer — every reply lands on the PR as one more "commented" review.
-  if (isSilent && isRecorded) return
+  const isResolved = await resolveThreadForComment(ref, root.id)
+    .then(() => true)
+    .catch(() => false)
+  // A 👎 needs no answer — every reply lands on the PR as one more "commented" review — unless
+  // something failed and the thread would otherwise sit open with no word on why.
+  if (isSilent && isRecorded && isResolved) return
   await replyToReviewComment(
     ref,
     root.id,

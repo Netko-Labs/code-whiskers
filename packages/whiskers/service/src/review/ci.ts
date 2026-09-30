@@ -14,7 +14,7 @@ const WAIT_MS = 4 * 60 * 1000
  * "contract" or "callers" alone are not enough — a green typecheck cannot disprove those.
  */
 const COMPILE_CLAIM =
-  /\b(type[- ]?checks?|no longer (compile|type[- ]?check)|compil(e|ation) (error|fail)|type error|cannot (resolve|find) (module|name|import)|not exported|no longer (match|matches|satisf\w*)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing)|missing (file|module|export|import|migration)|does not (export|exist in)|callers? (were|was|are|is) not updated|not updated (for|to match) the (new|changed) (signature|type|props))/i
+  /\b(type[- ]?checks?|(no longer|does not|doesn['’]t|will not|won['’]t) (compile|type[- ]?check)|compil(e|ation) (error|fail)|type error|cannot (resolve|find) (module|name|import)|not exported|no longer (match|matches|satisf\w*)|(still )?exports? (a |an |the )?(deleted|removed|moved|missing)|missing (file|module|export|import|migration)|does not (export|exist in)|callers? (were|was|are|is) not updated|not updated (for|to match) the (new|changed) (signature|type|props))/i
 
 export function isCompileClaim(finding: LlmFinding): boolean {
   return COMPILE_CLAIM.test(`${finding.title} ${finding.body}`)

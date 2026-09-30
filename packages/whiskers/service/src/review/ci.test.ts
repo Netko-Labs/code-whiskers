@@ -24,6 +24,7 @@ describe('isCompileClaim', () => {
       'The existing hook caller no longer type-checks',
       'The lib barrel still exports the deleted utility',
       'The send form contract no longer matches its unchanged consumers',
+      'The router does not compile after the rename',
     ]) {
       expect(isCompileClaim(finding(title))).toBe(true)
     }
