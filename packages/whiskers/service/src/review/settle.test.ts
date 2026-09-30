@@ -104,6 +104,28 @@ describe('isSameFinding across files', () => {
     ).toBe(false)
   })
 
+  test('a file in the shared parent and one in a sibling feature folder are not one feature', () => {
+    const title = 'Page depends on fields the hook does not return'
+    expect(
+      isSameFinding(finding('apps/studio/src/components/chat/chat-example.tsx', 3, title), {
+        file: 'apps/studio/src/components/todos-example.tsx',
+        line: 3,
+        title,
+      }),
+    ).toBe(false)
+  })
+
+  test('two files in the same folder are one feature', () => {
+    const title = 'Page depends on fields the hook does not return'
+    expect(
+      isSameFinding(finding(`${Todos}/lib/types.ts`, 3, title), {
+        file: `${Todos}/lib/values.ts`,
+        line: 9,
+        title,
+      }),
+    ).toBe(true)
+  })
+
   test('a similar title in an unrelated tree is not', () => {
     expect(
       isSameFinding(
