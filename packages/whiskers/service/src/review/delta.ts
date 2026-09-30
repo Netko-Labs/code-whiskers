@@ -21,6 +21,8 @@ export async function fetchDeltaDiff(
     },
   )
   if (comparison.status !== 'ahead') return null
+  // GitHub's compare lists at most 300 files; a delta that size may be cut, so read the whole PR.
+  if ((comparison.files?.length ?? 0) >= COMPARE_FILE_LIMIT) return null
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
     owner: ref.owner,
     repo: ref.repo,
@@ -31,6 +33,7 @@ export async function fetchDeltaDiff(
 }
 
 const MAX_DESCRIPTION_CHARS = 2_000
+const COMPARE_FILE_LIMIT = 300
 
 /**
  * The author's account of the PR, as context and nothing more: it is author-controlled text, so it

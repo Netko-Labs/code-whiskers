@@ -6,6 +6,8 @@ import type { TypecheckOutcome } from './types'
 // Names CI jobs use for "the code compiles": typecheck, build, the repo's quality gate.
 const TYPECHECK_CHECK = /type|tsc|check-types|quality|build|compile/i
 const OWN_CHECK = /code-whiskers/i
+// A docs build, a linter or a preview deploy proves nothing about types.
+const NOT_TYPECHECK = /lint|doc|format|preview/i
 const logger = createLogger('whiskers-review')
 const POLL_MS = 20_000
 const WAIT_MS = 4 * 60 * 1000
@@ -45,7 +47,10 @@ export async function typecheckOutcome(
       per_page: 100,
     })
     const runs = checkRuns.filter(
-      (run) => TYPECHECK_CHECK.test(run.name) && !OWN_CHECK.test(run.name),
+      (run) =>
+        TYPECHECK_CHECK.test(run.name) &&
+        !OWN_CHECK.test(run.name) &&
+        !NOT_TYPECHECK.test(run.name),
     )
     const hasWaitedToAppear = Date.now() - started >= APPEAR_GRACE_MS
     if (runs.length === 0 && hasWaitedToAppear) return 'unknown'
