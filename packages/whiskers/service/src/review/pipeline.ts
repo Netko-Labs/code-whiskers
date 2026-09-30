@@ -21,7 +21,13 @@ import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
 import { dismissStaleBlocks } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
-import { openBlockers, settledVerdict, settleFindings, suppressedFindings } from './settle'
+import {
+  openBlockers,
+  partialVerdict,
+  settledVerdict,
+  settleFindings,
+  suppressedFindings,
+} from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
 import type { PipelineAttempt, PipelineResult, PriorThread, RunReviewOptions } from './types'
@@ -161,9 +167,11 @@ export async function runPipeline(
   const remaining = [...fresh, ...repeated]
   const stillBlocking = openBlockers(priorThreads)
   const isComplete = coverage.reviewed === coverage.total
-  // An approval lifts the bot's own earlier block, so a review that skipped sections keeps it.
-  const holdsBlock = !isComplete && previous?.review.verdict === 'request_changes'
-  const verdict = holdsBlock ? 'request_changes' : settledVerdict(remaining, stillBlocking)
+  const verdict = partialVerdict(
+    settledVerdict(remaining, stillBlocking),
+    isComplete,
+    previous?.review.verdict ?? null,
+  )
   const summary = isComplete ? raw.summary : partialSummary(raw.summary, coverage)
   const merged = { ...raw, summary, findings: remaining, verdict }
   const report: ReviewReport = {

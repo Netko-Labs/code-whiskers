@@ -169,3 +169,17 @@ export function settledVerdict(
     blockedBefore.length > 0 || remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity))
   return isBlocked ? 'request_changes' : 'approve'
 }
+
+/**
+ * A review that skipped sections vouches for nothing: it never approves — an approval would lift
+ * the bot's own earlier block or satisfy a required review — so it keeps an earlier block, or
+ * posts as a plain comment. The one exception to the approve-or-block rule.
+ */
+export function partialVerdict(
+  verdict: LlmReview['verdict'],
+  isComplete: boolean,
+  previous: LlmReview['verdict'] | null,
+): LlmReview['verdict'] {
+  if (isComplete || verdict !== 'approve') return verdict
+  return previous === 'request_changes' ? 'request_changes' : 'comment'
+}

@@ -3,6 +3,7 @@ import type { LlmFinding } from '@code-whiskers/whiskers-domain'
 import {
   isSameFinding,
   openBlockers,
+  partialVerdict,
   settledVerdict,
   settleFindings,
   suppressedFindings,
@@ -200,5 +201,15 @@ describe('openBlockers', () => {
     ]
     expect(openBlockers(threads)).toHaveLength(0)
     expect(settledVerdict([], openBlockers(threads))).toBe('approve')
+  })
+})
+
+describe('partialVerdict', () => {
+  test('a review that skipped sections never approves', () => {
+    expect(partialVerdict('approve', false, null)).toBe('comment')
+    expect(partialVerdict('approve', false, 'approve')).toBe('comment')
+    expect(partialVerdict('approve', false, 'request_changes')).toBe('request_changes')
+    expect(partialVerdict('request_changes', false, null)).toBe('request_changes')
+    expect(partialVerdict('approve', true, 'request_changes')).toBe('approve')
   })
 })
