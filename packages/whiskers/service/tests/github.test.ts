@@ -18,6 +18,7 @@ const finding = (severity: LlmFinding['severity'], line: number | null = 10): Ll
   title: 'a finding',
   body: 'details',
   suggestion: null,
+  evidence: '',
 })
 
 describe('buildCheckOutput', () => {

@@ -16,6 +16,7 @@ const finding = (over: Partial<Finding> = {}): Finding =>
     title: 'Unbounded retry',
     body: '',
     suggestion: null,
+    evidence: '',
     createdAt: new Date(),
     ...over,
   }) as Finding

@@ -18,6 +18,7 @@ const finding = (overrides: Partial<LlmFinding> = {}): LlmFinding => ({
   title: 'A finding',
   body: 'What breaks.',
   suggestion: null,
+  evidence: '',
   ...overrides,
 })
 

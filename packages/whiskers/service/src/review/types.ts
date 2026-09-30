@@ -66,3 +66,9 @@ export type HttpFailure = {
   status?: number
   statusCode?: number
 }
+
+export type GroundedFindings = {
+  kept: LlmFinding[]
+  outsideSlice: number
+  unquoted: number
+}
