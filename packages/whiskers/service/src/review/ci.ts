@@ -37,13 +37,14 @@ export async function typecheckOutcome(
   const started = Date.now()
   const deadline = started + waitMs
   for (;;) {
-    const { data } = await octokit.request('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+    // Every page: a pending or failing typecheck past the first hundred runs still counts.
+    const checkRuns = await octokit.paginate('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
       owner: ref.owner,
       repo: ref.repo,
       ref: sha,
       per_page: 100,
     })
-    const runs = data.check_runs.filter(
+    const runs = checkRuns.filter(
       (run) => TYPECHECK_CHECK.test(run.name) && !OWN_CHECK.test(run.name),
     )
     const hasWaitedToAppear = Date.now() - started >= APPEAR_GRACE_MS
