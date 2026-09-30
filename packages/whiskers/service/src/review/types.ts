@@ -87,3 +87,15 @@ export type PriorClaim = {
   line: number | null
   title: string
 }
+
+export type VerdictInput = {
+  remaining: LlmFinding[]
+  priorThreads: PriorThread[]
+  isComplete: boolean
+  previous: LlmReview['verdict'] | null
+}
+
+export type ReviewVerdict = {
+  verdict: LlmReview['verdict']
+  stillBlocking: PriorThread[]
+}

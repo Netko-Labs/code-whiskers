@@ -1,7 +1,14 @@
 import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
 import { BLOCKING_SEVERITIES } from './render'
 import type { Suppression } from './suppressions'
-import type { PriorClaim, PriorThread, SettledFindings, Suppressed } from './types'
+import type {
+  PriorClaim,
+  PriorThread,
+  ReviewVerdict,
+  SettledFindings,
+  Suppressed,
+  VerdictInput,
+} from './types'
 
 // A model rewords the same finding on every run; titles are compared as word sets.
 const SAME_TITLE = 0.5
@@ -189,4 +196,17 @@ export function partialVerdict(
 ): LlmReview['verdict'] {
   if (isComplete || verdict !== 'approve') return verdict
   return previous === 'request_changes' ? 'request_changes' : 'comment'
+}
+
+/**
+ * The verdict a review posts: its own findings, blockers earlier rounds left unanswered, and the
+ * rule that a review which skipped sections never approves.
+ */
+export function reviewVerdict(input: VerdictInput): ReviewVerdict {
+  const stillBlocking = openBlockers(input.priorThreads)
+  const settled = settledVerdict(input.remaining, stillBlocking)
+  return {
+    verdict: partialVerdict(settled, input.isComplete, input.previous),
+    stillBlocking,
+  }
 }

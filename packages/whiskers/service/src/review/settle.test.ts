@@ -4,6 +4,7 @@ import {
   isSameFinding,
   openBlockers,
   partialVerdict,
+  reviewVerdict,
   settledVerdict,
   settleFindings,
   suppressedFindings,
@@ -233,5 +234,21 @@ describe('partialVerdict', () => {
     expect(partialVerdict('approve', false, 'request_changes')).toBe('request_changes')
     expect(partialVerdict('request_changes', false, null)).toBe('request_changes')
     expect(partialVerdict('approve', true, 'request_changes')).toBe('approve')
+  })
+})
+
+describe('reviewVerdict', () => {
+  test('earlier unanswered blockers and partial coverage both shape the posted verdict', () => {
+    const blocker = thread('a.ts', 1, 'Tokens leak into logs')
+    expect(
+      reviewVerdict({ remaining: [], priorThreads: [blocker], isComplete: true, previous: null }),
+    ).toEqual({ verdict: 'request_changes', stillBlocking: [blocker] })
+    expect(
+      reviewVerdict({ remaining: [], priorThreads: [], isComplete: false, previous: 'approve' })
+        .verdict,
+    ).toBe('comment')
+    expect(
+      reviewVerdict({ remaining: [], priorThreads: [], isComplete: true, previous: null }).verdict,
+    ).toBe('approve')
   })
 })
