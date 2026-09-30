@@ -39,7 +39,8 @@ const MAX_DESCRIPTION_CHARS = 2_000
 export function buildDescriptionContext(body: string): string {
   const text = body
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<\/?pr-description>/gi, '')
+    // Any tag-like spelling of the fence — spaces, attributes, case — is neutralized, not just one.
+    .replace(/<\s*\/?\s*pr-description\b[^>]*>/gi, '')
     .trim()
   if (!text) return ''
   const clipped =
