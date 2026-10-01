@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 import type { LlmFinding } from '@code-whiskers/whiskers-domain'
-import { isSameFinding, settledVerdict, settleFindings, suppressedFindings } from './settle'
+import {
+  isSameFinding,
+  openBlockers,
+  partialVerdict,
+  reviewVerdict,
+  settledVerdict,
+  settleFindings,
+  suppressedFindings,
+} from './settle'
 import type { PriorThread } from './types'
 
 function finding(
@@ -17,7 +25,9 @@ function thread(path: string, line: number, title: string, extra: Partial<PriorT
     path,
     line,
     title,
+    severity: 'high',
     isResolved: false,
+    isOutdated: false,
     isDownvoted: false,
     replies: [],
     ...extra,
@@ -54,6 +64,83 @@ describe('isSameFinding', () => {
         line: 6,
         title: 'The tenant barrel still exports the moved resolver',
       }),
+    ).toBe(false)
+  })
+})
+
+describe('isSameFinding across files', () => {
+  const Todos = 'apps/studio/src/components/todos/todos-example'
+
+  test('the same claim re-anchored on a sibling file is the same finding', () => {
+    expect(
+      isSameFinding(
+        finding(
+          `${Todos}/todos-example.tsx`,
+          3,
+          'Todos page depends on fields the hook no longer returns',
+        ),
+        {
+          file: `${Todos}/lib/hooks/use-todos-example.ts`,
+          line: 20,
+          title: 'The todos page depends on fields the hook does not return',
+        },
+      ),
+    ).toBe(true)
+  })
+
+  test('the same title in a different feature under a shared prefix is not', () => {
+    expect(
+      isSameFinding(
+        finding(
+          'apps/studio/src/components/chat/chat-example/chat-example.tsx',
+          3,
+          'Todos page depends on fields the hook does not return',
+        ),
+        {
+          file: `${Todos}/todos-example.tsx`,
+          line: 3,
+          title: 'Todos page depends on fields the hook does not return',
+        },
+      ),
+    ).toBe(false)
+  })
+
+  test('a file in the shared parent and one in a sibling feature folder are not one feature', () => {
+    const title = 'Page depends on fields the hook does not return'
+    expect(
+      isSameFinding(finding('apps/studio/src/components/chat/chat-example.tsx', 3, title), {
+        file: 'apps/studio/src/components/todos-example.tsx',
+        line: 3,
+        title,
+      }),
+    ).toBe(false)
+  })
+
+  test('two files in the same folder are one feature', () => {
+    const title = 'Page depends on fields the hook does not return'
+    expect(
+      isSameFinding(finding(`${Todos}/lib/types.ts`, 3, title), {
+        file: `${Todos}/lib/values.ts`,
+        line: 9,
+        title,
+      }),
+    ).toBe(true)
+  })
+
+  test('a similar title in an unrelated tree is not', () => {
+    expect(
+      isSameFinding(
+        finding(
+          'packages/api/src/hub.ts',
+          3,
+          'Todos page depends on fields the hook does not return',
+        ),
+        {
+          file: `${Todos}/todos-example.tsx`,
+          line: 3,
+          title: 'Todos page depends on fields the hook does not return',
+        },
+      ),
     ).toBe(false)
   })
 })
@@ -117,5 +204,58 @@ describe('settledVerdict', () => {
     expect(settledVerdict([finding('a.ts', 1, 'x', 'medium')])).toBe('approve')
     expect(settledVerdict([finding('a.ts', 1, 'x', 'high')])).toBe('request_changes')
     expect(settledVerdict([])).toBe('approve')
+  })
+})
+
+describe('openBlockers', () => {
+  test('an unanswered, current, blocking thread keeps the PR blocked', () => {
+    const open = thread('a.ts', 1, 'Tokens leak into logs')
+    expect(openBlockers([open])).toHaveLength(1)
+    expect(settledVerdict([], openBlockers([open]))).toBe('request_changes')
+  })
+
+  test('answered, resolved, outdated, downvoted or non-blocking threads do not', () => {
+    const threads = [
+      thread('a.ts', 1, 'x', { replies: [{ author: 'juan', body: 'intended' }] }),
+      thread('a.ts', 2, 'x', { isResolved: true }),
+      thread('a.ts', 3, 'x', { isOutdated: true }),
+      thread('a.ts', 4, 'x', { isDownvoted: true }),
+      thread('a.ts', 5, 'x', { severity: 'medium' }),
+    ]
+    expect(openBlockers(threads)).toHaveLength(0)
+    expect(settledVerdict([], openBlockers(threads))).toBe('approve')
+  })
+})
+
+describe('partialVerdict', () => {
+  test('a review that skipped sections never approves, and adds no block of its own', () => {
+    expect(partialVerdict('approve', false)).toBe('comment')
+    expect(partialVerdict('request_changes', false)).toBe('request_changes')
+    expect(partialVerdict('approve', true)).toBe('approve')
+  })
+})
+
+describe('reviewVerdict', () => {
+  test('earlier unanswered blockers and partial coverage both shape the posted verdict', () => {
+    const blocker = thread('a.ts', 1, 'Tokens leak into logs')
+    expect(reviewVerdict({ remaining: [], priorThreads: [blocker], isComplete: true })).toEqual({
+      verdict: 'request_changes',
+      stillBlocking: [blocker],
+    })
+    expect(reviewVerdict({ remaining: [], priorThreads: [], isComplete: false }).verdict).toBe(
+      'comment',
+    )
+    expect(reviewVerdict({ remaining: [], priorThreads: [], isComplete: true }).verdict).toBe(
+      'approve',
+    )
+  })
+})
+
+describe('reviewVerdict after dismissals', () => {
+  test('a partial review over a dismissed earlier blocker comments instead of blocking', () => {
+    const dismissed = thread('a.ts', 1, 'Tokens leak into logs', { isDownvoted: true })
+    expect(
+      reviewVerdict({ remaining: [], priorThreads: [dismissed], isComplete: false }).verdict,
+    ).toBe('comment')
   })
 })

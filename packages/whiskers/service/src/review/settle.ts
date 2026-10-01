@@ -1,12 +1,22 @@
 import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
 import { BLOCKING_SEVERITIES } from './render'
 import type { Suppression } from './suppressions'
-import type { PriorThread, SettledFindings, Suppressed } from './types'
+import type {
+  PriorClaim,
+  PriorThread,
+  ReviewVerdict,
+  SettledFindings,
+  Suppressed,
+  VerdictInput,
+} from './types'
 
 // A model rewords the same finding on every run; titles are compared as word sets.
 const SAME_TITLE = 0.5
 const NEARBY_TITLE = 0.3
 const LINE_WINDOW = 6
+// The same claim re-anchored on a sibling file — the hook, then the page, then the types.
+const CROSS_FILE_TITLE = 0.55
+const CROSS_FILE_SHARED_DIRS = 3
 const STOPWORDS = new Set([
   'the',
   'and',
@@ -31,9 +41,17 @@ const STOPWORDS = new Set([
   'then',
   'only',
   'now',
+  'their',
 ])
 
-type Prior = { file: string; line: number | null; title: string }
+/** `matches`, `matched` and `matching` are one word to a reader. */
+function stem(word: string): string {
+  const base = word.replace(/['’]s$/, '')
+  if (base.length > 5 && base.endsWith('ing')) return base.slice(0, -3)
+  if (base.length > 4 && (base.endsWith('ed') || base.endsWith('es'))) return base.slice(0, -2)
+  if (base.length > 4 && base.endsWith('s')) return base.slice(0, -1)
+  return base
+}
 
 function titleWords(title: string): Set<string> {
   return new Set(
@@ -41,8 +59,35 @@ function titleWords(title: string): Set<string> {
       .toLowerCase()
       .replace(/[`'"()[\]{}.,:;!?]/g, ' ')
       .split(/\s+/)
-      .filter((word) => word.length > 2 && !STOPWORDS.has(word)),
+      .filter((word) => word.length > 2 && !STOPWORDS.has(word))
+      .map(stem),
   )
+}
+
+/**
+ * One feature: both files in the same folder, or the deeper one inside the shallower one's folder
+ * (at most two levels down) and named after it — `todos-example.tsx` and
+ * `lib/hooks/use-todos-example.ts` are, `components/todos-example.tsx` and
+ * `components/chat/chat-example.tsx` are not.
+ */
+function isSameFeature(a: string, b: string): boolean {
+  const [shallow, deep] = a.split('/').length <= b.split('/').length ? [a, b] : [b, a]
+  const shallowDirs = shallow.split('/').length - 1
+  const deepDirs = deep.split('/').length - 1
+  const shared = sharedDirectories(a, b)
+  if (shared < CROSS_FILE_SHARED_DIRS || shared !== shallowDirs) return false
+  if (deepDirs === shallowDirs) return true
+  const stem = (shallow.split('/').pop() ?? '').replace(/\.[^.]+$/, '')
+  const rest = deep.split('/').slice(shared).join('/')
+  return deepDirs - shallowDirs <= 2 && stem.length > 2 && rest.includes(stem)
+}
+
+function sharedDirectories(a: string, b: string): number {
+  const left = a.split('/').slice(0, -1)
+  const right = b.split('/').slice(0, -1)
+  let depth = 0
+  while (depth < left.length && left[depth] === right[depth]) depth += 1
+  return depth
 }
 
 export function titleSimilarity(a: string, b: string): number {
@@ -54,9 +99,11 @@ export function titleSimilarity(a: string, b: string): number {
   return shared / (left.size + right.size - shared)
 }
 
-export function isSameFinding(finding: LlmFinding, prior: Prior): boolean {
-  if (finding.file !== prior.file) return false
+export function isSameFinding(finding: LlmFinding, prior: PriorClaim): boolean {
   const score = titleSimilarity(finding.title, prior.title)
+  if (finding.file !== prior.file) {
+    return isSameFeature(finding.file, prior.file) && score >= CROSS_FILE_TITLE
+  }
   if (score >= SAME_TITLE) return true
   const isNearby =
     finding.line !== null &&
@@ -108,9 +155,56 @@ export function settleFindings(
 }
 
 /**
- * Settling can remove every blocker, so the verdict is recomputed from what is left — with the
- * same binary policy as `resolveVerdict`: a bare COMMENT review is never posted.
+ * A blocking thread from an earlier round nobody has answered, whose code has not changed since.
+ * A delta review cannot see it, so it must keep the PR blocked on its own.
  */
-export function settledVerdict(remaining: LlmFinding[]): LlmReview['verdict'] {
-  return remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity)) ? 'request_changes' : 'approve'
+export function openBlockers(threads: PriorThread[]): PriorThread[] {
+  return threads.filter(
+    (t) =>
+      t.severity !== null &&
+      BLOCKING_SEVERITIES.has(t.severity) &&
+      !t.isResolved &&
+      !t.isOutdated &&
+      !t.isDownvoted &&
+      t.replies.length === 0,
+  )
+}
+
+/**
+ * Settling can remove every blocker, so the verdict is recomputed from what is left — with the
+ * same binary policy as `resolveVerdict`: a bare COMMENT review is never posted. An unanswered
+ * blocker from an earlier round still blocks.
+ */
+export function settledVerdict(
+  remaining: LlmFinding[],
+  blockedBefore: PriorThread[] = [],
+): LlmReview['verdict'] {
+  const isBlocked =
+    blockedBefore.length > 0 || remaining.some((f) => BLOCKING_SEVERITIES.has(f.severity))
+  return isBlocked ? 'request_changes' : 'approve'
+}
+
+/**
+ * A review that skipped sections vouches for nothing: it never approves — an approval would lift
+ * the bot's own earlier block or satisfy a required review — so it posts as a plain comment.
+ * Blockers still open from earlier rounds already made the verdict request_changes.
+ */
+export function partialVerdict(
+  verdict: LlmReview['verdict'],
+  isComplete: boolean,
+): LlmReview['verdict'] {
+  return !isComplete && verdict === 'approve' ? 'comment' : verdict
+}
+
+/**
+ * The verdict a review posts: its own findings, blockers earlier rounds left unanswered, and the
+ * rule that a review which skipped sections never approves.
+ */
+export function reviewVerdict(input: VerdictInput): ReviewVerdict {
+  const stillBlocking = openBlockers(input.priorThreads)
+  const settled = settledVerdict(input.remaining, stillBlocking)
+  return {
+    verdict: partialVerdict(settled, input.isComplete),
+    stillBlocking,
+  }
 }

@@ -23,7 +23,9 @@ export type PriorThread = {
   path: string
   line: number | null
   title: string
+  severity: LlmFinding['severity'] | null
   isResolved: boolean
+  isOutdated: boolean
   isDownvoted: boolean
   replies: ThreadReply[]
 }
@@ -76,4 +78,23 @@ export type GroundedFindings = {
 export type ShownLine = {
   number: number
   text: string
+}
+
+export type TypecheckOutcome = 'passed' | 'failed' | 'unknown'
+
+export type PriorClaim = {
+  file: string
+  line: number | null
+  title: string
+}
+
+export type VerdictInput = {
+  remaining: LlmFinding[]
+  priorThreads: PriorThread[]
+  isComplete: boolean
+}
+
+export type ReviewVerdict = {
+  verdict: LlmReview['verdict']
+  stillBlocking: PriorThread[]
 }

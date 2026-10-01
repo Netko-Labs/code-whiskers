@@ -5,17 +5,26 @@ import { clearFindings, createFindings } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
 import { mapWithConcurrency, type TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
+import { withoutDisprovedCompileClaims } from './ci'
 import { buildPrContext } from './context'
 import { buildConventionsContext, fetchConventions } from './conventions'
-import { fetchPrConversation, fetchPrDiff, type PrRef, postPrReview } from './github'
+import {
+  buildDeltaNote,
+  buildDescriptionContext,
+  fetchDeltaDiff,
+  isPartialSummary,
+  partialSummary,
+} from './delta'
+import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
+import { dismissStaleBlocks, isStillHead } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
-import { settledVerdict, settleFindings, suppressedFindings } from './settle'
+import { reviewVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
-import type { PipelineAttempt, PipelineResult, PriorThread } from './types'
+import type { PipelineAttempt, PipelineResult, PriorThread, RunReviewOptions } from './types'
 
 const logger = createLogger('whiskers-review')
 
@@ -35,11 +44,13 @@ function warnWithout<T>(what: string, fallback: T) {
  */
 export async function runPipeline(
   ref: PrRef,
-  headSha: string,
+  head: PrHead,
   review: Review,
   tokens: TokenTally,
   attempt: PipelineAttempt,
+  options: RunReviewOptions,
 ): Promise<PipelineResult> {
+  const headSha = head.sha
   const slug = `${ref.owner}/${ref.repo}`
   const botHandle = whiskersEnvConfig.github.botHandle
   const [diff, conversation, previous, reviewCount, suppressions, rules, threads] =
@@ -62,10 +73,23 @@ export async function runPipeline(
       path: f.file,
       line: f.line,
       title: f.title,
+      severity: f.severity,
       isResolved: false,
+      isOutdated: false,
       isDownvoted: false,
       replies: [],
     }))
+  // A push after a review is reviewed for what it changes; a forced re-review reads it all.
+  const deltaFrom =
+    !options.force &&
+    previous &&
+    previous.review.headSha !== headSha &&
+    !isPartialSummary(previous.review.summary)
+      ? previous.review.headSha
+      : null
+  const delta = deltaFrom
+    ? await fetchDeltaDiff(ref, deltaFrom, headSha).catch(warnWithout('delta diff', null))
+    : null
   const commentable = commentableLines(diff)
   const changedFiles = [...commentable.keys()]
   const conventions = await fetchConventions(ref, headSha, changedFiles).catch(
@@ -88,7 +112,9 @@ export async function runPipeline(
   const context = [
     buildRulesContext(applicable),
     buildConventionsContext(conventions),
+    buildDescriptionContext(head.body),
     buildFileManifest(diff),
+    delta && deltaFrom ? buildDeltaNote(deltaFrom) : '',
     prContext,
   ]
     .filter(Boolean)
@@ -100,24 +126,33 @@ export async function runPipeline(
         contextChars: context.length,
         rules: applicable.length,
         conventions: conventions.map((file) => file.path),
+        delta: delta ? deltaFrom : null,
       },
       'review has context',
     )
   }
 
-  const chunks = chunkDiff(diff)
+  const chunks = chunkDiff(delta ?? diff)
   const outcomes = await mapWithConcurrency(chunks, (chunk) =>
     reviewChunkWithRetry(chunk, context, tokens),
   )
   const { review: raw, coverage } = resolveOutcome(outcomes)
   if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
+  const checked = await withoutDisprovedCompileClaims(ref, headSha, raw.findings)
   const { fresh, repeated, settled } = settleFindings(
-    raw.findings,
+    checked,
     priorThreads,
     suppressedFindings(suppressions),
   )
   const remaining = [...fresh, ...repeated]
-  const merged = { ...raw, findings: remaining, verdict: settledVerdict(remaining) }
+  const isComplete = coverage.reviewed === coverage.total
+  const { verdict, stillBlocking } = reviewVerdict({
+    remaining,
+    priorThreads,
+    isComplete,
+  })
+  const summary = isComplete ? raw.summary : partialSummary(raw.summary, coverage)
+  const merged = { ...raw, summary, findings: remaining, verdict }
   const report: ReviewReport = {
     review: merged,
     model: review.model ?? whiskersEnvConfig.openrouter.model,
@@ -140,8 +175,11 @@ export async function runPipeline(
   // GitHub sees only what is new; the console keeps every open finding.
   const isUnchanged =
     fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
+  const isCurrent = await isStillHead(ref, headSha)
   if (attempt.isPosted) {
     logger.info({ ...ref, headSha }, 'an earlier attempt already posted this review')
+  } else if (!isCurrent) {
+    logger.info({ ...ref, headSha }, 'a newer commit was pushed — its review speaks for the PR')
   } else if (isUnchanged) {
     logger.info({ ...ref, headSha }, 'nothing new since the last review — no GitHub review posted')
   } else {
@@ -151,11 +189,23 @@ export async function runPipeline(
       {
         ...report,
         review: { ...merged, findings: fresh },
-        carried: { open: repeated.length, settled: settled.length },
+        carried: {
+          open: Math.max(repeated.length, stillBlocking.length),
+          settled: settled.length,
+        },
       },
       commentable,
     )
     attempt.isPosted = true
+  }
+  // Only a complete, posted (or unchanged) clean review may lift the bot's own earlier blocks.
+  if (
+    merged.verdict === 'approve' &&
+    isComplete &&
+    isCurrent &&
+    (attempt.isPosted || isUnchanged)
+  ) {
+    await dismissStaleBlocks(ref, headSha).catch(warnWithout('stale review dismissal', 0))
   }
   logger.info(
     {

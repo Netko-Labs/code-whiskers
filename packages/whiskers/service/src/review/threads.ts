@@ -5,6 +5,7 @@ import type { PriorThread } from './types'
 const THREAD_PAGE = 100
 const MAX_PAGES = 5
 const FINDING_TITLE = /^\*\*[^*]+\*\*\s+—\s+(.+)$/m
+const FINDING_SEVERITY = /^\*\*(critical|high|medium|low)\b/i
 
 interface ThreadsPage {
   repository: {
@@ -13,6 +14,7 @@ interface ThreadsPage {
         pageInfo: { hasNextPage: boolean; endCursor: string | null }
         nodes: Array<{
           isResolved: boolean
+          isOutdated: boolean
           path: string
           line: number | null
           originalLine: number | null
@@ -27,6 +29,13 @@ interface ThreadsPage {
       }
     }
   }
+}
+
+function severityOf(body: string): PriorThread['severity'] {
+  const found = FINDING_SEVERITY.exec(body)?.[1]?.toLowerCase()
+  return found === 'critical' || found === 'high' || found === 'medium' || found === 'low'
+    ? found
+    : null
 }
 
 /**
@@ -46,7 +55,7 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
             reviewThreads(first: $size, after: $cursor) {
               pageInfo { hasNextPage endCursor }
               nodes {
-                isResolved path line originalLine
+                isResolved isOutdated path line originalLine
                 comments(first: 20) {
                   nodes {
                     author { login } body
@@ -70,7 +79,9 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
         path: node.path,
         line: node.line ?? node.originalLine,
         title,
+        severity: severityOf(root.body),
         isResolved: node.isResolved,
+        isOutdated: node.isOutdated,
         isDownvoted: root.reactions.nodes.some(
           (reaction) => !isBotLogin(reaction.user?.login, botHandle),
         ),

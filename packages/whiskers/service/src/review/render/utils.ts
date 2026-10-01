@@ -59,8 +59,14 @@ export function summaryLines(summary: string): string[] {
   return [...new Set(lines)]
 }
 
+const HEADLINE = {
+  approve: 'Approved',
+  request_changes: 'Changes requested',
+  comment: 'Reviewed in part',
+} as const
+
 function verdictLine({ review, carried }: ReviewReport): string {
-  const headline = review.verdict === 'approve' ? 'Approved' : 'Changes requested'
+  const headline = HEADLINE[review.verdict]
   const { findings } = review
   if (findings.length === 0) {
     return `**${headline}** · ${carried?.open ? 'no new findings' : 'no findings'}`

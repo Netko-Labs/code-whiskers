@@ -2,7 +2,14 @@ import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { type FixTarget, isBotLogin, runFix } from '../fix'
 import { answerQuestion, ignoreFinding } from '../mentions'
-import { octokitFor, type PrRef, replyToReviewComment } from '../review'
+import {
+  octokitFor,
+  type PrRef,
+  replyToReviewComment,
+  type Suppression,
+  suppressedFindings,
+} from '../review'
+import { readFromStudio } from '../review/studio-client'
 import {
   EXPLAIN_PROMPT,
   MAX_ATTEMPTS,
@@ -11,7 +18,7 @@ import {
   TRUSTED_PERMISSIONS,
 } from './constants'
 import type { CachedPermission, PendingReaction, ScannedComment } from './types'
-import { pendingReactions, reactionMarker } from './utils'
+import { dismissalKey, pendingReactions, reactionMarker } from './utils'
 
 const logger = createLogger('whiskers-reactions')
 const MAX_COMMENT_PAGES = 3
@@ -103,7 +110,7 @@ async function act(ref: PrRef, pending: PendingReaction, login: string) {
   const marker = reactionMarker(pending.content)
   const reason = `reacted ${REACTION_EMOJI[pending.content]}`
   if (pending.command === 'ignore') {
-    await ignoreFinding(ref, targetFor(pending, login, ''), reason, marker)
+    await ignoreFinding(ref, targetFor(pending, login, ''), reason, marker, true)
   } else if (pending.command === 'explain') {
     await answerQuestion(ref, targetFor(pending, login, ''), EXPLAIN_PROMPT, marker)
   } else {
@@ -119,8 +126,19 @@ async function act(ref: PrRef, pending: PendingReaction, login: string) {
 
 /** Acts on every unhandled command reaction on one pull request. */
 export async function scanPullRequest(ref: PrRef): Promise<number> {
-  const comments = await listReviewComments(ref)
-  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle)
+  const [comments, suppressions] = await Promise.all([
+    listReviewComments(ref),
+    readFromStudio<Suppression[] | null>(
+      'suppressions',
+      { scope: `${ref.owner}/${ref.repo}` },
+      null,
+    ),
+  ])
+  // Without studio there is no telling a handled 👎 from a new one; fix and explain still run.
+  const dismissed = new Set(suppressedFindings(suppressions.value ?? []).map(dismissalKey))
+  const pending = pendingReactions(comments, whiskersEnvConfig.github.botHandle, dismissed).filter(
+    (reaction) => suppressions.value !== null || reaction.command !== 'ignore',
+  )
   let handled = 0
   for (const reaction of pending) {
     const key = `${reaction.rootId}:${reaction.content}`

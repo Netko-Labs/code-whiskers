@@ -44,6 +44,7 @@ export interface PrHead {
   sameRepo: boolean
   state: string
   title: string
+  body: string
   author: string | null
   additions: number
   deletions: number
@@ -62,6 +63,7 @@ export async function fetchPrHead({ owner, repo, prNumber }: PrRef): Promise<PrH
     sameRepo: data.head.repo?.full_name === data.base.repo.full_name,
     state: data.state,
     title: data.title,
+    body: data.body ?? '',
     author: data.user?.login ?? null,
     additions: data.additions,
     deletions: data.deletions,
