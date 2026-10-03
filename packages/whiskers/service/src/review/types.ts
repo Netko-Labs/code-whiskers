@@ -98,3 +98,11 @@ export type ReviewVerdict = {
   verdict: LlmReview['verdict']
   stillBlocking: PriorThread[]
 }
+
+/** One entry of GitHub's `GET /pulls/{n}/files` — the fields a unified diff is rebuilt from. */
+export type PrFile = {
+  filename: string
+  status: string
+  previousFilename?: string
+  patch?: string
+}

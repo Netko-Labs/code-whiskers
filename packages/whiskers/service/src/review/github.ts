@@ -1,5 +1,6 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { App, Octokit } from 'octokit'
+import { diffFromFiles } from './files-diff'
 import {
   REACTION_HINT,
   type ReviewReport,
@@ -8,6 +9,7 @@ import {
   renderFinding,
   renderReviewBody,
 } from './render'
+import type { HttpFailure } from './types'
 
 const { appId, appPrivateKey, token } = whiskersEnvConfig.github
 const githubApp = appId && appPrivateKey ? new App({ appId, privateKey: appPrivateKey }) : null
@@ -156,15 +158,38 @@ export async function fetchPrConversation({
   }
 }
 
+/**
+ * The PR's unified diff. GitHub refuses the `.diff` format past 300 files or 20k lines (406
+ * `too_large`); the paginated file list still carries each file's patch, so the diff is rebuilt
+ * from that instead.
+ */
 export async function fetchPrDiff({ owner, repo, prNumber }: PrRef): Promise<string> {
   const octokit = await octokitFor(owner, repo)
-  const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-    owner,
-    repo,
-    pull_number: prNumber,
-    mediaType: { format: 'diff' },
-  })
-  return data as unknown as string
+  try {
+    const { data } = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+      owner,
+      repo,
+      pull_number: prNumber,
+      mediaType: { format: 'diff' },
+    })
+    return data as unknown as string
+  } catch (error) {
+    if ((error as HttpFailure | null)?.status !== 406) throw error
+    const files = await octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/files', {
+      owner,
+      repo,
+      pull_number: prNumber,
+      per_page: 100,
+    })
+    return diffFromFiles(
+      files.map((f) => ({
+        filename: f.filename,
+        status: f.status,
+        previousFilename: f.previous_filename,
+        patch: f.patch,
+      })),
+    )
+  }
 }
 
 export async function fetchFileAtRef(
