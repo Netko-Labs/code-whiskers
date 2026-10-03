@@ -6,6 +6,7 @@ import {
 } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
 import { sql } from 'drizzle-orm'
+import { announce } from '../../realtime'
 import { fingerprintOf, levelOf, messageOf } from '../../tracker'
 
 export const ingestEvent = async (
@@ -30,6 +31,7 @@ export const ingestEvent = async (
     .returning()
     .then(([r]) => r)
   if (!issue) return undefined
+  announce('issues')
 
   return await db
     .insert(eventTable)

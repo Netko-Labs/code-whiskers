@@ -8,6 +8,7 @@ import {
 } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
 import { eq, lt } from 'drizzle-orm'
+import { announce } from '../realtime'
 import { INSERT_BATCH } from './constants'
 import type { LogLineInput, SpanInput } from './types'
 
@@ -31,6 +32,7 @@ export async function ingestLogs(projectId: string, rows: LogLineInput[]): Promi
   await insertInBatches(rows, (batch) =>
     db.insert(logLineTable).values(batch.map((row) => ({ ...row, projectId }))),
   )
+  announce('logs')
   return rows.length
 }
 
@@ -38,6 +40,7 @@ export async function ingestSpans(projectId: string, rows: SpanInput[]): Promise
   await insertInBatches(rows, (batch) =>
     db.insert(spanTable).values(batch.map((row) => ({ ...row, projectId }))),
   )
+  announce('traces')
   return rows.length
 }
 

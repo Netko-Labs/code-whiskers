@@ -1,3 +1,9 @@
 export type { App } from './app'
 export { app } from './app'
-export { forwardSignedInToWhiskers, forwardToWhiskers } from './shared'
+export type { RealtimeCaller } from './shared'
+export {
+  forwardSignedInToWhiskers,
+  forwardToWhiskers,
+  isTrustedOrigin,
+  realtimeCallerOf,
+} from './shared'
