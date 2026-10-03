@@ -2,10 +2,13 @@ import { Spinner } from '@code-whiskers/ui/components/spinner'
 import { createFileRoute, Outlet, retainSearchParams } from '@tanstack/react-router'
 import { ConsoleShell } from '@/components/console'
 import { parseConsoleScope } from '@/components/console/shared/console-routing'
-import { useRequireSession } from '@/integrations/auth'
+import { useRequireSession, useSession } from '@/integrations/auth'
+import { useRealtimeInvalidation } from '@/integrations/realtime'
 
 function ConsoleLayout() {
   const guard = useRequireSession()
+  const { data: session } = useSession()
+  useRealtimeInvalidation(session?.user?.id)
 
   return (
     <ConsoleShell>

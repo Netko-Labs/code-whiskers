@@ -1,6 +1,11 @@
 import { timingSafeEqual } from 'node:crypto'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { AlertFireSchema, FindingDismissSchema, IdParamSchema } from '@code-whiskers/studio-domain'
+import {
+  AlertFireSchema,
+  FindingDismissSchema,
+  IdParamSchema,
+  RealtimeEventsSchema,
+} from '@code-whiskers/studio-domain'
 import {
   dismissFinding,
   fireAlertRule,
@@ -9,6 +14,7 @@ import {
   getRulesForRepository,
   getSuppressions,
   quietAlertRule,
+  realtimeBus,
 } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 
@@ -30,6 +36,12 @@ function authorized(header: string | undefined): boolean {
 }
 
 export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal' })
+  // (ﾉ´ヮ`)ﾉ*: whiskers changed something; open consoles refetch it
+  .post('/events', { body: RealtimeEventsSchema }, ({ headers, body, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    realtimeBus.publish(body.topics)
+    return { ok: true }
+  })
   // ʕ·ᴥ·ʔ what has a human already argued with on this repo?
   .get('/suppressions', async ({ headers, query, set, status }) => {
     if (!authorized(headers.authorization)) return status(401, 'Unauthorized')

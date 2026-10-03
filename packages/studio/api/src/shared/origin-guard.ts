@@ -23,6 +23,8 @@ function trustedOrigins(): Set<string> {
   return allowedOrigins
 }
 
+export const isTrustedOrigin = (origin: string): boolean => trustedOrigins().has(origin)
+
 /**
  * Cookie-authenticated writes only from our own pages. A request with no Origin carries no
  * ambient browser cookie worth forging, so it passes to the route's own auth.
@@ -30,7 +32,7 @@ function trustedOrigins(): Set<string> {
 export const originGuard = new Elysia({ name: 'origin-guard' }).request(({ request, status }) => {
   if (SAFE_METHODS.has(request.method)) return
   const origin = request.headers.get('origin')
-  if (!origin || trustedOrigins().has(origin)) return
+  if (!origin || isTrustedOrigin(origin)) return
   if (OPEN_PATHS.test(new URL(request.url).pathname)) return
   return status(403, 'Forbidden origin')
 })

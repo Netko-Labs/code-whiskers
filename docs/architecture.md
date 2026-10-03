@@ -31,7 +31,9 @@ their own GitHub installations. That is a design constraint, not a footnote:
    network boundary is a lie; whiskers rows referencing a deleted studio row are
    reaped by a job, not by a constraint.
 2. **Neither app opens the other's connection.** Studio reads whiskers through
-   `/v1/*`. Whiskers reads studio through `/api/internal/*`.
+   `/v1/*`. Whiskers reads studio through `/api/internal/*`, and announces what changed
+   through `POST /api/internal/events` — a refetch hint, never the data. Studio pushes it to
+   open consoles over `/realtime`; the browser then reads through `/v1` as before.
 3. **Auth differs by direction.** Studio→whiskers is the existing JWT/JWKS handshake:
    studio mints at `GET /api/auth/token`, whiskers verifies against `/api/auth/jwks`
    with `jose`, no shared secret. Whiskers→studio is a shared `INTERNAL_TOKEN`,

@@ -33,6 +33,8 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     tanstackStart(),
     nitro({
+      features: { websocket: true },
+      handlers: [{ route: '/realtime', handler: './src/server/realtime/handler.ts' }],
       plugins: ['./src/server/plugins/production-env.ts', './src/server/plugins/shutdown.ts'],
       routeRules: {
         '/**': {

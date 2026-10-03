@@ -28,8 +28,6 @@ export const whiskersOverviewQuery = () =>
     queryFn: () => fetchWhiskers('/overview', whiskersOverviewSchema),
   })
 
-const LIVE_REFRESH_MS = 5_000
-
 function params(values: Record<string, string | undefined>): string {
   const defined = Object.entries(values).filter((entry): entry is [string, string] => !!entry[1])
   return defined.length ? `?${new URLSearchParams(defined)}` : ''
@@ -117,7 +115,6 @@ export const whiskersLogsQuery = ({ projectIds, ...query }: LogQuery) =>
       scoped(projectIds, (projectId) =>
         fetchWhiskers(`/logs${params({ ...query, projectId })}`, whiskersLogListSchema),
       ),
-    refetchInterval: LIVE_REFRESH_MS,
   })
 
 export const whiskersTracesQuery = (service?: string, projectIds?: ProjectScope) =>

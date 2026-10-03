@@ -1,6 +1,7 @@
 import { reviewTable } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
 import { and, eq, lt } from 'drizzle-orm'
+import { announce } from '../../realtime'
 
 // Old enough that no live process is still working on it — a rolling deploy overlaps for minutes.
 const STALE_AFTER_MS = 30 * 60 * 1000
@@ -21,5 +22,6 @@ export const failStaleReviews = async (now = new Date()): Promise<number> => {
       ),
     )
     .returning({ id: reviewTable.id })
+  if (rows.length > 0) announce('reviews')
   return rows.length
 }
