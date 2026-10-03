@@ -1,37 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { probe } from '@/shared/health'
 
 export const Route = createFileRoute('/api/health')({
   server: {
     handlers: {
       GET: async () => {
         const startTime = Date.now()
-
-        // Basic health info
-        const health = {
-          status: 'healthy' as const,
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          environment: process.env.NODE_ENV || 'development',
-        }
-
-        // Check database if possible (optional, don't fail if unavailable)
-        let dbStatus = 'unknown'
-        try {
-          // Import dynamically to avoid issues if db not configured
-          const { db, sql } = await import('@code-whiskers/studio-repository')
-          await db.execute(sql`SELECT 1`)
-          dbStatus = 'connected'
-        } catch {
-          dbStatus = 'unavailable'
-        }
-
-        return Response.json({
-          ...health,
-          responseTime: Date.now() - startTime,
-          checks: {
-            database: dbStatus,
+        const database = await probe(
+          'database',
+          import('@code-whiskers/studio-repository').then(({ db, sql }) =>
+            db.execute(sql`SELECT 1`),
+          ),
+        )
+        const isHealthy = database === 'connected'
+        // Coolify's healthcheck reads the status code, not the body.
+        return Response.json(
+          {
+            status: isHealthy ? 'healthy' : 'degraded',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            responseTime: Date.now() - startTime,
+            checks: { database },
           },
-        })
+          { status: isHealthy ? 200 : 503 },
+        )
       },
     },
   },

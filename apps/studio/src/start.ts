@@ -21,8 +21,9 @@ const requestLoggerMiddleware = createMiddleware().server(async ({ next, request
   const startTime = Date.now()
   const { method } = request
 
-  // Log incoming request with sparkle ✨
-  logger.info({ method, path, query: url.search || undefined }, '→ incoming')
+  // Query values can be credentials (OAuth codes, share tokens): log the keys only ✨
+  const queryKeys = [...url.searchParams.keys()]
+  logger.info({ method, path, queryKeys: queryKeys.length ? queryKeys : undefined }, '→ incoming')
 
   try {
     const nextResponse = await next()

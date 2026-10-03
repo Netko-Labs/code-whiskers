@@ -19,6 +19,7 @@
   "dependencies": {
     "@code-whiskers/logger": "workspace:*",
     "@code-whiskers/studio-api": "workspace:*",
+    "@code-whiskers/studio-config": "workspace:*",
     "@code-whiskers/studio-domain": "workspace:*",
     "@code-whiskers/studio-repository": "workspace:*",
     "@code-whiskers/studio-service": "workspace:*",
@@ -36,7 +37,6 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
-    "vite-tsconfig-paths": "^6.1.1",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"
   },

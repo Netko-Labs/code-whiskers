@@ -1,5 +1,6 @@
 import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
+import { pingDatabase } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 import { ingestRoutes } from './routes/ingest'
 import { insightRoutes } from './routes/insights'
@@ -38,8 +39,12 @@ export const app = new Elysia()
       'whiskers error',
     )
   })
-  // ٩(◕‿◕)۶ health check — is the cat awake?
-  .get('/health', () => ({ status: 'ok' }))
+  // ٩(◕‿◕)۶ health check — is the cat awake? Coolify reads the status code.
+  .get('/health', async ({ set }) => {
+    const isHealthy = await pingDatabase()
+    set.status = isHealthy ? 200 : 503
+    return { status: isHealthy ? 'ok' : 'degraded', checks: { database: isHealthy } }
+  })
   .use(webhookRoutes)
   .use(ingestRoutes)
   .use(insightRoutes)
