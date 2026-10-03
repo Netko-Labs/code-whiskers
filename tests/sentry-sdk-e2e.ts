@@ -1,3 +1,4 @@
+import { brotliCompressSync } from 'node:zlib'
 import * as Sentry from '@sentry/node'
 
 const port = Number(Bun.env.PORT ?? 4899)
@@ -72,6 +73,31 @@ try {
     body: JSON.stringify({ message: 'should be rejected' }),
   })
   assert(unauthorized.status === 401, 'wrong sentry_key was not rejected', unauthorized.status)
+
+  const store = (body: Uint8Array | string, encoding?: string) =>
+    fetch(`${apiBaseUrl}/api/42/store?sentry_key=cw_pk_local_development`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...(encoding && { 'content-encoding': encoding }),
+      },
+      body,
+    })
+  const eventId = crypto.randomUUID().replaceAll('-', '')
+  const retried = JSON.stringify({ event_id: eventId, message: `retried store event ${eventId}` })
+  assert((await store(retried)).ok, 'store event was not accepted')
+  assert((await store(brotliCompressSync(retried), 'br')).ok, 'br store retry was not accepted')
+  const afterRetry = (await (await fetch(`${apiBaseUrl}/v1/issues?projectId=42`)).json()) as Array<{
+    title: string
+    eventCount: number
+  }>
+  const retriedIssue = afterRetry.find((issue) => issue.title.includes(eventId))
+  assert(retriedIssue?.eventCount === 1, 'retried event_id was stored twice', retriedIssue)
+
+  const malformed = await store('{not json')
+  assert(malformed.status === 400, 'invalid JSON on /store was not a 400', malformed.status)
+  const oversize = await store(new Uint8Array(2 * 1024 * 1024))
+  assert(oversize.status === 413, 'oversize body was not a 413', oversize.status)
 
   console.log('✅ sentry sdk e2e passed', overview.summary)
 } finally {

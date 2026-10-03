@@ -67,7 +67,9 @@ and a failing chunk gets three jittered attempts (a timeout splits it) before it
 ## Error tracking
 
 Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` with the project's
-DSN key. Events are grouped into issues by fingerprint; `/v1/issues` and `/v1/overview` read them.
+DSN key. Events are grouped into issues by fingerprint (the SDK's, else the thrown exception plus
+its top in-app frame); `/v1/issues` and `/v1/overview` read them. Bodies may be gzip, deflate or br,
+up to 1 MiB on the wire and 20 MiB decoded (413 past that); a retried `event_id` is stored once.
 
 ## Deploy
 

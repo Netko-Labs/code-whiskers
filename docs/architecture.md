@@ -200,7 +200,8 @@ raw counts locally and pushes on a schedule.
 `triage_state` in studio.
 
 **`event`** — partitioned by `received_at`. `id`, `issue_id`, `project_id`, `event_id`,
-`level`, `message`, `environment`, `release`, `payload` jsonb, `received_at`.
+`level`, `message`, `environment`, `release`, `payload` jsonb, `received_at`. Unique on
+`(project_id, event_id)` so SDK retries are stored once.
 
 **`release`** — `id`, `project_id`, `version`, `deployed_at`, `deployed_by`,
 `crash_free_rate`, `adoption`, `new_issue_count`, `regression_count`.

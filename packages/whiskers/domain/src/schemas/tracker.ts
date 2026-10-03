@@ -9,6 +9,20 @@ export const SentryExceptionSchema = z.looseObject({
   value: z.string().optional(),
 })
 
+export const SentryFrameSchema = z.looseObject({
+  filename: z.string().nullish(),
+  abs_path: z.string().nullish(),
+  module: z.string().nullish(),
+  function: z.string().nullish(),
+  in_app: z.boolean().nullish(),
+})
+export type SentryFrame = z.infer<typeof SentryFrameSchema>
+
+// Parsed apart from the event so a malformed stacktrace never drops the event itself.
+export const SentryStacktraceSchema = z.looseObject({
+  frames: z.array(SentryFrameSchema).optional(),
+})
+
 export const SentryEventSchema = z.looseObject({
   event_id: z.string().optional(),
   level: z.string().optional(),
@@ -28,6 +42,6 @@ export type SentryEvent = z.infer<typeof SentryEventSchema>
 
 export const EnvelopeItemHeaderSchema = z.looseObject({
   type: z.string(),
-  length: z.number().optional(),
+  length: z.number().int().nonnegative().optional(),
 })
 export type EnvelopeItemHeader = z.infer<typeof EnvelopeItemHeaderSchema>
