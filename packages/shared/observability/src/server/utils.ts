@@ -5,7 +5,11 @@ import { VENDOR_FRAME_MARKERS } from './constants'
 /** The innermost `cause`: wrappers like drizzle's embed SQL params in their own message. */
 export function innermostError(error: unknown): unknown {
   let current = error
-  while (current instanceof Error && current.cause instanceof Error) current = current.cause
+  const seen = new Set<unknown>([current])
+  while (current instanceof Error && current.cause instanceof Error && !seen.has(current.cause)) {
+    current = current.cause
+    seen.add(current)
+  }
   return current
 }
 

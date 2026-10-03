@@ -6,3 +6,4 @@ export const MONITOR_PATH = '/api/monitor'
  * back, so an outage there would report itself in a loop. The ingest paths are always dropped.
  */
 export const UNREPORTED_PATHS: readonly RegExp[] = [/^\/api\/monitor$/, /^\/webhooks\//, /^\/v1\//]
+export const HYDRATION_WAIT_MS = 1_000

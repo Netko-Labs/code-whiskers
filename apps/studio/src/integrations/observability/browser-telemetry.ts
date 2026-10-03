@@ -1,4 +1,4 @@
-import { MONITOR_PATH } from './constants'
+import { HYDRATION_WAIT_MS, MONITOR_PATH } from './constants'
 import type { BrowserTelemetry } from './types'
 import { isReportableQueryError } from './utils'
 
@@ -22,9 +22,18 @@ function loadTelemetry(): Promise<BrowserTelemetry | undefined> | undefined {
   return telemetry
 }
 
-/** Before hydration, so the SDK's global handlers see the earliest errors. */
-export function startBrowserTelemetry(): void {
-  void loadTelemetry()
+/**
+ * Resolves once the SDK's global handlers are in, so hydration errors are caught — or after
+ * `HYDRATION_WAIT_MS`, so a slow or blocked chunk never holds the page back for long.
+ */
+export function startBrowserTelemetry(): Promise<void> {
+  const loading = loadTelemetry()
+  if (!loading) return Promise.resolve()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, HYDRATION_WAIT_MS)
+  })
+  return Promise.race([loading.then(() => undefined), deadline]).finally(() => clearTimeout(timer))
 }
 
 export function reportClientError(error: unknown): void {

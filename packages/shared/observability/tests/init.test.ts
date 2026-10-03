@@ -72,3 +72,14 @@ describe('server telemetry', () => {
     await shutdownTelemetry(500)
   })
 })
+
+describe('a cyclic cause chain', () => {
+  test('is reported without hanging', async () => {
+    initServerTelemetry({ ...BASE, dsn: `http://pub@127.0.0.1:${DEAD_PORT}/7` })
+    const outer = new Error('outer')
+    outer.cause = new Error('inner', { cause: outer })
+    reportError(outer)
+    await shutdownTelemetry()
+    expect(true).toBe(true)
+  })
+})
