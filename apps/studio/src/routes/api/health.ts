@@ -6,8 +6,12 @@ export const Route = createFileRoute('/api/health')({
     handlers: {
       GET: async () => {
         const startTime = Date.now()
-        const { db, sql } = await import('@code-whiskers/studio-repository')
-        const database = await probe('database', db.execute(sql`SELECT 1`))
+        const database = await probe(
+          'database',
+          import('@code-whiskers/studio-repository').then(({ db, sql }) =>
+            db.execute(sql`SELECT 1`),
+          ),
+        )
         const isHealthy = database === 'connected'
         // Coolify's healthcheck reads the status code, not the body.
         return Response.json(
