@@ -23,6 +23,10 @@
         "include": ["apps/whiskers/dist"]
       }
     ],
-    "startCommand": "bun run apps/whiskers/dist/index.js"
+    "startCommand": "bun --no-install apps/whiskers/dist/migrate/migrate.js && bun --no-install apps/whiskers/dist/index.js",
+    "aptPackages": ["curl"],
+    "variables": {
+      "CI": ""
+    }
   }
 }

@@ -73,9 +73,10 @@ DSN key. Events are grouped into issues by fingerprint; `/v1/issues` and `/v1/ov
 
 Coolify + Railpack, built from the repo root. `bun run repo build --app {app}` emits a
 self-contained output plus `{out}/migrate/migrate.js`; `apps/{app}/railpack.json` ships only that.
-Migrations run as the pre-deployment command. Studio serves the public host; whiskers has none and
-is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify network. A first deploy
-skips the pre-deployment command (no running container yet), so deploy twice.
+The start command migrates inside the new container, then starts the server — leave Coolify's
+pre-deployment command empty (it runs in the *previous* container, with the previous migrations).
+Production refuses to boot without its required env. Studio serves the public host; whiskers has
+none and is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify network.
 
 Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY` (any length;
 encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`

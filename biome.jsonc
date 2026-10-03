@@ -115,6 +115,7 @@
       "!docs/design",
       "!ds-bundle",
       "!.design-sync",
+      "!.claude",
       "!**/generated",
       "!**/dist",
       "!**/src/components/ui",

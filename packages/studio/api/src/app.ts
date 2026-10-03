@@ -11,7 +11,7 @@ import { ruleRoutes } from './routes/rules'
 import { savedQueryRoutes } from './routes/saved-queries'
 import { sessionRoutes } from './routes/session'
 import { triageRoutes } from './routes/triage'
-import { forwardToWhiskers } from './shared'
+import { forwardToWhiskers, originGuard } from './shared'
 
 const logger = createLogger('api')
 
@@ -24,8 +24,8 @@ export const app = new Elysia({ prefix: '/api' })
   .error(({ path, error }) => {
     logger.error({ path, err: error instanceof Error ? error.message : String(error) }, 'API error')
   })
-  // ٩(◕‿◕)۶ health check — is studio awake?
-  .get('/health', () => ({ status: 'ok' }))
+  // (・_・ヾ writes come from our own pages
+  .use(originGuard)
   // (｡•̀ᴗ-)✧ same-origin session check
   .use(sessionRoutes)
   // (ᵔᴥᵔ) installations and repositories, synced from GitHub

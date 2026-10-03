@@ -13,10 +13,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bun run check-types
       - run: bun run fmt-lint
+      - run: bun run test
+      - name: every schema change ships its migration
+        run: |
+          bun run repo db:generate --app studio
+          bun run repo db:generate --app whiskers
+          drift=$(git status --porcelain -- packages/studio/repository/src/db/drizzle packages/whiskers/repository/src/db/drizzle)
+          test -z "$drift" || { echo "$drift"; echo 'schema changed without a committed migration'; exit 1; }
 
   commitlint:
     if: github.event_name == 'pull_request'
@@ -26,5 +33,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}

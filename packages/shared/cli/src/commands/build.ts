@@ -19,8 +19,8 @@ import { loadEnvFile, run } from '../utils/shell'
 /**
  * Build an app for production. Vite apps run `vite build` (Nitro -> .output);
  * headless server apps bundle their entry with `bun build` (-> dist). Both get
- * a self-contained `{out}/migrate/migrate.js` + drizzle folder for Coolify's
- * pre-deployment command.
+ * a self-contained `{out}/migrate/migrate.js` + drizzle folder, which the railpack start
+ * command runs before the server.
  */
 export async function build(args: string[]) {
   const appName = parseAppArg(args)
@@ -63,10 +63,8 @@ export async function build(args: string[]) {
 
 /**
  * Always emits `{out}/migrate/migrate.js`, even for an app that owns no
- * migrations. Coolify's pre-deployment command runs inside the *previous*
- * container, so an app that stops shipping this file strands the hook: every
- * later deploy dies on `Module not found` before it can build the container
- * that would have fixed it. A no-op costs nothing and breaks that cycle.
+ * migrations: the start command runs it unconditionally, so a missing file is a
+ * container that never boots.
  */
 async function bundleMigrations(appName: string, outDir: string) {
   const dbDir = path.join(getRepositoryDir(appName), 'src', 'db')
@@ -92,8 +90,8 @@ async function bundleMigrations(appName: string, outDir: string) {
 }
 
 /**
- * A journal entry without its .sql builds fine and only fails in the pre-deployment
- * hook — which then runs inside that image on every later deploy. Fail the build instead.
+ * A journal entry without its .sql builds fine and only fails when the container boots.
+ * Fail the build instead.
  */
 function assertJournalComplete(drizzleDir: string) {
   const journal = JSON.parse(
