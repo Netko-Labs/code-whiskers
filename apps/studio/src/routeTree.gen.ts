@@ -14,6 +14,7 @@ import { Route as ConsoleRouteImport } from './routes/console'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiMonitorRouteImport } from './routes/api/monitor'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
 import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
@@ -45,6 +46,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMonitorRoute = ApiMonitorRouteImport.update({
+  id: '/api/monitor',
+  path: '/api/monitor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsoleIndexRoute = ConsoleIndexRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/api/monitor'
     | '/console/$section'
     | '/otlp/$'
     | '/v1/$'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/api/monitor'
     | '/console/$section'
     | '/otlp/$'
     | '/v1/$'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/api/$'
     | '/api/health'
+    | '/api/monitor'
     | '/console/$section'
     | '/otlp/$'
     | '/v1/$'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiMonitorRoute: typeof ApiMonitorRoute
   OtlpSplatRoute: typeof OtlpSplatRoute
   V1SplatRoute: typeof V1SplatRoute
   WebhooksSplatRoute: typeof WebhooksSplatRoute
@@ -216,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/monitor': {
+      id: '/api/monitor'
+      path: '/api/monitor'
+      fullPath: '/api/monitor'
+      preLoaderRoute: typeof ApiMonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/console/': {
@@ -291,6 +311,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiMonitorRoute: ApiMonitorRoute,
   OtlpSplatRoute: OtlpSplatRoute,
   V1SplatRoute: V1SplatRoute,
   WebhooksSplatRoute: WebhooksSplatRoute,

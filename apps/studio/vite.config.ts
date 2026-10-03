@@ -1,3 +1,4 @@
+import { environmentOf, releaseOf } from '@code-whiskers/observability'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
@@ -20,6 +21,11 @@ export default defineConfig(({ command }) => ({
     port: Number(process.env.PORT ?? 3000),
   },
   resolve: { tsconfigPaths: true },
+  // Not studio-config: its env parse runs at import, and the build has no runtime secrets.
+  define: {
+    'import.meta.env.VITE_RELEASE': JSON.stringify(releaseOf(process.env)),
+    'import.meta.env.VITE_SENTRY_ENVIRONMENT': JSON.stringify(environmentOf(process.env)),
+  },
   build: {
     rolldownOptions: {
       // Every React library ships 'use client'; the warning is noise for an SSR bundle.
@@ -35,7 +41,11 @@ export default defineConfig(({ command }) => ({
     nitro({
       features: { websocket: true },
       handlers: [{ route: '/realtime', handler: './src/server/realtime/handler.ts' }],
-      plugins: ['./src/server/plugins/production-env.ts', './src/server/plugins/shutdown.ts'],
+      plugins: [
+        './src/server/plugins/observability.ts',
+        './src/server/plugins/production-env.ts',
+        './src/server/plugins/shutdown.ts',
+      ],
       routeRules: {
         '/**': {
           headers: command === 'build' ? { ...SECURITY_HEADERS, ...HSTS_HEADER } : SECURITY_HEADERS,

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/observability": "workspace:*",
     "@code-whiskers/whiskers-api": "workspace:*",
     "@code-whiskers/whiskers-config": "workspace:*",
     "@code-whiskers/whiskers-domain": "workspace:*",

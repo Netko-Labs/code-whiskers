@@ -1,10 +1,13 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { reportQueryError } from '@/integrations/observability'
 import { QUERY_STALE_TIME_MS, type QueryProviderProps } from './lib'
 
 let clientQueryClient: QueryClient | undefined
 
 function createAppQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({ onError: reportQueryError }),
+    mutationCache: new MutationCache({ onError: reportQueryError }),
     defaultOptions: {
       queries: {
         staleTime: QUERY_STALE_TIME_MS,

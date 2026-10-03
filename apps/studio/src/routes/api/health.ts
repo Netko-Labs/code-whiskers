@@ -1,3 +1,4 @@
+import { studioEnvConfig } from '@code-whiskers/studio-config'
 import { createFileRoute } from '@tanstack/react-router'
 import { probe } from '@/shared/health'
 
@@ -20,6 +21,8 @@ export const Route = createFileRoute('/api/health')({
             timestamp: new Date().toISOString(),
             uptime: process.uptime(),
             responseTime: Date.now() - startTime,
+            release: studioEnvConfig.observability.release,
+            environment: studioEnvConfig.observability.environment,
             checks: { database },
           },
           { status: isHealthy ? 200 : 503 },

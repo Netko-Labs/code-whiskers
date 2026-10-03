@@ -7,8 +7,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@code-whiskers/typescript-config": "workspace:*",
-    "@code-whiskers/studio-domain": "workspace:*"
+    "@code-whiskers/observability": "workspace:*",
+    "@code-whiskers/studio-domain": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*"
   },
   "scripts": {
     "check-types": "tsc --noEmit"

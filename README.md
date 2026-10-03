@@ -87,6 +87,9 @@ encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECR
 `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
+code-whiskers reports its own errors to a code-whiskers project when `SENTRY_DSN` is set (both apps;
+studio's browser also needs `VITE_SENTRY_DSN` as a build variable): see `docs/observability.md`.
+
 ### On a pull request
 
 Every push is reviewed once: the first push reads the whole PR, later pushes only what changed

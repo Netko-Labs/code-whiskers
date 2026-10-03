@@ -19,7 +19,6 @@ const _protoStudioConfigSchema = z.object({
     port: z.number().default(3000),
     cors: z.array(z.string()).default(['https://studio.localhost', 'http://localhost:3000']),
     baseUrl: z.string().url(),
-    sentryDsn: z.string().optional(),
     encryptionKey: z.string(),
   }),
   cache: z.object({
@@ -31,6 +30,13 @@ const _protoStudioConfigSchema = z.object({
   whiskers: z.object({
     url: z.string().url(),
     internalToken: z.string().default(''),
+  }),
+  observability: z.object({
+    serviceName: z.string(),
+    release: z.string(),
+    environment: z.string(),
+    dsn: z.string().optional(),
+    tunnelDsns: z.array(z.string()),
   }),
   github: z.object({
     appSlug: z.string().min(1).default('code-whiskers'),

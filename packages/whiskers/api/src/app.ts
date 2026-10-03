@@ -1,4 +1,6 @@
 import { createLogger } from '@code-whiskers/logger'
+import { isServerFault } from '@code-whiskers/observability'
+import { reportError } from '@code-whiskers/observability/server'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { pingDatabase } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
@@ -38,12 +40,20 @@ export const app = new Elysia()
       { path, err: error instanceof Error ? error.message : String(error) },
       'whiskers error',
     )
+    // Ingest paths are dropped in beforeSend: whiskers is the sink it would report to.
+    if (isServerFault(error)) reportError(error, { path, tags: { transport: 'http' } })
   })
   // ٩(◕‿◕)۶ health check — is the cat awake? Coolify reads the status code.
   .get('/health', async ({ set }) => {
     const isHealthy = await pingDatabase()
     set.status = isHealthy ? 200 : 503
-    return { status: isHealthy ? 'ok' : 'degraded', checks: { database: isHealthy } }
+    const { release, environment } = whiskersEnvConfig.observability
+    return {
+      status: isHealthy ? 'ok' : 'degraded',
+      release,
+      environment,
+      checks: { database: isHealthy },
+    }
   })
   .use(webhookRoutes)
   .use(ingestRoutes)

@@ -8,3 +8,4 @@ export const REQUIRED_PRODUCTION_ENV = [
 ] as const
 export const MIN_AUTH_SECRET_LENGTH = 32
 export const MIN_AUTH_SECRET_DISTINCT_CHARS = 12
+export const DSN_ENV = ['SENTRY_DSN', 'VITE_SENTRY_DSN'] as const

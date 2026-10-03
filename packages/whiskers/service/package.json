@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/observability": "workspace:*",
     "@code-whiskers/sandbox": "workspace:*",
     "@code-whiskers/typescript-config": "workspace:*",
     "@code-whiskers/whiskers-config": "workspace:*",

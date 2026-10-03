@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@code-whiskers/observability": "workspace:*",
     "@code-whiskers/typescript-config": "workspace:*",
     "@code-whiskers/whiskers-domain": "workspace:*"
   },

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createLogger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import {
   type FixTarget,
@@ -53,6 +54,7 @@ function handlePullRequest(raw: string) {
   // Ack the webhook immediately; the review runs in the background.
   void runReview({ owner, repo, prNumber }).catch((error) => {
     logger.error({ err: error instanceof Error ? error.message : String(error) }, 'review crashed')
+    reportError(error, { tags: { task: 'review', repo: `${owner}/${repo}` } })
   })
   return { ok: true, queued: { owner, repo, prNumber } }
 }
@@ -107,6 +109,7 @@ function handleMention(event: string, raw: string) {
   }
   void runMention({ owner, repo, prNumber }, target, source).catch((error) => {
     logger.error({ err: error instanceof Error ? error.message : String(error) }, 'mention crashed')
+    reportError(error, { tags: { task: 'mention', repo: `${owner}/${repo}` } })
   })
   return { ok: true, queued: { owner, repo, prNumber, mention: true } }
 }

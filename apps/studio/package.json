@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/observability": "workspace:*",
     "@code-whiskers/studio-api": "workspace:*",
     "@code-whiskers/studio-config": "workspace:*",
     "@code-whiskers/studio-domain": "workspace:*",

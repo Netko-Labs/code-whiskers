@@ -1,4 +1,5 @@
 import type { ZodType } from 'zod'
+import { ResponseError } from '@/integrations/observability'
 import { WHISKERS_BASE_PATH } from './lib'
 
 /**
@@ -15,7 +16,9 @@ function resolve(path: string): string {
 
 export async function fetchWhiskers<T>(path: string, schema: ZodType<T>): Promise<T> {
   const response = await fetch(resolve(path), { headers: { accept: 'application/json' } })
-  if (!response.ok) throw new Error(`whiskers ${path} responded ${response.status}`)
+  if (!response.ok) {
+    throw new ResponseError(`whiskers ${path} responded ${response.status}`, response.status)
+  }
 
   return schema.parse(await response.json())
 }
@@ -26,6 +29,8 @@ export async function postWhiskers<T>(path: string, body: unknown, schema: ZodTy
     headers: { accept: 'application/json', 'content-type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error(`whiskers ${path} responded ${response.status}`)
+  if (!response.ok) {
+    throw new ResponseError(`whiskers ${path} responded ${response.status}`, response.status)
+  }
   return schema.parse(await response.json())
 }

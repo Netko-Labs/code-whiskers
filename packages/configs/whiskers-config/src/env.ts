@@ -1,3 +1,4 @@
+import { dsnOf, environmentOf, releaseOf } from '@code-whiskers/observability'
 import { type WhiskersConfig, WhiskersConfigSchema } from '@code-whiskers/whiskers-domain'
 
 const whiskersConfig: WhiskersConfig = {
@@ -28,6 +29,12 @@ const whiskersConfig: WhiskersConfig = {
   telemetry: {
     retentionDays: Number(process.env.TELEMETRY_RETENTION_DAYS ?? 7),
     errorEventRetentionDays: Number(process.env.ERROR_EVENT_RETENTION_DAYS ?? 90),
+  },
+  observability: {
+    serviceName: 'whiskers',
+    release: releaseOf(process.env),
+    environment: environmentOf(process.env),
+    dsn: dsnOf(process.env.SENTRY_DSN),
   },
   fix: {
     maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),
