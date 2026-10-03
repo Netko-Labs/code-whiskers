@@ -37,6 +37,30 @@ export async function dismissStaleBlocks(ref: PrRef, headSha: string): Promise<n
 }
 
 /**
+ * Whether the bot's verdict still stands as an approval. Replies post as COMMENTED reviews and say
+ * nothing; a ruleset that dismisses stale approvals on push leaves the last verdict DISMISSED.
+ */
+export function isApprovalStanding(states: string[]): boolean {
+  const verdicts = states.filter((state) => state !== 'COMMENTED')
+  return verdicts.at(-1) === 'APPROVED'
+}
+
+export async function hasStandingApproval(ref: PrRef): Promise<boolean> {
+  const octokit = await octokitFor(ref.owner, ref.repo)
+  const reviews = await octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+    owner: ref.owner,
+    repo: ref.repo,
+    pull_number: ref.prNumber,
+    per_page: 100,
+  })
+  return isApprovalStanding(
+    reviews
+      .filter((review) => isBotLogin(review.user?.login, whiskersEnvConfig.github.botHandle))
+      .map((review) => review.state),
+  )
+}
+
+/**
  * Whether this commit is still the PR's head. A slow review of an older push must not post over,
  * or dismiss the block of, the review of a newer one. Unknown counts as current.
  */

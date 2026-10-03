@@ -19,7 +19,7 @@ import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview
 import { buildFileManifest } from './grounding'
 import { resolveOutcome, reviewChunkWithRetry } from './outcome'
 import type { ReviewReport } from './render'
-import { dismissStaleBlocks, isStillHead } from './review-state'
+import { dismissStaleBlocks, hasStandingApproval, isStillHead } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { reviewVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
@@ -172,9 +172,17 @@ export async function runPipeline(
       suggestion: f.suggestion,
     })),
   )
-  // GitHub sees only what is new; the console keeps every open finding.
+  // GitHub sees only what is new; the console keeps every open finding. An approval GitHub
+  // dismissed on push (a stale-approval ruleset) is posted again, or the PR stays gated.
+  const isApprovalLost =
+    merged.verdict === 'approve' &&
+    isComplete &&
+    !(await hasStandingApproval(ref).catch(warnWithout('standing approval', true)))
   const isUnchanged =
-    fresh.length === 0 && previous !== undefined && previous.review.verdict === merged.verdict
+    fresh.length === 0 &&
+    previous !== undefined &&
+    previous.review.verdict === merged.verdict &&
+    !isApprovalLost
   const isCurrent = await isStillHead(ref, headSha)
   if (attempt.isPosted) {
     logger.info({ ...ref, headSha }, 'an earlier attempt already posted this review')
