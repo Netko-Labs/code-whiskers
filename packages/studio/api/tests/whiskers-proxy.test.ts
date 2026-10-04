@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { studioEnvConfig } from '@code-whiskers/studio-config'
 
 // Bun releases a served Request once the handler returns, so keep what the assertions need.
 const received: {
@@ -24,14 +25,16 @@ const whiskers = Bun.serve({
 
 let sessionUser: { id: string } | null = null
 
+// Bun keeps a module mock for the rest of the process: spread the real module so later test
+// files importing it still find every export.
+const realService = await import('@code-whiskers/studio-service')
 mock.module('@code-whiskers/studio-service', () => ({
+  ...realService,
   auth: { api: { getSession: async () => (sessionUser ? { user: sessionUser } : null) } },
   verifyApiKey: async (key: string) => (key === 'cw_live' ? 'u2' : null),
   hasInstanceAccess: async (userId: string) => userId !== 'outsider',
 }))
-mock.module('@code-whiskers/studio-config', () => ({
-  studioEnvConfig: { whiskers: { url: `http://localhost:${whiskers.port}` } },
-}))
+studioEnvConfig.whiskers.url = `http://localhost:${whiskers.port}`
 
 const { forwardSignedInToWhiskers } = await import('../src/shared/whiskers-proxy')
 
