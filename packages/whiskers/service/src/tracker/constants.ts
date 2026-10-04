@@ -1,0 +1,4 @@
+export const NEWLINE = 0x0a
+export const MIB = 1024 * 1024
+export const MAX_COMPRESSED_BODY_BYTES = 1 * MIB
+export const MAX_DECOMPRESSED_BODY_BYTES = 20 * MIB

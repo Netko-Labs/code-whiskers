@@ -1,4 +1,5 @@
 import { createLogger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
 import { getActivePullRequests } from '../queries'
 import { ACTIVE_WINDOW_MS, FIRST_SCAN_DELAY_MS, SCAN_INTERVAL_MS } from './constants'
 import { scanPullRequest } from './scan'
@@ -16,13 +17,15 @@ async function scanActive(): Promise<void> {
   try {
     const active = await getActivePullRequests(new Date(Date.now() - ACTIVE_WINDOW_MS))
     for (const ref of active) {
-      await scanPullRequest(ref).catch((error) =>
-        logger.warn({ ...ref, err: messageOf(error) }, 'reaction scan failed'),
-      )
+      await scanPullRequest(ref).catch((error) => {
+        logger.warn({ ...ref, err: messageOf(error) }, 'reaction scan failed')
+        reportError(error, { tags: { task: 'reactions' } })
+      })
     }
   } catch (error) {
     // The timers discard this promise; a database blip must be logged, never crash the worker.
     logger.warn({ err: messageOf(error) }, 'reaction scan could not list pull requests')
+    reportError(error, { tags: { task: 'reactions' } })
   } finally {
     isScanning = false
   }

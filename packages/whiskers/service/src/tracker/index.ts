@@ -1,3 +1,6 @@
+export * from './body'
+export { MAX_COMPRESSED_BODY_BYTES, MAX_DECOMPRESSED_BODY_BYTES } from './constants'
 export * from './envelope'
 export * from './grouping'
 export * from './project'
+export type * from './types'

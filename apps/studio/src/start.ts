@@ -1,5 +1,32 @@
 import { logger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
+import { isNotFound, isRedirect } from '@tanstack/react-router'
 import { createMiddleware, createStart } from '@tanstack/react-start'
+
+const isControlFlow = (error: unknown) => isRedirect(error) || isNotFound(error)
+
+// Server routes and throws that escape SSR; Elysia's /api/* answers its own errors and reports them
+// in its error hook. Forwarded and tunnel paths are dropped in beforeSend.
+const errorReportMiddleware = createMiddleware().server(async ({ next, request }) => {
+  try {
+    return await next()
+  } catch (error) {
+    if (!isControlFlow(error)) {
+      const path = new URL(request.url).pathname
+      reportError(error, { path, tags: { method: request.method, transport: 'server-route' } })
+    }
+    throw error
+  }
+})
+
+const serverFnErrorMiddleware = createMiddleware({ type: 'function' }).server(async ({ next }) => {
+  try {
+    return await next()
+  } catch (error) {
+    if (!isControlFlow(error)) reportError(error, { tags: { transport: 'server-fn' } })
+    throw error
+  }
+})
 
 /**
  * ✧･ﾟ: *✧･ﾟ:* REQUEST LOGGER MIDDLEWARE *:･ﾟ✧*:･ﾟ✧
@@ -57,5 +84,6 @@ const requestLoggerMiddleware = createMiddleware().server(async ({ next, request
  * All requests flow through our kawaii logger! ψ(｀∇´)ψ
  */
 export const startInstance = createStart(() => ({
-  requestMiddleware: [requestLoggerMiddleware],
+  requestMiddleware: [errorReportMiddleware, requestLoggerMiddleware],
+  functionMiddleware: [serverFnErrorMiddleware],
 }))

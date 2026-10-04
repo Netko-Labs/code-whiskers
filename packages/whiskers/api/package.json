@@ -10,11 +10,12 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/observability": "workspace:*",
+    "@code-whiskers/typescript-config": "workspace:*",
     "@code-whiskers/whiskers-config": "workspace:*",
     "@code-whiskers/whiskers-domain": "workspace:*",
     "@code-whiskers/whiskers-service": "workspace:*",
-    "@code-whiskers/logger": "workspace:*",
-    "@code-whiskers/typescript-config": "workspace:*",
     "elysia": "2.0.0-beta.14",
     "zod": "^4.6.5"
   }

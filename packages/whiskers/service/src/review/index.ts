@@ -1,4 +1,5 @@
 import { createLogger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createReview } from '../mutations'
@@ -128,6 +129,7 @@ async function reviewHead(
         await sleep(delay)
         continue
       }
+      reportError(error, { tags: { task: 'review', repo: `${ref.owner}/${ref.repo}` } })
       return await failReview(ref, headSha, review, checkRunId, messageOf(error), usage())
     }
   }

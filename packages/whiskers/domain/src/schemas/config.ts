@@ -26,6 +26,12 @@ export const WhiskersConfigSchema = z.object({
     retentionDays: z.number().int().positive().default(7),
     errorEventRetentionDays: z.number().int().positive().default(90),
   }),
+  observability: z.object({
+    serviceName: z.string(),
+    release: z.string(),
+    environment: z.string(),
+    dsn: z.string().optional(),
+  }),
   fix: z.object({
     maxTurns: z.number().int().positive().default(12),
     execTimeoutMs: z.number().int().positive().default(120_000),

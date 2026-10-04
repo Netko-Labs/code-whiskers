@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
+import { ResponseError } from '@/integrations/observability'
 import {
   type AlertRuleInput,
   alertRuleListSchema,
@@ -65,7 +66,7 @@ async function fetchStudio<T>(
       : { accept: 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (!response.ok) throw new Error(await failureMessage(response))
+  if (!response.ok) throw new ResponseError(await failureMessage(response), response.status)
   return schema.parse(await response.json())
 }
 

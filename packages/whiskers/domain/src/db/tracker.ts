@@ -40,23 +40,28 @@ export const issueTable = pgTable(
   (t) => [uniqueIndex('issue_project_fingerprint').on(t.projectId, t.fingerprint)],
 )
 
-export const eventTable = pgTable('event', {
-  id: uuid('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  eventId: text('event_id'),
-  projectId: text('project_id')
-    .notNull()
-    .references(() => projectTable.id, { onDelete: 'cascade' }),
-  issueId: uuid('issue_id')
-    .notNull()
-    .references(() => issueTable.id, { onDelete: 'cascade' }),
-  level: text('level').notNull().default('error'),
-  message: text('message').notNull(),
-  environment: text('environment'),
-  release: text('release'),
-  payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
-  receivedAt: timestamp('received_at')
-    .$defaultFn(() => new Date())
-    .notNull(),
-})
+export const eventTable = pgTable(
+  'event',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    eventId: text('event_id'),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projectTable.id, { onDelete: 'cascade' }),
+    issueId: uuid('issue_id')
+      .notNull()
+      .references(() => issueTable.id, { onDelete: 'cascade' }),
+    level: text('level').notNull().default('error'),
+    message: text('message').notNull(),
+    environment: text('environment'),
+    release: text('release'),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    receivedAt: timestamp('received_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  // SDKs retry envelopes with the same event_id; null ids stay distinct.
+  (t) => [uniqueIndex('event_project_event_id').on(t.projectId, t.eventId)],
+)

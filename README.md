@@ -67,7 +67,9 @@ and a failing chunk gets three jittered attempts (a timeout splits it) before it
 ## Error tracking
 
 Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` with the project's
-DSN key. Events are grouped into issues by fingerprint; `/v1/issues` and `/v1/overview` read them.
+DSN key. Events are grouped into issues by fingerprint (the SDK's, else the thrown exception plus
+its top in-app frame); `/v1/issues` and `/v1/overview` read them. Bodies may be gzip, deflate or br,
+up to 1 MiB on the wire and 20 MiB decoded (413 past that); a retried `event_id` is stored once.
 
 ## Deploy
 
@@ -84,6 +86,9 @@ encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECR
 `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
 `OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
+
+code-whiskers reports its own errors to a code-whiskers project when `SENTRY_DSN` is set (both apps;
+studio's browser also needs `VITE_SENTRY_DSN` as a build variable): see `docs/observability.md`.
 
 ### On a pull request
 

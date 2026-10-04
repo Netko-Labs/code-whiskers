@@ -1,3 +1,4 @@
+import { dsnOf, environmentOf, releaseOf } from '@code-whiskers/observability'
 import { type StudioConfig, StudioConfigSchema } from '@code-whiskers/studio-domain'
 
 const isEnabled = (args: (string | undefined)[]): boolean => {
@@ -22,6 +23,16 @@ const studioConfig: StudioConfig = {
     url: process.env.WHISKERS_URL ?? 'https://whiskers.localhost',
     // Accepted on /api/internal/*; empty means the surface stays closed.
     internalToken: process.env.INTERNAL_TOKEN ?? '',
+  },
+  observability: {
+    serviceName: 'studio',
+    release: releaseOf(process.env),
+    environment: environmentOf(process.env),
+    dsn: dsnOf(process.env.SENTRY_DSN),
+    // The browser bundle may carry its own DSN; the tunnel forwards to either and nothing else.
+    tunnelDsns: [process.env.SENTRY_DSN, process.env.VITE_SENTRY_DSN].flatMap(
+      (value) => dsnOf(value) ?? [],
+    ),
   },
   github: {
     // Each self-hosted instance runs its own GitHub App; its install page is built from this.

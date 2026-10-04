@@ -11,10 +11,11 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@code-whiskers/logger": "workspace:*",
+    "@code-whiskers/observability": "workspace:*",
     "@code-whiskers/studio-config": "workspace:*",
     "@code-whiskers/studio-domain": "workspace:*",
     "@code-whiskers/studio-service": "workspace:*",
-    "@code-whiskers/logger": "workspace:*",
     "@code-whiskers/typescript-config": "workspace:*",
     "elysia": "2.0.0-beta.14",
     "zod": "^4.6.5"

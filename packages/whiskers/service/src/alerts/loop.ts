@@ -1,4 +1,5 @@
 import { createLogger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { dropStudioCache, postToStudio, readFromStudio } from '../review/studio-client'
 import { evaluateRule, isCoolingDown } from './conditions'
@@ -22,6 +23,7 @@ export async function runAlertPass(now = new Date()): Promise<void> {
       }
     } catch (error) {
       logger.warn({ rule: rule.name, err: String(error) }, 'alert evaluation failed')
+      reportError(error, { tags: { task: 'alerts' } })
     }
   }
 }

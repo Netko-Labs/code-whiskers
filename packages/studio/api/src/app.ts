@@ -1,4 +1,6 @@
 import { createLogger } from '@code-whiskers/logger'
+import { isServerFault } from '@code-whiskers/observability'
+import { reportError } from '@code-whiskers/observability/server'
 import { Elysia } from 'elysia'
 import { alertRoutes } from './routes/alerts'
 import { githubRoutes } from './routes/github'
@@ -23,6 +25,8 @@ const logger = createLogger('api')
 export const app = new Elysia({ prefix: '/api' })
   .error(({ path, error }) => {
     logger.error({ path, err: error instanceof Error ? error.message : String(error) }, 'API error')
+    // Forwarded ingest paths are dropped in beforeSend, so a whiskers outage cannot feed itself.
+    if (isServerFault(error)) reportError(error, { path, tags: { transport: 'http' } })
   })
   // (・_・ヾ writes come from our own pages
   .use(originGuard)

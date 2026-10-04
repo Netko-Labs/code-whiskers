@@ -3,12 +3,13 @@ import { studioEnvConfig } from '@code-whiskers/studio-config'
 
 // Config is parsed once per process; another test file may have loaded it first.
 studioEnvConfig.whiskers.internalToken = 'internal-test-token'
-const unused = async () => null
 
 const published: string[][] = []
 let sessionUser: { id: string } | null = null
 
+const realService = await import('@code-whiskers/studio-service')
 mock.module('@code-whiskers/studio-service', () => ({
+  ...realService,
   realtimeBus: { publish: (topics: string[]) => published.push(topics), subscribe: () => () => {} },
   auth: {
     api: {
@@ -19,14 +20,6 @@ mock.module('@code-whiskers/studio-service', () => ({
     },
   },
   hasInstanceAccess: async (userId: string) => userId !== 'outsider',
-  verifyApiKey: unused,
-  dismissFinding: unused,
-  fireAlertRule: unused,
-  getEvaluableRules: unused,
-  getRepositoryWatch: unused,
-  getRulesForRepository: unused,
-  getSuppressions: unused,
-  quietAlertRule: unused,
 }))
 
 const { internalRoutes } = await import('../src/routes/internal')
