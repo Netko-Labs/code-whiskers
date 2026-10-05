@@ -7,6 +7,7 @@ import {
 import { db } from '@code-whiskers/whiskers-repository'
 import { eq, sql, TransactionRollbackError } from 'drizzle-orm'
 import type { ProjectSummary } from '../../queries/tracker/types'
+import { postToStudio } from '../../review/studio-client'
 import { newPublicKey } from '../../tracker/keys'
 import type { ProjectSeed } from './types'
 
@@ -53,6 +54,11 @@ export const createProject = async (
     const created = await insertProject({ name, repository, publicKey: newPublicKey() })
     if (!created) continue
     const { project, key } = created
+    void postToStudio('projects/created', {
+      projectId: project.id,
+      name: project.name,
+      repository: project.repository,
+    })
     return {
       id: project.id,
       name: project.name,

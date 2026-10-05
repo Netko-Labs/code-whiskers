@@ -1,3 +1,5 @@
-export { evaluateRule, isCoolingDown } from './conditions'
+export { evaluateRule } from './conditions'
 export { runAlertPass, startAlertLoop } from './loop'
+export { previewCondition } from './preview'
 export type * from './types'
+export { cursorFor, dayCounts, levelsAtLeast, throttledFirings } from './utils'

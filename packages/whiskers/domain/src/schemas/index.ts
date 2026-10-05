@@ -1,3 +1,4 @@
+export * from './alert'
 export * from './config'
 export * from './fix'
 export * from './issue'

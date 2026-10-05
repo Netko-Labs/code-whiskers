@@ -4,6 +4,7 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 whiskersEnvConfig.app.internalToken = 'internal-test-token'
 
 const mirrored: unknown[] = []
+const previewed: unknown[] = []
 
 // Bun keeps a module mock for the rest of the process: spread the real module so later test
 // files importing it still find every export.
@@ -13,6 +14,10 @@ mock.module('@code-whiskers/whiskers-service', () => ({
   setIssueLifecycle: async (body: unknown) => {
     mirrored.push(body)
     return []
+  },
+  previewCondition: async (body: unknown) => {
+    previewed.push(body)
+    return { count: 3, days: [0, 0, 0, 0, 1, 0, 2], isCapped: false }
   },
 }))
 
@@ -64,5 +69,48 @@ describe('POST /internal/issues/lifecycle', () => {
   test('a selection past 100 issues is refused', async () => {
     const tooMany = { ...body, issueIds: Array.from({ length: 101 }, () => ISSUE_ID) }
     expect((await postLifecycle(tooMany, 'internal-test-token')).status).toBe(422)
+  })
+})
+
+describe('POST /internal/alerts/preview', () => {
+  const draft = {
+    triggers: ['new_issue', 'issue_regressed'],
+    projectIds: [],
+    environment: 'production',
+    minLevel: null,
+    release: null,
+    threshold: 1,
+    windowMinutes: 5,
+    actionIntervalMinutes: 30,
+    owner: 'netko-labs',
+  }
+  const postPreview = (body: unknown, token?: string) =>
+    internalRoutes.handle(
+      new Request('http://whiskers.test/internal/alerts/preview', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(token && { authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(body),
+      }),
+    )
+
+  test('studio with the token gets a week of counts', async () => {
+    const response = await postPreview(draft, 'internal-test-token')
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ count: 3 })
+    expect(previewed.at(-1)).toEqual(draft)
+  })
+
+  test('without the token nothing is counted', async () => {
+    const before = previewed.length
+    expect((await postPreview(draft)).status).toBe(401)
+    expect(previewed).toHaveLength(before)
+  })
+
+  test('a draft without an owner is refused', async () => {
+    const { owner: _, ...unscoped } = draft
+    expect((await postPreview(unscoped, 'internal-test-token')).status).toBe(422)
   })
 })

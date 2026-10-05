@@ -1,3 +1,4 @@
+export * from './alert'
 export * from './issue'
 export * from './project'
 export * from './release'

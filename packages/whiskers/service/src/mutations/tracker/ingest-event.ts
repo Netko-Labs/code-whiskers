@@ -1,7 +1,10 @@
+import { reportError } from '@code-whiskers/observability/server'
 import {
   type Event,
   eventTable,
+  type IssueTransition,
   issueTable,
+  projectTable,
   type SentryEvent,
 } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
@@ -43,6 +46,26 @@ async function releaseFirstSeenAt(tx: Transaction, projectId: string, release: s
     .from(eventTable)
     .where(and(eq(eventTable.projectId, projectId), eq(eventTable.release, release)))
   return row?.at ?? null
+}
+
+/** Studio records the reopening and alerts on it, so it needs what the rule filters look at. */
+async function reportTransition(stored: Event, transition: IssueTransition): Promise<void> {
+  const [project] = await db
+    .select({ repository: projectTable.repository })
+    .from(projectTable)
+    .where(eq(projectTable.id, stored.projectId))
+    .limit(1)
+  await postToStudio('issues/transition', {
+    issueId: stored.issueId,
+    projectId: stored.projectId,
+    kind: transition,
+    eventId: stored.id,
+    release: stored.release,
+    title: stored.message.slice(0, 500),
+    level: stored.level,
+    environment: stored.environment,
+    repository: project?.repository ?? null,
+  })
 }
 
 /**
@@ -135,13 +158,9 @@ export const ingestEvent = async (
     const { stored, transition } = outcome
     if (release) touchRelease(projectId, release, stored.receivedAt)
     if (transition) {
-      void postToStudio('issues/transition', {
-        issueId: stored.issueId,
-        projectId,
-        kind: transition,
-        eventId: stored.id,
-        release,
-      })
+      void reportTransition(stored, transition).catch((error) =>
+        reportError(error, { tags: { task: 'issue-transition' } }),
+      )
     }
     return stored
   } catch (error) {
