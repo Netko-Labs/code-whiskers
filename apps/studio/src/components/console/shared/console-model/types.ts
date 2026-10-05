@@ -1,4 +1,5 @@
 import type { TriageItemRef } from '@/integrations/studio-api'
+import type { WhiskersIssue } from '@/integrations/whiskers'
 
 export type ConsoleSeverity = 'critical' | 'warning' | 'info' | 'ok' | 'idle'
 export type ConsoleItemKind = 'error' | 'review' | 'log'
@@ -6,29 +7,10 @@ export type ConsoleTone = 'default' | 'body' | 'muted' | 'faint' | 'bad' | 'warn
 export type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'OK'
 export type DiffSign = '' | '+' | '-'
 
-export type StackFrame = {
-  no: string
-  current?: boolean
-  text: string
-  tone: 'strong' | 'dim' | 'muted'
-}
-
-export type Breadcrumb = {
-  time: string
-  kind: string
-  tone: ConsoleTone
-  message: string
-}
-
 export type LogLine = {
   time: string
   level: LogLevel
   message: string
-}
-
-export type IssueTag = {
-  key: string
-  value: string
 }
 
 export type DiffLine = {
@@ -84,12 +66,8 @@ export type ConsoleItem = {
   fixLabel: string
   evidenceLabel: string
   fix?: FixPlan
-  events?: string
-  users?: string
-  trace?: StackFrame[]
-  crumbs?: Breadcrumb[]
-  logContext?: LogLine[]
-  tags?: IssueTag[]
+  /** Error items carry their whiskers row: status, badges and trend come from the server. */
+  issue?: WhiskersIssue
   diff?: string
   fileCount?: string
   checks?: string
@@ -127,11 +105,11 @@ export type ConsoleOrg = {
 
 export type TriageBucket = 'inbox' | 'assigned' | 'snoozed'
 export type TriageFilter = 'all' | 'errors' | 'reviews' | 'logs'
-export type ErrorTab = 'stack' | 'crumbs' | 'logs' | 'tags'
 
 export type TriageStatus = {
   resolved: boolean
-  /** Resolved by a human, then seen again — no longer done, whatever the record says. */
+  archived: boolean
+  /** Whiskers saw it again after a resolve; the badge is server data, never inferred here. */
   regressed: boolean
   approved: boolean
   tracked: boolean

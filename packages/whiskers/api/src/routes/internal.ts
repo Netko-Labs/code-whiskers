@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { githubAccessFor, hasGithubApp } from '@code-whiskers/whiskers-service'
+import { IssueLifecycleBodySchema } from '@code-whiskers/whiskers-domain'
+import { githubAccessFor, hasGithubApp, setIssueLifecycle } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 
 /** Studio → whiskers. Not forwarded publicly, and still token-checked in case that changes. */
@@ -29,4 +30,12 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       return { error: 'this worker runs without GitHub App credentials' }
     }
     return githubAccessFor(login)
+  })
+  // (￣ー￣)ゞ a human resolved or archived issues in studio; mirror it so ingest can act on it
+  .post('/issues/lifecycle', { body: IssueLifecycleBodySchema }, async ({ request, body, set }) => {
+    if (!authorized(request.headers.get('authorization'))) {
+      set.status = 401
+      return { error: 'unauthorized' }
+    }
+    return { issues: await setIssueLifecycle(body) }
   })

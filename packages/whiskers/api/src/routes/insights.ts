@@ -10,8 +10,6 @@ import {
   createProject,
   getHotspots,
   getInstanceStats,
-  getIssues,
-  getLatestEvent,
   getLogPatterns,
   getLogs,
   getOverview,
@@ -49,10 +47,6 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
       return project
     },
   )
-  // (o･ω･o) grouped errors, newest churn first
-  .get('/issues', { query: ProjectScopeSchema }, ({ query }) =>
-    getIssues(projectIdsOf(query.projectId)),
-  )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
   // (｀-´)> log lines, newest first; `before` pages back by id
@@ -84,15 +78,6 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   )
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())
-  // (・∀・) the newest event of one issue, read for a human
-  .get('/issues/:issueId/latest-event', async ({ params, set }) => {
-    const event = await getLatestEvent(params.issueId)
-    if (!event) {
-      set.status = 404
-      return { error: 'no events' }
-    }
-    return event
-  })
   // (ง'̀-'́)ง run the review again on the pull request's current head
   .post('/reviews/rerun', { body: ReviewRerunSchema }, ({ body }) => {
     void runReview(body, { force: true }).catch(() => undefined)

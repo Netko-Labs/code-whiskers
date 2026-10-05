@@ -4,6 +4,7 @@ import {
   AlertFireSchema,
   FindingDismissSchema,
   IdParamSchema,
+  IssueTransitionBodySchema,
   RealtimeEventsSchema,
 } from '@code-whiskers/studio-domain'
 import {
@@ -15,6 +16,7 @@ import {
   getSuppressions,
   quietAlertRule,
   realtimeBus,
+  recordIssueTransition,
 } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 
@@ -42,6 +44,17 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     realtimeBus.publish(body.topics)
     return { ok: true }
   })
+  // (ﾟДﾟ;) ingest reopened an issue a human had resolved or archived
+  .post(
+    '/issues/transition',
+    { body: IssueTransitionBodySchema },
+    async ({ headers, body, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      await recordIssueTransition(body)
+      realtimeBus.publish(['issues'])
+      return { ok: true }
+    },
+  )
   // ʕ·ᴥ·ʔ what has a human already argued with on this repo?
   .get('/suppressions', async ({ headers, query, set, status }) => {
     if (!authorized(headers.authorization)) return status(401, 'Unauthorized')

@@ -27,6 +27,11 @@ function culpritOf(stacktrace: unknown): string | undefined {
   return `${file ?? ''}:${frame?.function ?? ''}`
 }
 
+/** The culprit of the thrown error, for a reader: where in our code it was raised. */
+export function eventCulpritOf(event: SentryEvent): string | null {
+  return culpritOf(thrownException(event)?.stacktrace) ?? null
+}
+
 export function messageOf(event: SentryEvent): string {
   const thrown = thrownException(event)
   if (thrown?.type || thrown?.value) return [thrown.type, thrown.value].filter(Boolean).join(': ')

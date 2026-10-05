@@ -44,6 +44,7 @@ export default defineConfig(({ command }) => ({
       plugins: [
         './src/server/plugins/observability.ts',
         './src/server/plugins/production-env.ts',
+        './src/server/plugins/issue-mirror.ts',
         './src/server/plugins/shutdown.ts',
       ],
       routeRules: {

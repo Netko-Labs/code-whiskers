@@ -78,6 +78,13 @@
       "when": 1790231168548,
       "tag": "0010_huge_dagger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791172042949,
+      "tag": "0011_ancient_shooting_star",
+      "breakpoints": true
     }
   ]
 }

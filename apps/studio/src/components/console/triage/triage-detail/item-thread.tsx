@@ -2,10 +2,10 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { useQuery } from '@tanstack/react-query'
 import { triageCommentsQuery } from '@/integrations/studio-api'
 import { formatAge } from '@/shared/format-date'
-import { useViewer } from '../../shared/console-data'
+import { DRAFT_HINT, useViewer } from '../../shared/console-data'
 import { PersonAvatar } from '../../shared/console-ui'
 import { useConsoleStore } from '../../use-console-store'
-import { DRAFT_HINT, type ItemThreadProps } from '../lib'
+import type { ItemThreadProps } from '../lib'
 
 export function ItemThread({ item, onPost }: ItemThreadProps) {
   const viewer = useViewer()

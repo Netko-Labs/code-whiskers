@@ -1,4 +1,5 @@
 import { useConsoleScope } from '../shared/console-scope'
+import { IssueList } from './issue-list'
 import { SECTION_HOOKS, type SectionScreenProps, type SectionViewProps } from './lib'
 import { SectionHeader } from './section-header'
 import { SectionTable } from './section-table'
@@ -8,6 +9,9 @@ const TABLE_MIN_WIDTH = 1060
 
 /** Keyed by section so each one mounts only its own data hook. */
 export function SectionView({ section, tab, filters }: SectionViewProps) {
+  if (section === 'issues' || section === 'regressions') {
+    return <IssueList key={section} section={section} tab={tab} filters={filters} />
+  }
   return (
     <SectionScreen
       key={section}

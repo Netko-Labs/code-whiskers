@@ -1,3 +1,4 @@
+import { ISSUE_SORTS } from '@/integrations/whiskers'
 import { SECTION_VIEWS } from '../../section/lib'
 import type { SectionView, TriageBucket, TriageFilter } from '../console-model'
 import type {
@@ -37,6 +38,10 @@ export function parseSectionTab(search: SectionSearchInput): SectionSearch {
     tab: Number.isInteger(tab) && tab >= 0 ? tab : 0,
     q: text(search.q),
     service: text(search.service),
+    environment: text(search.environment),
+    release: text(search.release),
+    sort: ISSUE_SORTS.find((sort) => sort === search.sort),
+    mine: search.mine === '1' ? '1' : undefined,
   }
 }
 

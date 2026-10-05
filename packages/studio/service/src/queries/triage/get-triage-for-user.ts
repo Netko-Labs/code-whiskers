@@ -14,6 +14,9 @@ const COLUMNS = {
   status: triageState.status,
   assigneeUserId: triageState.assigneeUserId,
   snoozedUntil: triageState.snoozedUntil,
+  resolveMode: triageState.resolveMode,
+  archiveMode: triageState.archiveMode,
+  archiveValue: triageState.archiveValue,
   note: triageState.note,
   updatedAt: triageState.updatedAt,
 }

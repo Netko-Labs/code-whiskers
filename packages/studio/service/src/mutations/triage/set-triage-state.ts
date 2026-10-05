@@ -16,9 +16,14 @@ export const setTriageState = async (input: TriageInput): Promise<void> => {
       set: {
         status: input.status,
         snoozedUntil: input.snoozedUntil ?? null,
+        resolveMode: input.resolveMode ?? null,
+        archiveMode: input.archiveMode ?? null,
+        archiveValue: input.archiveValue ?? null,
         note: input.note ?? null,
         updatedBy: input.updatedBy ?? null,
         updatedAt: new Date(),
+        // Issue decisions made here still reach whiskers: the mirror sweep picks them up.
+        mirroredAt: null,
         ...(input.assigneeUserId !== undefined && { assigneeUserId: input.assigneeUserId }),
       },
     })

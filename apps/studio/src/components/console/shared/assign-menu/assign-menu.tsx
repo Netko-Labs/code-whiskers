@@ -1,0 +1,66 @@
+import { Button } from '@code-whiskers/ui/components/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/components/popover'
+import { useState } from 'react'
+import type { Member } from '@/integrations/studio-api'
+import { useMembers } from '../console-data'
+import { PersonAvatar } from '../console-ui'
+import { type AssignMenuProps, assigneeAriaLabel, assigneeText } from './lib'
+
+const ROW = 'flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft'
+
+/** Opens on its own, or from a parent that also binds a shortcut to it. */
+export function AssignMenu({
+  assigneeUserId,
+  isDisabled,
+  onAssign,
+  isOpen,
+  onOpenChange,
+  trigger,
+}: AssignMenuProps) {
+  const [isLocalOpen, setLocalOpen] = useState(false)
+  const members = useMembers()
+  const open = isOpen ?? isLocalOpen
+  const setOpen = onOpenChange ?? setLocalOpen
+  const assignee = members.find((member) => member.id === assigneeUserId)
+
+  function pick(member: Member | null) {
+    setOpen(false)
+    onAssign(member)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={trigger ?? <Button variant="outline" size="sm" disabled={isDisabled} />}
+        aria-label={assigneeAriaLabel(assignee, assigneeUserId)}
+      >
+        {assignee && (
+          <PersonAvatar name={assignee.name} image={assignee.image} className="size-4" />
+        )}
+        <span className="max-w-[120px] truncate">{assigneeText(assignee, assigneeUserId)}</span>
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={8} className="w-[246px] gap-0 p-1.5">
+        <span className="px-2.5 pt-[7px] pb-[5px] text-[11px] text-muted-foreground">
+          {members.length > 0 ? 'Assign to' : 'Teammates appear after the GitHub sync'}
+        </span>
+        {members.map((member) => (
+          <button type="button" key={member.id} onClick={() => pick(member)} className={ROW}>
+            <PersonAvatar name={member.name} image={member.image} className="size-6" />
+            <div className="flex min-w-0 flex-col">
+              <span className="font-medium text-[13px]">{member.name}</span>
+              <span className="truncate text-[11px] text-muted-foreground">
+                {member.organizations.join(', ')}
+              </span>
+            </div>
+            {member.id === assigneeUserId && <span className="ml-auto text-[11px]">✓</span>}
+          </button>
+        ))}
+        {assigneeUserId && (
+          <button type="button" onClick={() => pick(null)} className={ROW}>
+            <span className="text-[13px] text-muted-foreground">Unassign</span>
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
+  )
+}
