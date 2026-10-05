@@ -125,6 +125,11 @@ export const IssueTransitionBodySchema = z.object({
   kind: z.enum(ISSUE_TRANSITIONS),
   eventId: z.string().max(200).nullish(),
   release: z.string().max(200).nullish(),
+  // Older workers omit these; regression alerts then match only rules without those filters.
+  title: z.string().max(500).nullish(),
+  level: z.string().max(20).nullish(),
+  environment: z.string().max(200).nullish(),
+  repository: z.string().max(200).nullish(),
 })
 export type IssueTransitionBody = z.infer<typeof IssueTransitionBodySchema>
 

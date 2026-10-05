@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const REALTIME_TOPICS = ['reviews', 'issues', 'logs', 'traces'] as const
+export const REALTIME_TOPICS = ['reviews', 'issues', 'logs', 'traces', 'alerts'] as const
 
 export const RealtimeTopicSchema = z.enum(REALTIME_TOPICS)
 export type RealtimeTopic = z.infer<typeof RealtimeTopicSchema>

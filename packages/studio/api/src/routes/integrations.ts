@@ -1,5 +1,6 @@
 import { IdParamSchema, IntegrationCreateSchema } from '@code-whiskers/studio-domain'
 import {
+  armUntouchedDefaults,
   createIntegration,
   deleteIntegration,
   getIntegrationsForUser,
@@ -21,6 +22,7 @@ export const integrationRoutes = new Elysia({ name: 'integrations', prefix: '/in
       return status(422, 'That webhook host points inside the network — use a public URL')
     }
     if (!created) return status(403, 'Forbidden')
+    await armUntouchedDefaults(body.installationId)
     return created
   })
   .post('/:id/test', { auth: true, params: IdParamSchema }, async ({ params, user, status }) => {

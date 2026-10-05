@@ -9,6 +9,7 @@ const published: string[][] = []
 const transitions: unknown[] = []
 const lifecycles: unknown[] = []
 const recentReads: { userId: string; limit: number }[] = []
+const alerted: unknown[] = []
 let sessionUser: { id: string } | null = null
 
 // Bun keeps a module mock for the rest of the process: spread the real module so later test
@@ -27,6 +28,10 @@ mock.module('@code-whiskers/studio-service', () => ({
   },
   recordIssueTransition: async (body: unknown) => {
     transitions.push(body)
+  },
+  alertOnIssueTransition: async (body: unknown) => {
+    alerted.push(body)
+    return 0
   },
   setIssueLifecycle: async (userId: string, body: unknown) => {
     if (userId === 'outsider') return null
@@ -78,6 +83,12 @@ describe('POST /internal/issues/transition', () => {
     expect((await postTransition(transition, 'internal-test-token')).status).toBe(200)
     expect(transitions.at(-1)).toEqual(transition)
     expect(published.slice(before)).toEqual([['issues']])
+  })
+
+  test('a regression is handed to the alert rules without waiting on delivery', async () => {
+    const before = alerted.length
+    expect((await postTransition(transition, 'internal-test-token')).status).toBe(200)
+    expect(alerted.slice(before)).toEqual([transition])
   })
 
   test('no token, or the wrong one, records nothing', async () => {

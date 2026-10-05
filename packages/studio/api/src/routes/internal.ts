@@ -1,14 +1,20 @@
 import { timingSafeEqual } from 'node:crypto'
+import { createLogger } from '@code-whiskers/logger'
+import { reportError } from '@code-whiskers/observability/server'
 import { studioEnvConfig } from '@code-whiskers/studio-config'
 import {
   AlertFireSchema,
+  AlertsEvaluatedSchema,
   FindingDismissSchema,
   IdParamSchema,
   IssueTransitionBodySchema,
+  ProjectCreatedBodySchema,
   ProjectDeletedBodySchema,
   RealtimeEventsSchema,
 } from '@code-whiskers/studio-domain'
 import {
+  alertOnIssueTransition,
+  createDefaultRules,
   dismissFinding,
   fireAlertRule,
   forgetProject,
@@ -16,11 +22,14 @@ import {
   getRepositoryWatch,
   getRulesForRepository,
   getSuppressions,
+  markRulesEvaluated,
   quietAlertRule,
   realtimeBus,
   recordIssueTransition,
 } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
+
+const logger = createLogger('studio-internal')
 
 /**
  * The whiskers → studio direction. Studio fronts the public hostname, so this
@@ -54,7 +63,23 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
       await recordIssueTransition(body)
       realtimeBus.publish(['issues'])
+      // Delivery can take seconds per destination; ingest never waits on it.
+      void alertOnIssueTransition(body).catch((error) => {
+        logger.warn({ err: String(error) }, 'regression alert failed')
+        reportError(error, { tags: { task: 'alerts' } })
+      })
       return { ok: true }
+    },
+  )
+  // (ノ°▽°)ノ a project was created in whiskers; it gets the default alert rule
+  .post(
+    '/projects/created',
+    { body: ProjectCreatedBodySchema },
+    async ({ headers, body, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      const created = await createDefaultRules(body)
+      if (created > 0) realtimeBus.publish(['alerts'])
+      return { created }
     },
   )
   // (︶︹︺) a project was deleted in whiskers; its triage rows follow it
@@ -107,12 +132,23 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       return result
     },
   )
+  // (￣ー￣) the pass finished; event triggers look back to here next time
+  .post(
+    '/alert-rules/evaluated',
+    { body: AlertsEvaluatedSchema },
+    async ({ headers, body, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      await markRulesEvaluated(body)
+      return { ok: true }
+    },
+  )
   .post(
     '/alert-rules/:id/quiet',
     { params: IdParamSchema },
     async ({ headers, params, status }) => {
       if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
       await quietAlertRule(params.id)
+      realtimeBus.publish(['alerts'])
       return { ok: true }
     },
   )

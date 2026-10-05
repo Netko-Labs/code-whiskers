@@ -19,4 +19,10 @@ export interface Notice {
 export interface DeliveryResult {
   delivered: number
   failed: number
+  error: string | null
+}
+
+export interface DeliveryTarget {
+  notifyAll: boolean
+  destinationIds: string[]
 }

@@ -1,16 +1,18 @@
 import {
+  type AlertDeliveryRecord,
+  alertRule,
   type IntegrationCreate,
   integration,
   organization,
   organizationMember,
 } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { isInstallationMember } from '../queries/github'
 import { decrypt, encrypt } from '../shared'
 import { assertPublicHost } from './address-guard'
 import { postNotice } from './deliver'
-import type { DeliveryResult, IntegrationRecord, Notice } from './types'
+import type { DeliveryResult, DeliveryTarget, IntegrationRecord, Notice } from './types'
 
 const COLUMNS = {
   id: integration.id,
@@ -67,34 +69,33 @@ async function editable(userId: string, id: string) {
 
 export const deleteIntegration = async (userId: string, id: string): Promise<boolean> => {
   if (!(await editable(userId, id))) return false
-  await db.delete(integration).where(eq(integration.id, id))
+  await db.transaction(async (tx) => {
+    await tx
+      .update(alertRule)
+      .set({ destinationIds: sql`array_remove(${alertRule.destinationIds}, ${id}::uuid)` })
+      .where(sql`${id}::uuid = any(${alertRule.destinationIds})`)
+    await tx.delete(integration).where(eq(integration.id, id))
+  })
   return true
 }
 
-async function deliverTo(
-  rows: (typeof integration.$inferSelect)[],
+async function deliverOne(
+  row: typeof integration.$inferSelect,
   notice: Notice,
-): Promise<DeliveryResult> {
-  const outcomes = await Promise.all(
-    rows.map(async (row) => {
-      try {
-        await postNotice(row.kind, decrypt(row.urlEncrypted), notice)
-        await db
-          .update(integration)
-          .set({ lastDeliveredAt: new Date(), lastError: null })
-          .where(eq(integration.id, row.id))
-        return true
-      } catch (error) {
-        await db
-          .update(integration)
-          .set({ lastError: error instanceof Error ? error.message : String(error) })
-          .where(eq(integration.id, row.id))
-        return false
-      }
-    }),
-  )
-  const delivered = outcomes.filter(Boolean).length
-  return { delivered, failed: outcomes.length - delivered }
+): Promise<AlertDeliveryRecord> {
+  const record = { integrationId: row.id, name: row.name, kind: row.kind }
+  try {
+    await postNotice(row.kind, decrypt(row.urlEncrypted), notice)
+    await db
+      .update(integration)
+      .set({ lastDeliveredAt: new Date(), lastError: null })
+      .where(eq(integration.id, row.id))
+    return { ...record, isDelivered: true, error: null }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    await db.update(integration).set({ lastError: message }).where(eq(integration.id, row.id))
+    return { ...record, isDelivered: false, error: message }
+  }
 }
 
 export const testIntegration = async (
@@ -103,21 +104,39 @@ export const testIntegration = async (
 ): Promise<DeliveryResult | null> => {
   const row = await editable(userId, id)
   if (!row) return null
-  return deliverTo([row], {
+  const outcome = await deliverOne(row, {
     title: 'CodeWhiskers test',
     text: `This channel will receive alerts for ${row.name}.`,
   })
+  return outcome.isDelivered
+    ? { delivered: 1, failed: 0, error: null }
+    : { delivered: 0, failed: 1, error: outcome.error }
 }
 
-/** Alerts fan out to every integration on the installations named; secrets never leave studio. */
-export const deliverNotice = async (
-  installationIds: number[],
+/** A rule delivers to the destinations it names, or every one on its installation. */
+export const deliverToDestinations = async (
+  installationId: number,
+  target: DeliveryTarget,
   notice: Notice,
-): Promise<DeliveryResult> => {
-  if (installationIds.length === 0) return { delivered: 0, failed: 0 }
+): Promise<AlertDeliveryRecord[]> => {
+  if (!target.notifyAll && target.destinationIds.length === 0) return []
   const rows = await db
     .select()
     .from(integration)
-    .where(inArray(integration.installationId, installationIds))
-  return deliverTo(rows, notice)
+    .where(
+      and(
+        eq(integration.installationId, installationId),
+        target.notifyAll ? undefined : inArray(integration.id, target.destinationIds),
+      ),
+    )
+  return Promise.all(rows.map((row) => deliverOne(row, notice)))
+}
+
+export const hasDestination = async (installationId: number): Promise<boolean> => {
+  const [row] = await db
+    .select({ id: integration.id })
+    .from(integration)
+    .where(eq(integration.installationId, installationId))
+    .limit(1)
+  return Boolean(row)
 }
