@@ -25,8 +25,9 @@ export function IssueEventNav({ issue, event, onPick }: IssueEventNavProps) {
             {DATE.format(event.receivedAt)} {clockOf(event.receivedAt)}
           </span>
         )}
-        {facts.map((fact) => (
-          <span key={fact} className="truncate font-mono text-muted-foreground">
+        {facts.map((fact, index) => (
+          // Environment and release can carry the same name ("test").
+          <span key={`${index}-${fact}`} className="truncate font-mono text-muted-foreground">
             · {fact}
           </span>
         ))}

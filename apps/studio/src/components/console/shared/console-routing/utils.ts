@@ -23,29 +23,31 @@ export function toSectionView(value: string): SectionScreenView | undefined {
 
 export function parseTriageSearch(search: TriageSearchInput): TriageSearch {
   return {
-    sel: typeof search.sel === 'string' ? search.sel : undefined,
+    sel: searchText(search.sel),
     filter: FILTERS.find((candidate) => candidate === search.filter) ?? 'all',
   }
 }
 
-function text(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim().slice(0, 200) : undefined
+/** The router JSON-parses search values, so a project id like `1` arrives as a number. */
+export function searchText(value: unknown): string | undefined {
+  const raw = typeof value === 'number' && Number.isFinite(value) ? String(value) : value
+  return typeof raw === 'string' && raw.trim() ? raw.trim().slice(0, 200) : undefined
 }
 
 export function parseSectionTab(search: SectionSearchInput): SectionSearch {
   const tab = Number(search.tab)
   return {
     tab: Number.isInteger(tab) && tab >= 0 ? tab : 0,
-    q: text(search.q),
-    service: text(search.service),
-    environment: text(search.environment),
-    release: text(search.release),
+    q: searchText(search.q),
+    service: searchText(search.service),
+    environment: searchText(search.environment),
+    release: searchText(search.release),
     sort: ISSUE_SORTS.find((sort) => sort === search.sort),
-    mine: search.mine === '1' ? '1' : undefined,
-    project: text(search.project),
+    mine: searchText(search.mine) === '1' ? '1' : undefined,
+    project: searchText(search.project),
   }
 }
 
 export function parseConsoleScope(search: ConsoleScopeSearchInput): ConsoleScopeSearch {
-  return { scope: text(search.scope) }
+  return { scope: searchText(search.scope) }
 }

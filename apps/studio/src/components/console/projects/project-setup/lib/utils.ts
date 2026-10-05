@@ -1,3 +1,4 @@
+import { searchText } from '../../../shared/console-routing'
 import { DEFAULT_PLATFORM, isPlatformId } from '../../../shared/project-setup'
 import { SETUP_STEPS } from './constants'
 import type { SetupSearch, SetupSearchInput, SetupStepId } from './types'
@@ -7,7 +8,7 @@ function isStep(value: unknown): value is SetupStepId {
 }
 
 export function parseSetupSearch(search: SetupSearchInput): SetupSearch {
-  const project = typeof search.project === 'string' ? search.project.slice(0, 200) : undefined
+  const project = searchText(search.project)
   return {
     step: isStep(search.step) ? search.step : 'platform',
     platform: isPlatformId(search.platform) ? search.platform : DEFAULT_PLATFORM,

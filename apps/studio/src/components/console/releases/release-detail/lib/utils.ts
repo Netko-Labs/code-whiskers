@@ -1,9 +1,10 @@
 import type { WhiskersDeployEntry } from '@/integrations/whiskers'
+import { searchText } from '../../../shared/console-routing'
 import type { DeployGroup, ReleaseSearch, ReleaseSearchInput } from './types'
 import { RELEASE_TABS } from './values'
 
 export function parseReleaseSearch(search: ReleaseSearchInput): ReleaseSearch {
-  const project = typeof search.project === 'string' ? search.project.trim().slice(0, 200) : ''
+  const project = searchText(search.project) ?? ''
   return {
     project,
     tab: RELEASE_TABS.find((tab) => tab === search.tab) ?? 'overview',

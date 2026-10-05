@@ -20,8 +20,8 @@ export function IssueRail({ issue, detail }: IssueRailProps) {
     <aside className="flex min-w-0 flex-col gap-6">
       <IssueFacetList title="Environments" rows={environments} />
       <IssueFacetList title="Releases" rows={releases} isMono />
-      <SuspectCommits key={issue.id} issueId={issue.id} projectId={issue.projectId} />
-      <IssueActivity key={issue.id} issue={issue} />
+      <SuspectCommits key={`suspects-${issue.id}`} issueId={issue.id} projectId={issue.projectId} />
+      <IssueActivity key={`activity-${issue.id}`} issue={issue} />
     </aside>
   )
 }
