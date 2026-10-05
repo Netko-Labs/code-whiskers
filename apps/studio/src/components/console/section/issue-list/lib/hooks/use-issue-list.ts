@@ -29,8 +29,8 @@ export function useIssueList(
   const status = statusForTab(section, tab)
   const params = useMemo(() => {
     const mineIds = filters.mine ? assignedIssueIds(records, viewer?.id) : undefined
-    return issueListParams(status, filters, scope.projectIds, mineIds)
-  }, [status, filters, scope.projectIds, records, viewer?.id])
+    return issueListParams(section, status, filters, scope.projectIds, mineIds)
+  }, [section, status, filters, scope.projectIds, records, viewer?.id])
   const pages = useInfiniteQuery({ ...whiskersIssuesQuery(params), retry: false })
   const projects = useQuery({ ...whiskersProjectsQuery(), retry: false })
 

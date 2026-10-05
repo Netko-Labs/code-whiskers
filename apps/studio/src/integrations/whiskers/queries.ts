@@ -67,6 +67,7 @@ function readIssuePage(query: IssueListParams, cursor: string | null, limit: num
     q: query.q,
     sort: query.sort,
     ids: query.ids?.join(','),
+    regressed: query.isRegressed ? 'true' : undefined,
     cursor: cursor ?? undefined,
     limit: String(limit),
   })

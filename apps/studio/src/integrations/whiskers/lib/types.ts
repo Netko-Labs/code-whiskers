@@ -65,6 +65,7 @@ export type IssueListParams = {
   q?: string
   sort: IssueSort
   ids?: string[]
+  isRegressed?: boolean
   limit?: number
 }
 export type WhiskersEventDetail = z.infer<typeof whiskersEventDetailSchema>

@@ -56,6 +56,7 @@ export function assignedIssueIds(records: Map<string, TriageRecord>, viewerId: s
 }
 
 export function issueListParams(
+  section: IssueSectionView,
   status: IssueStatusFilter,
   filters: SectionFilters,
   projectIds: ProjectScope,
@@ -69,6 +70,7 @@ export function issueListParams(
     q: filters.q,
     sort: filters.sort ?? 'last_seen',
     ids: mineIds,
+    isRegressed: section === 'regressions' || undefined,
   }
 }
 

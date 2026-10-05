@@ -1,6 +1,7 @@
 import { type IssueListQuery, issueTable } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { and, count, desc, eq, ilike, inArray, type SQL, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gt, ilike, inArray, type SQL, sql } from 'drizzle-orm'
+import { REGRESSED_WINDOW_MS } from './constants'
 import { ISSUE_ROW_COLUMNS, toIssueRows } from './issue-row'
 import type { Cursor, IssueFilter, IssuePage } from './types'
 import { decodeCursor, encodeCursor } from './utils'
@@ -33,6 +34,11 @@ function filtersOf(filter: IssueFilter): SQL[] {
     query.environment && hasEventWhere('environment', query.environment),
     query.release && hasEventWhere('release', query.release),
     query.q?.trim() && ilike(issueTable.title, likePattern(query.q.trim())),
+    query.regressed === 'true' &&
+      and(
+        eq(issueTable.status, 'unresolved'),
+        gt(issueTable.regressedAt, new Date(Date.now() - REGRESSED_WINDOW_MS)),
+      ),
   ].filter((condition): condition is SQL => Boolean(condition))
 }
 

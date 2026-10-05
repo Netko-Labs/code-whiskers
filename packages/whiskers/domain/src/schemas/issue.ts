@@ -47,6 +47,8 @@ export const IssueListQuerySchema = ProjectScopeSchema.extend({
   environment: z.string().max(200).optional(),
   release: z.string().max(200).optional(),
   q: z.string().max(200).optional(),
+  /** Only issues that came back from resolved within the badge window. */
+  regressed: z.enum(['true', 'false']).optional(),
   sort: z.enum(ISSUE_SORTS).default('last_seen'),
   ids: z.string().max(4_000).optional(),
   cursor: z.string().max(400).optional(),

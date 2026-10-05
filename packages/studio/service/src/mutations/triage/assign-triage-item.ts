@@ -10,9 +10,12 @@ export const assignTriageItem = async (
 ): Promise<boolean> => {
   const authorized = await authorizeTriageScope(userId, body.scope)
   if (!authorized) return false
+  let assigneeName: string | null = null
   if (body.assigneeUserId !== null) {
     const members = await getMembersForUser(userId)
-    if (!members.some((m) => m.id === body.assigneeUserId)) return false
+    const assignee = members.find((m) => m.id === body.assigneeUserId)
+    if (!assignee) return false
+    assigneeName = assignee.name
   }
 
   const itemRefs = [...new Set([...(body.itemRefs ?? []), ...(body.itemRef ? [body.itemRef] : [])])]
@@ -42,7 +45,8 @@ export const assignTriageItem = async (
         ...item(itemRef),
         kind: 'assigned' as const,
         actorUserId: userId,
-        data: { assigneeUserId: body.assigneeUserId },
+        // The name is kept as it was then, so the timeline reads right after a rename.
+        data: { assigneeUserId: body.assigneeUserId, assigneeName },
       })),
     )
   })
