@@ -1,0 +1,1 @@
+ALTER TABLE "saved_query" ADD COLUMN "params" jsonb DEFAULT '{}'::jsonb NOT NULL;
