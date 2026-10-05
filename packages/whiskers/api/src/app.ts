@@ -7,6 +7,7 @@ import { Elysia } from 'elysia'
 import { ingestRoutes } from './routes/ingest'
 import { insightRoutes } from './routes/insights'
 import { internalRoutes } from './routes/internal'
+import { issueRoutes } from './routes/issues'
 import { otlpRoutes } from './routes/otlp'
 import { webhookRoutes } from './routes/webhooks'
 
@@ -58,6 +59,7 @@ export const app = new Elysia()
   .use(webhookRoutes)
   .use(ingestRoutes)
   .use(insightRoutes)
+  .use(issueRoutes)
   .use(otlpRoutes)
   .use(internalRoutes)
 

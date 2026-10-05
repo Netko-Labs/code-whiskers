@@ -1,0 +1,10 @@
+export const ISSUE_STATUSES = ['unresolved', 'resolved', 'archived'] as const
+export const ISSUE_LIST_STATUSES = [...ISSUE_STATUSES, 'all'] as const
+export const ISSUE_SORTS = ['last_seen', 'first_seen', 'events', 'users'] as const
+export const ISSUE_BADGES = ['new', 'regressed', 'spiking'] as const
+export const ISSUE_TRANSITIONS = ['regressed', 'unarchived'] as const
+export const RESOLVE_MODES = ['now', 'next_release'] as const
+export const HISTOGRAM_PERIODS = ['24h', '14d'] as const
+export const MAX_LIFECYCLE_ISSUES = 100
+export const MAX_ISSUE_PAGE = 100
+export const DEFAULT_ISSUE_PAGE = 50

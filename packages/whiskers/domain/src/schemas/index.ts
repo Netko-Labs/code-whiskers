@@ -1,5 +1,6 @@
 export * from './config'
 export * from './fix'
+export * from './issue'
 export * from './project'
 export * from './review'
 export * from './tracker'
