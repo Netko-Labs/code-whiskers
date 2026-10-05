@@ -62,3 +62,13 @@ describe('matchesPlatform', () => {
     expect(matchesPlatform(platformOf('go'), '  ')).toBe(true)
   })
 })
+
+describe('server verification snippets', () => {
+  test('Node and Bun capture the test error instead of crashing the process', () => {
+    for (const id of ['node', 'bun'] as const) {
+      const code = snippetsFor(id, DSN).verify?.code ?? ''
+      expect(code).toContain('captureException')
+      expect(code).not.toContain('throw')
+    }
+  })
+})

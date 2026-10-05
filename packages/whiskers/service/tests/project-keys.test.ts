@@ -60,6 +60,10 @@ describe('enabledKeyMatching', () => {
     expect(enabledKeyMatching(KEYS, 'a')).toBeUndefined()
     expect(enabledKeyMatching(KEYS, undefined)).toBeUndefined()
   })
+
+  test('a non-ASCII key of the same string length is refused, not thrown on', () => {
+    expect(enabledKeyMatching(KEYS, `${'a'.repeat(31)}é`)).toBeUndefined()
+  })
 })
 
 describe('keyDeletionOf', () => {

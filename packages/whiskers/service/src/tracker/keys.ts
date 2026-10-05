@@ -4,8 +4,11 @@ import type { KeyCheck, KeyDeletion } from './types'
 export const newPublicKey = (): string => randomBytes(16).toString('hex')
 
 function isSameKey(stored: string, presented: string): boolean {
-  if (stored.length !== presented.length) return false
-  return timingSafeEqual(Buffer.from(stored), Buffer.from(presented))
+  // Byte lengths, not string lengths: a non-ASCII key would make timingSafeEqual throw.
+  const storedBytes = Buffer.from(stored)
+  const presentedBytes = Buffer.from(presented)
+  if (storedBytes.length !== presentedBytes.length) return false
+  return timingSafeEqual(storedBytes, presentedBytes)
 }
 
 /** Any enabled key of the project authenticates; a disabled key is as good as an unknown one. */

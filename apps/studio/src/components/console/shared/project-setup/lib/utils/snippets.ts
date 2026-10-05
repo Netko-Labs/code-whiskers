@@ -4,6 +4,8 @@ import { PLATFORMS } from '../values'
 import { dsnPartsOf } from './dsn'
 
 const THROW_LATER = `setTimeout(() => {\n  throw new Error('${TEST_ERROR_MESSAGE}')\n})`
+// A server process must not die to prove the DSN: an uncaught throw exits Node and Bun.
+const CAPTURE = `Sentry.captureException(new Error('${TEST_ERROR_MESSAGE}'))`
 
 const init = (code: string): CodeSnippet => ({ label: 'Initialize', code })
 const verify = (code: string): CodeSnippet => ({ label: 'Throw a test error', code })
@@ -36,10 +38,10 @@ type Body = Pick<InstallSnippets, 'init' | 'verify' | 'note'>
 const BODIES: Record<PlatformId, (dsn: string) => Body> = {
   node: (dsn) => ({
     init: jsInit('@sentry/node', dsn),
-    verify: verify(THROW_LATER),
+    verify: verify(CAPTURE),
     note: 'Import it before anything else, e.g. as instrument.ts loaded with --import.',
   }),
-  bun: (dsn) => ({ init: jsInit('@sentry/bun', dsn), verify: verify(THROW_LATER), note: null }),
+  bun: (dsn) => ({ init: jsInit('@sentry/bun', dsn), verify: verify(CAPTURE), note: null }),
   browser: (dsn) => ({
     init: jsInit('@sentry/browser', dsn),
     verify: verify(THROW_LATER),
