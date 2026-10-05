@@ -7,14 +7,6 @@ export const TRIAGE_FILTERS: { value: TriageFilter; label: string }[] = [
   { value: 'logs', label: 'Logs' },
 ]
 
-export const ERROR_TABS = [
-  { value: 'stack', label: 'Stack trace', meta: 'most recent call first' },
-  { value: 'crumbs', label: 'Breadcrumbs', meta: 'leading up to it' },
-  { value: 'logs', label: 'Log context', meta: 'same trace' },
-  { value: 'tags', label: 'Tags', meta: 'issue tags' },
-] as const
-
+/** Reviews and log patterns snooze; issues archive with their own conditions instead. */
 export const SNOOZE_MS = 24 * 60 * 60 * 1000
-export const DRAFT_HINT = 'Visible to your team · ⌘↵ to post'
-export const SAMPLE_ACTION_NOTE = 'Sample data — connect a repository to act on real items'
 export const DISMISS_NOTE = 'dismissed in the CodeWhiskers console'

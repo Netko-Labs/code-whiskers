@@ -2,6 +2,7 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { IconBrandGithub } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
+import { AssignMenu } from '../../shared/assign-menu'
 import { SEVERITY_BG } from '../../shared/console-ui'
 import {
   type DetailHeaderProps,
@@ -10,7 +11,6 @@ import {
   stateLine,
   useDetailShortcuts,
 } from '../lib'
-import { AssignMenu } from './assign-menu'
 
 const BANNER_DOT = {
   ok: 'bg-severity-resolved',

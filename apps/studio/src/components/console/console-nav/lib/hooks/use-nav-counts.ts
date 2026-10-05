@@ -38,7 +38,10 @@ export function useNavCounts(): Record<string, number> {
     }
     counts['section:pull-requests'] = items.filter((item) => item.kind === 'review').length
     counts['section:issues'] = statuses.filter(
-      ({ item, status }) => item.kind === 'error' && item.severity !== 'ok' && !status.resolved,
+      ({ item, status }) => item.kind === 'error' && !status.done,
+    ).length
+    counts['section:regressions'] = statuses.filter(
+      ({ item, status }) => item.kind === 'error' && status.regressed,
     ).length
     return counts
   }, [items, sample, records, viewer, members, repositories])

@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
-import { useDocumentKeydown } from '@/shared/dom-events'
+import { isTyping, useDocumentKeydown } from '@/shared/dom-events'
 import type { DetailActions } from '../types'
-import { isTyping } from '../utils'
 
 /** e runs the primary action, s the secondary — the two buttons at the top of the detail. */
 export function useDetailShortcuts(actions: DetailActions): void {

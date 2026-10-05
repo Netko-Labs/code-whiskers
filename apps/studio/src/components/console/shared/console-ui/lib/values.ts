@@ -51,9 +51,3 @@ export const LOG_LEVEL_TEXT: Record<LogLevel, string> = {
   INFO: 'text-zinc-400',
   OK: 'text-severity-resolved',
 }
-
-export const STACK_TONE = {
-  strong: 'text-zinc-50',
-  dim: 'text-zinc-500',
-  muted: 'text-zinc-400',
-} as const

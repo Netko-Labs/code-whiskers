@@ -1,8 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback } from 'react'
-import { useDocumentKeydown } from '@/shared/dom-events'
+import { isTyping, useDocumentKeydown } from '@/shared/dom-events'
 import type { ConsoleItem, TriageBucket } from '../../../shared/console-model'
-import { isTyping } from '../utils'
 
 /** j / k walk the visible list; ignored while the user is typing anywhere. */
 export function useTriageKeys(items: ConsoleItem[], selectedId: string, bucket: TriageBucket) {

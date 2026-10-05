@@ -1,7 +1,7 @@
 import type { SectionDefinition, SectionView } from '../../../shared/console-model'
+import type { IssueSectionView, TableSectionView } from '../types'
 import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
 import { CODEBASE_MAP_SECTION } from './codebase-map-section'
-import { ISSUES_SECTION, REGRESSIONS_SECTION } from './error-sections'
 import { INSTANCE_SECTION } from './instance-section'
 import { API_KEYS_SECTION, INTEGRATIONS_SECTION, MEMBERS_SECTION } from './org-sections'
 import { ALERT_RULES_SECTION, RELEASES_SECTION } from './release-sections'
@@ -14,11 +14,9 @@ export {
   CODEBASE_MAP_SECTION,
   INSTANCE_SECTION,
   INTEGRATIONS_SECTION,
-  ISSUES_SECTION,
   LIVE_LOGS_SECTION,
   MEMBERS_SECTION,
   PULL_REQUESTS_SECTION,
-  REGRESSIONS_SECTION,
   RELEASES_SECTION,
   REPOSITORIES_SECTION,
   REVIEW_RULES_SECTION,
@@ -26,13 +24,11 @@ export {
   TRACES_SECTION,
 }
 
-export const SECTIONS: Record<SectionView, SectionDefinition> = {
+export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
   'pull-requests': PULL_REQUESTS_SECTION,
   repositories: REPOSITORIES_SECTION,
   'codebase-map': CODEBASE_MAP_SECTION,
   'review-rules': REVIEW_RULES_SECTION,
-  issues: ISSUES_SECTION,
-  regressions: REGRESSIONS_SECTION,
   releases: RELEASES_SECTION,
   'alert-rules': ALERT_RULES_SECTION,
   'live-logs': LIVE_LOGS_SECTION,
@@ -45,4 +41,9 @@ export const SECTIONS: Record<SectionView, SectionDefinition> = {
   instance: INSTANCE_SECTION,
 }
 
-export const SECTION_VIEWS = Object.keys(SECTIONS) as SectionView[]
+export const ISSUE_SECTION_VIEWS: IssueSectionView[] = ['issues', 'regressions']
+
+export const SECTION_VIEWS: SectionView[] = [
+  ...(Object.keys(SECTIONS) as TableSectionView[]),
+  ...ISSUE_SECTION_VIEWS,
+]

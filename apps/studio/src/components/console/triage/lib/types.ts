@@ -1,11 +1,7 @@
 import type { Member } from '@/integrations/studio-api'
 import type { WhiskersFinding } from '@/integrations/whiskers'
 import type {
-  Breadcrumb,
   ConsoleItem,
-  IssueTag,
-  LogLine,
-  StackFrame,
   TriageBucket,
   TriageFilter,
   TriageStatus,
@@ -49,6 +45,11 @@ export type TriageRowProps = {
   active: boolean
 }
 
+export type TriageRowIssueProps = {
+  item: ConsoleItem
+  owner: string | undefined
+}
+
 export type TriageDetailProps = {
   item: ConsoleItem
 }
@@ -63,24 +64,9 @@ export type DetailHeaderProps = DetailPaneProps & {
   banner: TriageBanner | null
 }
 
-export type AssignMenuProps = {
-  assigneeUserId: string | null
-  isDisabled: boolean
-  onAssign: (member: Member | null) => void
-}
-
 export type ItemThreadProps = {
   item: ConsoleItem
   onPost: () => void
 }
 
 export type { TriageStatus }
-
-export type IssueEvidence = {
-  frames: StackFrame[]
-  crumbs: Breadcrumb[]
-  logs: LogLine[]
-  tags: IssueTag[]
-  hiddenNote: string | undefined
-  isLoading: boolean
-}

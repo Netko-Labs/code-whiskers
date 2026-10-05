@@ -1,4 +1,5 @@
 import type { SearchSchemaInput } from '@tanstack/react-router'
+import type { IssueSort } from '@/integrations/whiskers'
 import type { TriageFilter } from '../console-model'
 
 export type TriageSearch = {
@@ -15,12 +16,20 @@ export type SectionSearch = {
   tab: number
   q?: string
   service?: string
+  environment?: string
+  release?: string
+  sort?: IssueSort
+  mine?: '1'
 }
 
 export type SectionSearchInput = {
   tab?: number
   q?: string
   service?: string
+  environment?: string
+  release?: string
+  sort?: string
+  mine?: string
 } & SearchSchemaInput
 
 export type ConsoleScopeSearch = {
