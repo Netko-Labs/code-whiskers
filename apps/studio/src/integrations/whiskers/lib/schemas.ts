@@ -4,17 +4,72 @@ export const whiskersOverviewSchema = z.object({
   summary: z.object({ events: z.number(), issues: z.number() }),
 })
 
+export const ISSUE_STATUSES = ['unresolved', 'resolved', 'archived'] as const
+export const ISSUE_STATUS_FILTERS = [...ISSUE_STATUSES, 'all'] as const
+export const ISSUE_BADGES = ['new', 'regressed', 'spiking'] as const
+export const ISSUE_SORTS = ['last_seen', 'first_seen', 'events', 'users'] as const
+export const ISSUE_PERIODS = ['24h', '14d'] as const
+
 export const whiskersIssueSchema = z.object({
   id: z.string(),
   projectId: z.string(),
   fingerprint: z.string(),
   title: z.string(),
   level: z.string(),
-  status: z.enum(['open', 'resolved']),
+  status: z.enum(ISSUE_STATUSES),
   eventCount: z.number(),
+  userCount: z.number().default(0),
   firstSeen: z.coerce.date(),
   lastSeen: z.coerce.date(),
+  firstRelease: z.string().nullable().default(null),
   lastRelease: z.string().nullable().default(null),
+  resolvedInRelease: z.string().nullable().default(null),
+  resolvedAt: z.coerce.date().nullable().default(null),
+  archivedUntil: z.coerce.date().nullable().default(null),
+  archiveUntilEvents: z.number().nullable().default(null),
+  archiveUntilUsers: z.number().nullable().default(null),
+  regressedAt: z.coerce.date().nullable().default(null),
+  badges: z.array(z.enum(ISSUE_BADGES)).default([]),
+  trend: z.array(z.number()).default([]),
+  culprit: z.string().nullable().default(null),
+})
+
+export const whiskersIssuePageSchema = z.object({
+  issues: z.array(whiskersIssueSchema),
+  nextCursor: z.string().nullable(),
+  total: z.number(),
+})
+
+export const whiskersIssueDetailSchema = z.object({
+  issue: whiskersIssueSchema,
+  environments: z.array(z.object({ name: z.string(), count: z.number() })).default([]),
+  releases: z
+    .array(z.object({ name: z.string(), count: z.number(), firstSeen: z.coerce.date() }))
+    .default([]),
+  tags: z
+    .array(
+      z.object({
+        key: z.string(),
+        values: z.array(z.object({ value: z.string(), count: z.number() })),
+      }),
+    )
+    .default([]),
+  histogram: z.array(z.object({ bucket: z.coerce.date(), count: z.number() })).default([]),
+})
+
+export const whiskersIssueEventSummarySchema = z.object({
+  id: z.string(),
+  eventId: z.string().nullable(),
+  receivedAt: z.coerce.date(),
+  level: z.string(),
+  message: z.string(),
+  environment: z.string().nullable(),
+  release: z.string().nullable(),
+})
+
+export const whiskersIssueEventListSchema = z.object({
+  events: z.array(whiskersIssueEventSummarySchema),
+  nextCursor: z.string().nullable(),
 })
 
 export const whiskersReviewSchema = z.object({
@@ -57,7 +112,6 @@ export const whiskersReviewDetailSchema = z.object({
   findings: z.array(whiskersFindingSchema),
 })
 
-export const whiskersIssueListSchema = z.array(whiskersIssueSchema)
 export const whiskersReviewListSchema = z.array(whiskersReviewSchema)
 
 export const whiskersHotspotSchema = z.object({
@@ -179,6 +233,10 @@ export const whiskersServiceSchema = z.object({
 export const whiskersServiceListSchema = z.array(whiskersServiceSchema)
 
 export const whiskersEventDetailSchema = z.object({
+  id: z.string().nullable().default(null),
+  eventId: z.string().nullable().default(null),
+  prevId: z.string().nullable().default(null),
+  nextId: z.string().nullable().default(null),
   receivedAt: z.coerce.date(),
   level: z.string(),
   message: z.string(),
@@ -198,6 +256,7 @@ export const whiskersEventDetailSchema = z.object({
   breadcrumbs: z.array(
     z.object({
       timestamp: z.string().nullable(),
+      type: z.string().nullable().default(null),
       category: z.string(),
       level: z.string(),
       message: z.string(),

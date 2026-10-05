@@ -9,8 +9,10 @@ import {
   createdSchema,
   deliverySchema,
   type IntegrationInput,
+  type IssueLifecycleInput,
   instanceSchema,
   integrationListSchema,
+  issueLifecycleResultSchema,
   memberListSchema,
   okSchema,
   organizationListSchema,
@@ -23,6 +25,8 @@ import {
   syncResultSchema,
   type TriageDecision,
   type TriageItemRef,
+  type TriageItemRefs,
+  triageActivityListSchema,
   triageCommentListSchema,
   triageRecordListSchema,
   viewerSchema,
@@ -124,6 +128,16 @@ export const triageCommentsQuery = (item: TriageItemRef) =>
       ),
   })
 
+export const triageActivityQuery = (item: TriageItemRef) =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'triage-activity', item.scope, item.itemKind, item.itemRef],
+    queryFn: () =>
+      fetchStudio(
+        `/triage/activity?${new URLSearchParams({ scope: item.scope, itemKind: item.itemKind, itemRef: item.itemRef })}`,
+        triageActivityListSchema,
+      ),
+  })
+
 export const syncGithub = () => fetchStudio('/orgs/sync', syncResultSchema, 'POST')
 
 /** Records the decision in studio so the reviewer sees it on the next push. */
@@ -132,6 +146,13 @@ export const recordTriage = (decision: TriageDecision) =>
 
 export const assignTriage = (item: TriageItemRef, assigneeUserId: string | null) =>
   fetchStudio('/triage/assign', okSchema, 'POST', { ...item, assigneeUserId })
+
+export const assignTriageMany = (items: TriageItemRefs, assigneeUserId: string | null) =>
+  fetchStudio('/triage/assign', okSchema, 'POST', { ...items, assigneeUserId })
+
+/** Studio records the decision, then mirrors it to whiskers so ingest can reopen or unarchive. */
+export const setIssueLifecycle = (input: IssueLifecycleInput) =>
+  fetchStudio('/triage/issues/lifecycle', issueLifecycleResultSchema, 'POST', input)
 
 export const postTriageComment = (item: TriageItemRef, body: string) =>
   fetchStudio('/triage/comments', createdSchema, 'POST', { ...item, body })

@@ -1,14 +1,20 @@
-import { queryOptions } from '@tanstack/react-query'
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query'
 import { z } from 'zod'
 import { fetchWhiskers, postWhiskers } from './client'
 import {
+  ISSUE_PAGE_SIZE,
+  type IssueListParams,
+  type IssuePeriod,
   type LogQuery,
   type ProjectScope,
   WHISKERS_QUERY_KEY,
+  type WhiskersIssuePage,
   whiskersEventDetailSchema,
   whiskersHotspotListSchema,
   whiskersInstanceSchema,
-  whiskersIssueListSchema,
+  whiskersIssueDetailSchema,
+  whiskersIssueEventListSchema,
+  whiskersIssuePageSchema,
   whiskersLogListSchema,
   whiskersLogPatternListSchema,
   whiskersOverviewSchema,
@@ -43,13 +49,75 @@ function scopeKey(projectIds: ProjectScope): string | null {
   return projectIds ? projectIds.join(',') || '-' : null
 }
 
-export const whiskersIssuesQuery = (projectIds?: ProjectScope) =>
+const EMPTY_ISSUE_PAGE: WhiskersIssuePage = { issues: [], nextCursor: null, total: 0 }
+
+function issueListKey({ projectIds, ids, limit, ...filters }: IssueListParams) {
+  return { ...filters, scope: scopeKey(projectIds), ids: ids?.join(',') ?? null }
+}
+
+function readIssuePage(query: IssueListParams, cursor: string | null, limit: number) {
+  if (query.projectIds?.length === 0 || query.ids?.length === 0) {
+    return Promise.resolve(EMPTY_ISSUE_PAGE)
+  }
+  const search = params({
+    projectId: query.projectIds?.join(','),
+    status: query.status,
+    environment: query.environment,
+    release: query.release,
+    q: query.q,
+    sort: query.sort,
+    ids: query.ids?.join(','),
+    cursor: cursor ?? undefined,
+    limit: String(limit),
+  })
+  return fetchWhiskers(`/issues${search}`, whiskersIssuePageSchema)
+}
+
+/** Cursor pages of issues; a filter change keeps the old rows on screen until the new ones land. */
+export const whiskersIssuesQuery = (query: IssueListParams) =>
+  infiniteQueryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'issues', 'list', issueListKey(query)],
+    queryFn: ({ pageParam }) => readIssuePage(query, pageParam, query.limit ?? ISSUE_PAGE_SIZE),
+    initialPageParam: null as string | null,
+    getNextPageParam: (page) => page.nextCursor,
+    placeholderData: keepPreviousData,
+  })
+
+/** Only the `total`: one row is the cheapest page that still carries it. */
+export const whiskersIssueTotalQuery = (query: IssueListParams) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'issues', scopeKey(projectIds)],
+    queryKey: [WHISKERS_QUERY_KEY, 'issues', 'total', issueListKey(query)],
+    queryFn: () => readIssuePage(query, null, 1).then((page) => page.total),
+  })
+
+export const whiskersIssueQuery = (issueId: string, period: IssuePeriod) =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'issue', issueId, period],
     queryFn: () =>
-      scoped(projectIds, (projectId) =>
-        fetchWhiskers(`/issues${params({ projectId })}`, whiskersIssueListSchema),
+      fetchWhiskers(
+        `/issues/${encodeURIComponent(issueId)}${params({ period })}`,
+        whiskersIssueDetailSchema,
       ),
+    placeholderData: keepPreviousData,
+  })
+
+export const whiskersIssueEventsQuery = (issueId: string) =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'issue-events', issueId],
+    queryFn: () =>
+      fetchWhiskers(`/issues/${encodeURIComponent(issueId)}/events`, whiskersIssueEventListSchema),
+  })
+
+/** `eventId` is a row id, or `latest` / `oldest`. */
+export const whiskersIssueEventQuery = (issueId: string, eventId: string) =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'issue-event', issueId, eventId],
+    queryFn: () =>
+      fetchWhiskers(
+        `/issues/${encodeURIComponent(issueId)}/events/${encodeURIComponent(eventId)}`,
+        whiskersEventDetailSchema,
+      ),
+    placeholderData: keepPreviousData,
   })
 
 export const whiskersReviewsQuery = () =>
@@ -139,12 +207,6 @@ export const whiskersServicesQuery = (projectIds?: ProjectScope) =>
       scoped(projectIds, (projectId) =>
         fetchWhiskers(`/services${params({ projectId })}`, whiskersServiceListSchema),
       ),
-  })
-
-export const whiskersLatestEventQuery = (issueId: string) =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'latest-event', issueId],
-    queryFn: () => fetchWhiskers(`/issues/${issueId}/latest-event`, whiskersEventDetailSchema),
   })
 
 export const whiskersLogPatternsQuery = (projectIds?: ProjectScope) =>
