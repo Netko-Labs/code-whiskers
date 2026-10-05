@@ -17,7 +17,11 @@ describe('crumbsFor', () => {
 
   test('alerts pages, and a rule id reads as a rule', () => {
     expect(crumbsFor('/console/alerts', names).map((c) => c.label)).toEqual(['Errors', 'Alerts'])
-    expect(crumbsFor('/console/alerts/destinations', names).at(-1)?.label).toBe('Destinations')
+    expect(crumbsFor('/console/alerts/destinations', names)).toEqual([
+      { label: 'Errors' },
+      { label: 'Alerts', to: '/console/alerts' },
+      { label: 'Destinations' },
+    ])
     expect(crumbsFor('/console/alerts/0b6f7c1e', names).at(-1)?.label).toBe('Rule')
   })
 

@@ -8,6 +8,8 @@ export const SHORT_ID = 8
 export const PROJECTS_PATH = '/console/projects'
 export const SETTINGS_PATH = '/console/settings/general'
 
+export const ALERTS_PATH = '/console/alerts'
+
 /** The pages under /console/alerts; any other segment is a rule id. */
 export const ALERT_CRUMBS: Record<string, Crumb> = {
   activity: { label: 'Activity' },
