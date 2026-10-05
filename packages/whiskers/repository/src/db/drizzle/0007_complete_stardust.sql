@@ -21,9 +21,10 @@ FROM "project" "p"
 WHERE "p"."public_key" IS NOT NULL
 	AND NOT EXISTS (SELECT 1 FROM "project_key" "k" WHERE "k"."project_id" = "p"."id")
 ON CONFLICT ("public_key") DO NOTHING;--> statement-breakpoint
--- A project whose key lost that conflict still needs one that ingests: mint a fresh random key.
+-- A project whose key lost that conflict still needs one that ingests: mint a fresh key from
+-- gen_random_uuid (a CSPRNG), 32 hex like newPublicKey.
 INSERT INTO "project_key" ("id", "project_id", "public_key", "label", "is_enabled", "created_at")
-SELECT gen_random_uuid(), "p"."id", md5(random()::text || clock_timestamp()::text || "p"."id"), 'Default', true, now()
+SELECT gen_random_uuid(), "p"."id", replace(gen_random_uuid()::text, '-', ''), 'Default', true, now()
 FROM "project" "p"
 WHERE NOT EXISTS (SELECT 1 FROM "project_key" "k" WHERE "k"."project_id" = "p"."id");--> statement-breakpoint
 -- Ids were max + 1; the sequence starts past every numeric id already handed out.
