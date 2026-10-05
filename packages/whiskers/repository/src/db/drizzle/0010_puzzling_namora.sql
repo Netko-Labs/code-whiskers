@@ -1,0 +1,1 @@
+ALTER TABLE "span" ADD COLUMN "events" jsonb DEFAULT '[]'::jsonb NOT NULL;

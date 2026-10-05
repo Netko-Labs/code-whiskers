@@ -71,6 +71,13 @@
       "when": 1791180550590,
       "tag": "0009_clammy_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791180935821,
+      "tag": "0010_puzzling_namora",
+      "breakpoints": true
     }
   ]
 }

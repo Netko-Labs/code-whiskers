@@ -18,10 +18,13 @@ import { Route as ApiMonitorRouteImport } from './routes/api/monitor'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
 import { Route as ConsoleCodebaseMapRouteImport } from './routes/console/codebase-map'
+import { Route as ConsoleLiveLogsRouteImport } from './routes/console/live-logs'
 import { Route as ConsoleOverviewRouteImport } from './routes/console/overview'
 import { Route as ConsolePullRequestsRouteImport } from './routes/console/pull-requests'
 import { Route as ConsoleRepositoriesRouteImport } from './routes/console/repositories'
 import { Route as ConsoleReviewRulesRouteImport } from './routes/console/review-rules'
+import { Route as ConsoleSavedQueriesRouteImport } from './routes/console/saved-queries'
+import { Route as ConsoleServicesRouteImport } from './routes/console/services'
 import { Route as ConsoleSettingsRouteImport } from './routes/console/settings'
 import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
@@ -44,6 +47,8 @@ import { Route as ConsoleSettingsApiKeysRouteImport } from './routes/console/set
 import { Route as ConsoleSettingsGeneralRouteImport } from './routes/console/settings.general'
 import { Route as ConsoleSettingsGithubRouteImport } from './routes/console/settings.github'
 import { Route as ConsoleSettingsMembersRouteImport } from './routes/console/settings.members'
+import { Route as ConsoleTracesIndexRouteImport } from './routes/console/traces.index'
+import { Route as ConsoleTracesTraceIdRouteImport } from './routes/console/traces.$traceId'
 import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
 const IndexRoute = IndexRouteImport.update({
@@ -91,6 +96,11 @@ const ConsoleCodebaseMapRoute = ConsoleCodebaseMapRouteImport.update({
   path: '/codebase-map',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleLiveLogsRoute = ConsoleLiveLogsRouteImport.update({
+  id: '/live-logs',
+  path: '/live-logs',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
   id: '/overview',
   path: '/overview',
@@ -109,6 +119,16 @@ const ConsoleRepositoriesRoute = ConsoleRepositoriesRouteImport.update({
 const ConsoleReviewRulesRoute = ConsoleReviewRulesRouteImport.update({
   id: '/review-rules',
   path: '/review-rules',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleSavedQueriesRoute = ConsoleSavedQueriesRouteImport.update({
+  id: '/saved-queries',
+  path: '/saved-queries',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleServicesRoute = ConsoleServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsoleSettingsRoute = ConsoleSettingsRouteImport.update({
@@ -223,6 +243,16 @@ const ConsoleSettingsMembersRoute = ConsoleSettingsMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => ConsoleSettingsRoute,
 } as any)
+const ConsoleTracesIndexRoute = ConsoleTracesIndexRouteImport.update({
+  id: '/traces/',
+  path: '/traces/',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleTracesTraceIdRoute = ConsoleTracesTraceIdRouteImport.update({
+  id: '/traces/$traceId',
+  path: '/traces/$traceId',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleTriageBucketRoute = ConsoleTriageBucketRouteImport.update({
   id: '/triage/$bucket',
   path: '/triage/$bucket',
@@ -238,10 +268,13 @@ export interface FileRoutesByFullPath {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/live-logs': typeof ConsoleLiveLogsRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
+  '/console/saved-queries': typeof ConsoleSavedQueriesRoute
+  '/console/services': typeof ConsoleServicesRoute
   '/console/settings': typeof ConsoleSettingsRouteWithChildren
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
@@ -262,10 +295,12 @@ export interface FileRoutesByFullPath {
   '/console/settings/general': typeof ConsoleSettingsGeneralRoute
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
+  '/console/traces/$traceId': typeof ConsoleTracesTraceIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
   '/console/alerts/': typeof ConsoleAlertsIndexRoute
   '/console/projects/': typeof ConsoleProjectsIndexRoute
   '/console/settings/': typeof ConsoleSettingsIndexRoute
+  '/console/traces/': typeof ConsoleTracesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -275,10 +310,13 @@ export interface FileRoutesByTo {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/live-logs': typeof ConsoleLiveLogsRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
+  '/console/saved-queries': typeof ConsoleSavedQueriesRoute
+  '/console/services': typeof ConsoleServicesRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -298,10 +336,12 @@ export interface FileRoutesByTo {
   '/console/settings/general': typeof ConsoleSettingsGeneralRoute
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
+  '/console/traces/$traceId': typeof ConsoleTracesTraceIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
   '/console/alerts': typeof ConsoleAlertsIndexRoute
   '/console/projects': typeof ConsoleProjectsIndexRoute
   '/console/settings': typeof ConsoleSettingsIndexRoute
+  '/console/traces': typeof ConsoleTracesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -313,10 +353,13 @@ export interface FileRoutesById {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/live-logs': typeof ConsoleLiveLogsRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
+  '/console/saved-queries': typeof ConsoleSavedQueriesRoute
+  '/console/services': typeof ConsoleServicesRoute
   '/console/settings': typeof ConsoleSettingsRouteWithChildren
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
@@ -337,10 +380,12 @@ export interface FileRoutesById {
   '/console/settings/general': typeof ConsoleSettingsGeneralRoute
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
+  '/console/traces/$traceId': typeof ConsoleTracesTraceIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
   '/console/alerts/': typeof ConsoleAlertsIndexRoute
   '/console/projects/': typeof ConsoleProjectsIndexRoute
   '/console/settings/': typeof ConsoleSettingsIndexRoute
+  '/console/traces/': typeof ConsoleTracesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -353,10 +398,13 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/live-logs'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
+    | '/console/saved-queries'
+    | '/console/services'
     | '/console/settings'
     | '/otlp/$'
     | '/v1/$'
@@ -377,10 +425,12 @@ export interface FileRouteTypes {
     | '/console/settings/general'
     | '/console/settings/github'
     | '/console/settings/members'
+    | '/console/traces/$traceId'
     | '/console/triage/$bucket'
     | '/console/alerts/'
     | '/console/projects/'
     | '/console/settings/'
+    | '/console/traces/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -390,10 +440,13 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/live-logs'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
+    | '/console/saved-queries'
+    | '/console/services'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -413,10 +466,12 @@ export interface FileRouteTypes {
     | '/console/settings/general'
     | '/console/settings/github'
     | '/console/settings/members'
+    | '/console/traces/$traceId'
     | '/console/triage/$bucket'
     | '/console/alerts'
     | '/console/projects'
     | '/console/settings'
+    | '/console/traces'
   id:
     | '__root__'
     | '/'
@@ -427,10 +482,13 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/live-logs'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
+    | '/console/saved-queries'
+    | '/console/services'
     | '/console/settings'
     | '/otlp/$'
     | '/v1/$'
@@ -451,10 +509,12 @@ export interface FileRouteTypes {
     | '/console/settings/general'
     | '/console/settings/github'
     | '/console/settings/members'
+    | '/console/traces/$traceId'
     | '/console/triage/$bucket'
     | '/console/alerts/'
     | '/console/projects/'
     | '/console/settings/'
+    | '/console/traces/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -535,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleCodebaseMapRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/live-logs': {
+      id: '/console/live-logs'
+      path: '/live-logs'
+      fullPath: '/console/live-logs'
+      preLoaderRoute: typeof ConsoleLiveLogsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/overview': {
       id: '/console/overview'
       path: '/overview'
@@ -561,6 +628,20 @@ declare module '@tanstack/react-router' {
       path: '/review-rules'
       fullPath: '/console/review-rules'
       preLoaderRoute: typeof ConsoleReviewRulesRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/saved-queries': {
+      id: '/console/saved-queries'
+      path: '/saved-queries'
+      fullPath: '/console/saved-queries'
+      preLoaderRoute: typeof ConsoleSavedQueriesRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/services': {
+      id: '/console/services'
+      path: '/services'
+      fullPath: '/console/services'
+      preLoaderRoute: typeof ConsoleServicesRouteImport
       parentRoute: typeof ConsoleRoute
     }
     '/console/settings': {
@@ -717,6 +798,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleSettingsMembersRouteImport
       parentRoute: typeof ConsoleSettingsRoute
     }
+    '/console/traces/': {
+      id: '/console/traces/'
+      path: '/traces'
+      fullPath: '/console/traces/'
+      preLoaderRoute: typeof ConsoleTracesIndexRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/traces/$traceId': {
+      id: '/console/traces/$traceId'
+      path: '/traces/$traceId'
+      fullPath: '/console/traces/$traceId'
+      preLoaderRoute: typeof ConsoleTracesTraceIdRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/triage/$bucket': {
       id: '/console/triage/$bucket'
       path: '/triage/$bucket'
@@ -752,10 +847,13 @@ const ConsoleSettingsRouteWithChildren = ConsoleSettingsRoute._addFileChildren(
 interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
   ConsoleCodebaseMapRoute: typeof ConsoleCodebaseMapRoute
+  ConsoleLiveLogsRoute: typeof ConsoleLiveLogsRoute
   ConsoleOverviewRoute: typeof ConsoleOverviewRoute
   ConsolePullRequestsRoute: typeof ConsolePullRequestsRoute
   ConsoleRepositoriesRoute: typeof ConsoleRepositoriesRoute
   ConsoleReviewRulesRoute: typeof ConsoleReviewRulesRoute
+  ConsoleSavedQueriesRoute: typeof ConsoleSavedQueriesRoute
+  ConsoleServicesRoute: typeof ConsoleServicesRoute
   ConsoleSettingsRoute: typeof ConsoleSettingsRouteWithChildren
   ConsoleIndexRoute: typeof ConsoleIndexRoute
   ConsoleAlertsRuleIdRoute: typeof ConsoleAlertsRuleIdRoute
@@ -767,18 +865,23 @@ interface ConsoleRouteChildren {
   ConsoleProjectsNewRoute: typeof ConsoleProjectsNewRoute
   ConsoleReleasesVersionRoute: typeof ConsoleReleasesVersionRoute
   ConsoleReviewsReviewIdRoute: typeof ConsoleReviewsReviewIdRoute
+  ConsoleTracesTraceIdRoute: typeof ConsoleTracesTraceIdRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
   ConsoleAlertsIndexRoute: typeof ConsoleAlertsIndexRoute
   ConsoleProjectsIndexRoute: typeof ConsoleProjectsIndexRoute
+  ConsoleTracesIndexRoute: typeof ConsoleTracesIndexRoute
 }
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
   ConsoleCodebaseMapRoute: ConsoleCodebaseMapRoute,
+  ConsoleLiveLogsRoute: ConsoleLiveLogsRoute,
   ConsoleOverviewRoute: ConsoleOverviewRoute,
   ConsolePullRequestsRoute: ConsolePullRequestsRoute,
   ConsoleRepositoriesRoute: ConsoleRepositoriesRoute,
   ConsoleReviewRulesRoute: ConsoleReviewRulesRoute,
+  ConsoleSavedQueriesRoute: ConsoleSavedQueriesRoute,
+  ConsoleServicesRoute: ConsoleServicesRoute,
   ConsoleSettingsRoute: ConsoleSettingsRouteWithChildren,
   ConsoleIndexRoute: ConsoleIndexRoute,
   ConsoleAlertsRuleIdRoute: ConsoleAlertsRuleIdRoute,
@@ -790,9 +893,11 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleProjectsNewRoute: ConsoleProjectsNewRoute,
   ConsoleReleasesVersionRoute: ConsoleReleasesVersionRoute,
   ConsoleReviewsReviewIdRoute: ConsoleReviewsReviewIdRoute,
+  ConsoleTracesTraceIdRoute: ConsoleTracesTraceIdRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
   ConsoleAlertsIndexRoute: ConsoleAlertsIndexRoute,
   ConsoleProjectsIndexRoute: ConsoleProjectsIndexRoute,
+  ConsoleTracesIndexRoute: ConsoleTracesIndexRoute,
 }
 
 const ConsoleRouteWithChildren =

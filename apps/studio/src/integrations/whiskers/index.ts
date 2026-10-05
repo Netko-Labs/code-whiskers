@@ -28,6 +28,7 @@ export {
   whiskersReviewQuery,
   whiskersReviewsQuery,
 } from './queries'
+export { whiskersReleaseQuery, whiskersSuspectCommitsQuery } from './releases'
 export {
   whiskersExplorerPatternsQuery,
   whiskersLogPatternsQuery,
@@ -39,4 +40,3 @@ export {
   whiskersTraceQuery,
   whiskersTracesQuery,
 } from './telemetry'
-export { whiskersReleaseQuery, whiskersSuspectCommitsQuery } from './releases'

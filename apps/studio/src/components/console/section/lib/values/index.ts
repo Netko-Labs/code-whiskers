@@ -1,14 +1,8 @@
 import type { SectionDefinition } from '../../../shared/console-model'
 import type { IssueSectionView, SectionScreenView, TableSectionView } from '../types'
-import {
-  INTEGRATIONS_SECTION,
-  RELEASES_SECTION,
-} from './empty-sections'
+import { INTEGRATIONS_SECTION, RELEASES_SECTION } from './empty-sections'
 
-export {
-  INTEGRATIONS_SECTION,
-  RELEASES_SECTION,
-}
+export { INTEGRATIONS_SECTION, RELEASES_SECTION }
 
 export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
   releases: RELEASES_SECTION,
