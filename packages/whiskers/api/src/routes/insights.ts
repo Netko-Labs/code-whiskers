@@ -1,5 +1,6 @@
 import {
   LogQuerySchema,
+  OverviewQuerySchema,
   ProjectScopeSchema,
   ReviewRerunSchema,
   TraceQuerySchema,
@@ -23,8 +24,14 @@ import { projectIdsOf } from '../shared'
 
 /** Read-only management surface for dashboards and smoke tests. */
 export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
-  // (◕‿◕) the 10,000-foot view
-  .get('/overview', () => getOverview())
+  // (◕‿◕) the 10,000-foot view, bucketed over a range
+  .get('/overview', { query: OverviewQuerySchema }, ({ query }) =>
+    getOverview({
+      range: query.range,
+      projectIds: projectIdsOf(query.projectId),
+      repository: query.repository?.trim() || undefined,
+    }),
+  )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
   // (｀-´)> log lines, newest first; `before` pages back by id

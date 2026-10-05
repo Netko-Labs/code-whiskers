@@ -30,6 +30,11 @@ export const TriageItemSchema = z.object({
 })
 export type TriageItem = z.infer<typeof TriageItemSchema>
 
+export const RECENT_ACTIVITY_LIMIT = 40
+export const RecentTriageActivityQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(RECENT_ACTIVITY_LIMIT),
+})
+
 export const TriageDecisionSchema = TriageItemSchema.extend({
   status: z.enum(TRIAGE_STATUSES),
   note: z.string().max(500).optional(),

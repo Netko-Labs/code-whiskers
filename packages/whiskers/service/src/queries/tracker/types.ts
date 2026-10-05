@@ -2,6 +2,7 @@ import type {
   ISSUE_BADGES,
   Issue,
   IssueListQuery,
+  OverviewRange,
   Project,
   ProjectKey,
 } from '@code-whiskers/whiskers-domain'
@@ -140,4 +141,37 @@ export type ProjectSummary = Pick<Project, 'id' | 'name' | 'repository' | 'creat
   keys: ProjectKey[]
   issues: number
   lastEventAt: Date | null
+}
+
+export interface OverviewWindow {
+  /** Aligned to `stepMs` so buckets hold still between refetches. */
+  start: Date
+  stepMs: number
+  length: number
+}
+
+export interface OverviewScope {
+  range: OverviewRange
+  projectIds?: string[]
+  repository?: string
+}
+
+export interface OverviewBucket {
+  bucket: Date
+  events: number
+  newIssues: number
+  regressions: number
+  reviews: number
+  failedReviews: number
+}
+
+export type OverviewTotals = Omit<OverviewBucket, 'bucket'> & { unresolved: number }
+
+export interface Overview {
+  /** All-time and unscoped: what the instance holds. */
+  summary: { events: number; issues: number }
+  range: OverviewRange
+  stepMs: number
+  series: OverviewBucket[]
+  totals: OverviewTotals
 }

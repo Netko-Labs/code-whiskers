@@ -1,5 +1,6 @@
 import {
   IssueLifecycleRequestSchema,
+  RecentTriageActivityQuerySchema,
   TriageAssignSchema,
   TriageCommentSchema,
   TriageDecisionSchema,
@@ -9,6 +10,7 @@ import {
   addTriageComment,
   assignTriageItem,
   authorizeTriageScope,
+  getRecentTriageActivity,
   getTriageActivity,
   getTriageComments,
   getTriageForUser,
@@ -58,6 +60,12 @@ export const triageRoutes = new Elysia({ name: 'triage', prefix: '/triage' })
     if (!authorized) return status(403, 'Forbidden')
     return getTriageActivity({ ...query, scope: authorized.scope })
   })
+  // (｡･ω･｡) what just happened anywhere the user can see — the overview's feed
+  .get(
+    '/activity/recent',
+    { auth: true, query: RecentTriageActivityQuerySchema },
+    ({ query, user }) => getRecentTriageActivity(user.id, query.limit),
+  )
   .post('/comments', { auth: true, body: TriageCommentSchema }, async ({ body, user, status }) => {
     const created = await addTriageComment(user.id, body)
     if (!created) return status(403, 'Forbidden')

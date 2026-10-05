@@ -14,6 +14,12 @@ export const TOP_TAG_KEYS = 10
 export const TOP_TAG_VALUES = 5
 export const BREAKDOWN_LIMIT = 20
 export const TRACE_LOG_LIMIT = 50
+/** Bucket width and count per overview range: enough points for a chart, few enough for a spark. */
+export const OVERVIEW_WINDOWS = {
+  '24h': { stepMs: HOUR_MS, length: 24 },
+  '7d': { stepMs: 6 * HOUR_MS, length: 28 },
+  '30d': { stepMs: DAY_MS, length: 30 },
+} as const
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** bun-sql writes jsonb as a JSON string scalar; rows written by other clients are objects. */

@@ -49,3 +49,9 @@ export interface TriageActivityEntry {
   body: string | null
   createdAt: Date
 }
+
+export type RecentTriageActivity = Omit<TriageActivityEntry, 'body'> & {
+  scope: string
+  itemKind: string
+  itemRef: string
+}

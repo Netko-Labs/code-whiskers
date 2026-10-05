@@ -1,4 +1,5 @@
 export * from './authorize-triage-scope'
+export * from './get-recent-triage-activity'
 export * from './get-suppressions'
 export * from './get-triage-activity'
 export * from './get-triage-comments'
