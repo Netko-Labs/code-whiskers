@@ -27,8 +27,7 @@ export async function eventStatsOf(keys: ReleaseKey[]): Promise<Map<string, Rele
   const rows = (await db.execute(sql`
     select e.project_id, e.release, count(*)::int as events,
       count(distinct e.issue_id)::int as issues, count(distinct e.user_key)::int as users,
-      coalesce(array_agg(distinct e.environment) filter (where e.environment is not null), '{}')
-        as environments,
+      string_agg(distinct e.environment, chr(31)) as environments,
       mode() within group (order by e.environment) as environment
     from event e where ${inKeys('e', keys)}
     group by e.project_id, e.release`)) as Row[]
@@ -39,7 +38,8 @@ export async function eventStatsOf(keys: ReleaseKey[]): Promise<Map<string, Rele
         events: Number(row.events),
         issues: Number(row.issues),
         users: Number(row.users),
-        environments: Array.isArray(row.environments) ? row.environments.map(String) : [],
+        // Joined on the unit separator: driver array decoding is not something to lean on.
+        environments: row.environments ? String(row.environments).split('\u001f') : [],
         environment: row.environment ? String(row.environment) : null,
       },
     ]),
