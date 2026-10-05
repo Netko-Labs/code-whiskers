@@ -8,18 +8,18 @@ import {
   type TriageItemRef,
   triageCommentsQuery,
 } from '@/integrations/studio-api'
-import { findingRef } from '../../../shared/console-data'
-import type { ConsoleItem } from '../../../shared/console-model'
-import { useConsoleStore } from '../../../use-console-store'
-import type { DetailActions } from '../types'
 import {
-  formatUntil,
+  findingRef,
   patchTriageCache,
   readTriage,
   restoreTriageCache,
-  snoozeDeadline,
-} from '../utils'
-import { DISMISS_NOTE, SAMPLE_ACTION_NOTE } from '../values'
+  SAMPLE_ACTION_NOTE,
+} from '../../../shared/console-data'
+import type { ConsoleItem } from '../../../shared/console-model'
+import { useConsoleStore } from '../../../use-console-store'
+import type { DetailActions } from '../types'
+import { formatUntil, snoozeDeadline } from '../utils'
+import { DISMISS_NOTE } from '../values'
 
 type DecisionExtra = Pick<TriageDecision, 'note' | 'snoozedUntil'>
 
@@ -65,6 +65,7 @@ function decide(
   )
 }
 
+/** Review and log-pattern decisions; issues go through the lifecycle actions instead. */
 export function useDetailActions(item: ConsoleItem): DetailActions {
   const queryClient = useQueryClient()
 
@@ -88,24 +89,15 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         const target = live()
         if (!target) return
         const current = readTriage(queryClient, target)?.status
-        if (item.kind === 'log') {
-          if (current === 'tracked')
-            decide(queryClient, target, 'open', `Stopped tracking ${item.handle}`)
-          else decide(queryClient, target, 'tracked', `Tracking ${item.handle}`)
-          return
-        }
         if (item.kind === 'review') {
           if (current === 'approved') {
             decide(queryClient, target, 'open', `Approval withdrawn on ${item.handle}`)
           } else decide(queryClient, target, 'approved', `Approved ${item.handle} in CodeWhiskers`)
           return
         }
-        const record = readTriage(queryClient, target)
-        const isRegressed =
-          current === 'resolved' && !!item.at && !!record && item.at > record.updatedAt
-        if (current === 'resolved' && !isRegressed) {
-          decide(queryClient, target, 'open', `Reopened ${item.handle}`)
-        } else decide(queryClient, target, 'resolved', `Resolved ${item.handle}`)
+        if (current === 'tracked') {
+          decide(queryClient, target, 'open', `Stopped tracking ${item.handle}`)
+        } else decide(queryClient, target, 'tracked', `Tracking ${item.handle}`)
       },
 
       onSecondary: () => {

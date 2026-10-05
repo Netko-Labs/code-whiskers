@@ -1,11 +1,4 @@
-import type {
-  ConsoleSeverity,
-  ConsoleTone,
-  DiffLine,
-  LogLine,
-  PillTone,
-  StackFrame,
-} from '../../console-model'
+import type { ConsoleSeverity, ConsoleTone, DiffLine, LogLine, PillTone } from '../../console-model'
 
 export type SeverityDotProps = {
   severity: ConsoleSeverity
@@ -27,12 +20,6 @@ export type CodeHunkProps = {
 export type LogLinesProps = {
   lines: LogLine[]
   className?: string
-}
-
-export type StackTraceProps = {
-  title: string
-  frames: StackFrame[]
-  hiddenNote?: string
 }
 
 export type ToneTextProps = {

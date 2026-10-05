@@ -1,13 +1,17 @@
 import type { z } from 'zod'
 import type {
   ALERT_KINDS,
+  ARCHIVE_MODES,
   alertRuleSchema,
   apiKeySchema,
   INTEGRATION_KINDS,
   instanceSchema,
   integrationSchema,
+  issueLifecycleResultSchema,
+  issueLifecycleSchema,
   memberSchema,
   organizationSchema,
+  RESOLVE_MODES,
   REVIEW_RULE_EFFECTS,
   repositorySchema,
   reviewRuleSchema,
@@ -15,8 +19,10 @@ import type {
   savedQuerySchema,
   studioStorageSchema,
   syncResultSchema,
+  TRIAGE_ACTIVITY_KINDS,
   TRIAGE_ITEM_KINDS,
   TRIAGE_STATUSES,
+  triageActivitySchema,
   triageCommentSchema,
   triageRecordSchema,
   viewerSchema,
@@ -80,3 +86,23 @@ export type SavedQueryInput = {
   query: string | null
   service: string | null
 }
+export type ResolveMode = (typeof RESOLVE_MODES)[number]
+export type ArchiveMode = (typeof ARCHIVE_MODES)[number]
+export type ArchiveSpec =
+  | { mode: 'forever' }
+  | { mode: 'until'; until: string }
+  | { mode: 'events'; count: number }
+  | { mode: 'users'; count: number }
+/** One scope per request: the bulk endpoint authorizes a single project at a time. */
+export type IssueLifecycleInput = {
+  scope: string
+  issueIds: string[]
+  status: 'unresolved' | 'resolved' | 'archived'
+  resolve?: { mode: ResolveMode }
+  archive?: ArchiveSpec
+}
+export type IssueLifecycle = z.infer<typeof issueLifecycleSchema>
+export type IssueLifecycleResult = z.infer<typeof issueLifecycleResultSchema>
+export type TriageActivity = z.infer<typeof triageActivitySchema>
+export type TriageActivityKind = (typeof TRIAGE_ACTIVITY_KINDS)[number]
+export type TriageItemRefs = Omit<TriageItemRef, 'itemRef'> & { itemRefs: string[] }

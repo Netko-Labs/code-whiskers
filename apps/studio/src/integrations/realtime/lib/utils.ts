@@ -1,6 +1,13 @@
 import type { QueryClient } from '@tanstack/react-query'
+import { STUDIO_QUERY_KEY } from '@/integrations/studio-api'
 import { WHISKERS_QUERY_KEY } from '@/integrations/whiskers'
-import { REALTIME_PATH, RECONNECT_BASE_MS, RECONNECT_MAX_MS, TOPIC_QUERY_KEYS } from './constants'
+import {
+  REALTIME_PATH,
+  RECONNECT_BASE_MS,
+  RECONNECT_MAX_MS,
+  TOPIC_QUERY_KEYS,
+  TOPIC_STUDIO_QUERY_KEYS,
+} from './constants'
 import { realtimeMessageSchema } from './schemas'
 import type { RealtimeMessage, RealtimeTopic } from './types'
 
@@ -29,4 +36,7 @@ export function invalidateTopics(queryClient: QueryClient, topics: RealtimeTopic
   const keys = new Set(topics.flatMap((topic) => TOPIC_QUERY_KEYS[topic]))
   for (const key of keys)
     void queryClient.invalidateQueries({ queryKey: [WHISKERS_QUERY_KEY, key] })
+  const studioKeys = new Set(topics.flatMap((topic) => TOPIC_STUDIO_QUERY_KEYS[topic] ?? []))
+  for (const key of studioKeys)
+    void queryClient.invalidateQueries({ queryKey: [STUDIO_QUERY_KEY, key] })
 }

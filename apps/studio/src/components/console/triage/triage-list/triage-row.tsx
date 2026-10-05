@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useMembers } from '../../shared/console-data'
 import { SEVERITY_BG } from '../../shared/console-ui'
 import { rowMeta, type TriageRowProps, useItemStatus } from '../lib'
+import { TriageRowIssue } from './triage-row-issue'
 
 export function TriageRow({ bucket, item, active }: TriageRowProps) {
   const status = useItemStatus(item)
@@ -36,10 +37,16 @@ export function TriageRow({ bucket, item, active }: TriageRowProps) {
         >
           {item.title}
         </span>
-        <span className="flex items-baseline gap-2 text-[12px] text-muted-foreground">
-          <span className="min-w-0 flex-1 truncate">{rowMeta(item, status, owner)}</span>
-          <span className="shrink-0 font-mono text-[11px] text-faint tabular-nums">{item.age}</span>
-        </span>
+        {item.issue ? (
+          <TriageRowIssue item={item} owner={owner} />
+        ) : (
+          <span className="flex items-baseline gap-2 text-[12px] text-muted-foreground">
+            <span className="min-w-0 flex-1 truncate">{rowMeta(item, status, owner)}</span>
+            <span className="shrink-0 font-mono text-[11px] text-faint tabular-nums">
+              {item.age}
+            </span>
+          </span>
+        )}
       </div>
     </Link>
   )

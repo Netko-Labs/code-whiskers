@@ -10,7 +10,12 @@ export const PONG = JSON.stringify({ type: 'pong' })
 /** Which whiskers queries each topic makes stale — prefixes under the `whiskers` root key. */
 export const TOPIC_QUERY_KEYS: Record<RealtimeTopic, string[]> = {
   reviews: ['reviews', 'overview', 'instance', 'hotspots'],
-  issues: ['issues', 'latest-event', 'overview', 'releases', 'projects'],
+  issues: ['issues', 'issue', 'issue-events', 'issue-event', 'overview', 'releases', 'projects'],
   logs: ['logs', 'log-patterns', 'services'],
   traces: ['traces', 'services'],
+}
+
+/** Studio's own queries a topic makes stale: issue decisions and their activity log move with it. */
+export const TOPIC_STUDIO_QUERY_KEYS: Partial<Record<RealtimeTopic, string[]>> = {
+  issues: ['triage', 'triage-activity'],
 }

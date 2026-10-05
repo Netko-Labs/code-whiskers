@@ -1,3 +1,4 @@
+import type { IssueSort } from '@/integrations/whiskers'
 import type { ConsoleSeverity, ConsoleTone } from './types'
 
 export type SectionAlign = 'start' | 'end'
@@ -89,6 +90,11 @@ export type SectionFilters = {
   q?: string
   service?: string
   scope?: string
+  environment?: string
+  release?: string
+  sort?: IssueSort
+  /** `1` keeps only issues assigned to the viewer. */
+  mine?: '1'
 }
 
 export type SectionRowLink =

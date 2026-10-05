@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import {
   whiskersIssuesQuery,
@@ -12,8 +12,9 @@ import {
   latestReviewPerPullRequest,
   logPatternToConsoleItem,
   reviewToConsoleItem,
+  withSampleIssue,
 } from '../utils'
-import { SAMPLE_ITEMS } from '../values'
+import { INBOX_ISSUE_QUERY, SAMPLE_ITEMS } from '../values'
 
 export type ConsoleItemsResult = {
   items: ConsoleItem[]
@@ -23,27 +24,28 @@ export type ConsoleItemsResult = {
   isLoading: boolean
 }
 
+/** Triage reads unresolved issues only: resolving or archiving one takes it out of the inbox. */
 export function useConsoleItems(): ConsoleItemsResult {
-  const issues = useQuery({ ...whiskersIssuesQuery(), retry: false })
+  const issues = useInfiniteQuery({ ...whiskersIssuesQuery(INBOX_ISSUE_QUERY), retry: false })
   const reviews = useQuery({ ...whiskersReviewsQuery(), retry: false })
   const patterns = useQuery({ ...whiskersLogPatternsQuery(), retry: false })
   const projects = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
     const projectById = new Map((projects.data ?? []).map((project) => [project.id, project]))
+    const issueRows = issues.data?.pages.flatMap((page) => page.issues) ?? []
     const live = [
-      ...(issues.data ?? []).map((issue) =>
-        issueToConsoleItem(issue, projectById.get(issue.projectId)),
-      ),
+      ...issueRows.map((issue) => issueToConsoleItem(issue, projectById.get(issue.projectId))),
       ...latestReviewPerPullRequest(reviews.data ?? []).map(reviewToConsoleItem),
       ...(patterns.data ?? []).map((pattern) =>
         logPatternToConsoleItem(pattern, projectById.get(pattern.projectId)),
       ),
     ].sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))
     const unreachable = issues.isError || reviews.isError
+    const now = new Date()
 
     return {
-      items: live.length > 0 ? live : SAMPLE_ITEMS,
+      items: live.length > 0 ? live : SAMPLE_ITEMS.map((item) => withSampleIssue(item, now)),
       sample: live.length === 0,
       unreachable,
       isLoading: issues.isLoading || reviews.isLoading,

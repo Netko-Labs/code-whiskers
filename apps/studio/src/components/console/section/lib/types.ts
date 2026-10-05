@@ -12,6 +12,10 @@ import type {
 } from '../../shared/console-model'
 import type { ConsoleScope } from '../../shared/console-scope'
 
+/** Issues and Regressions are the issue list, not a generic table. */
+export type IssueSectionView = Extract<SectionView, 'issues' | 'regressions'>
+export type TableSectionView = Exclude<SectionView, IssueSectionView>
+
 export type SectionViewProps = {
   section: SectionView
   tab: number
@@ -34,7 +38,10 @@ export type SectionHook = (
 ) => SectionDefinition
 
 export type SectionHeaderProps = {
-  definition: SectionDefinition
+  definition: Pick<
+    SectionDefinition,
+    'title' | 'subtitle' | 'stats' | 'note' | 'sample' | 'actions'
+  >
 }
 
 export type SectionToolbarProps = {
@@ -45,7 +52,7 @@ export type SectionToolbarProps = {
 }
 
 export type SectionScreenProps = {
-  section: SectionView
+  section: TableSectionView
   tab: number
   filters: SectionFilters
   useDefinition: SectionHook

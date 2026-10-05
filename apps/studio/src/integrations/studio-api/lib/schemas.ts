@@ -34,6 +34,7 @@ export const syncResultSchema = z.object({
 export const TRIAGE_STATUSES = [
   'open',
   'resolved',
+  'archived',
   'snoozed',
   'tracked',
   'approved',
@@ -59,6 +60,54 @@ export const triageRecordSchema = z.object({
   updatedAt: z.coerce.date(),
 })
 export const triageRecordListSchema = z.array(triageRecordSchema)
+
+export const RESOLVE_MODES = ['now', 'next_release'] as const
+export const ARCHIVE_MODES = ['forever', 'until', 'events', 'users'] as const
+
+/** What whiskers mirrors after a decision; it computes the release and archive targets itself. */
+export const issueLifecycleSchema = z.object({
+  id: z.string(),
+  projectId: z.string(),
+  status: z.enum(['unresolved', 'resolved', 'archived']),
+  resolvedInRelease: z.string().nullable(),
+  resolvedAt: z.coerce.date().nullable(),
+  archivedUntil: z.coerce.date().nullable(),
+  archiveUntilEvents: z.number().nullable(),
+  archiveUntilUsers: z.number().nullable(),
+  regressedAt: z.coerce.date().nullable(),
+  eventCount: z.number(),
+  userCount: z.number(),
+  lastRelease: z.string().nullable(),
+})
+
+/** `mirrored: false` — studio saved the decision but whiskers has not caught up yet. */
+export const issueLifecycleResultSchema = z.object({
+  issues: z.array(issueLifecycleSchema),
+  mirrored: z.boolean(),
+})
+
+export const TRIAGE_ACTIVITY_KINDS = [
+  'resolved',
+  'unresolved',
+  'archived',
+  'regressed',
+  'unarchived',
+  'assigned',
+  'commented',
+] as const
+
+/** Activity and comments merged, oldest first; a null actor is CodeWhiskers itself. */
+export const triageActivitySchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  actorUserId: z.string().nullable().default(null),
+  actorName: z.string().nullable().default(null),
+  actorImage: z.string().nullable().default(null),
+  data: z.record(z.string(), z.unknown()).nullable().default(null),
+  body: z.string().nullable().default(null),
+  createdAt: z.coerce.date(),
+})
+export const triageActivityListSchema = z.array(triageActivitySchema)
 
 export const memberSchema = z.object({
   id: z.string(),

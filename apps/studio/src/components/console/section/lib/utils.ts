@@ -7,7 +7,6 @@ import {
 import { formatAge } from '@/shared/format-date'
 import { formatDiff, latestReviewPerPullRequest } from '../../shared/console-data'
 import type {
-  ConsoleSeverity,
   PillTone,
   SectionAction,
   SectionCell,
@@ -69,12 +68,6 @@ export function medianReviewDuration(reviews: WhiskersReview[]): string {
   const middle = durations[Math.floor(durations.length / 2)] ?? 0
   const seconds = Math.round(middle / 1000)
   return seconds < 90 ? `${seconds}s` : `${Math.round(seconds / 60)}m`
-}
-
-export function issueDot(level: string): ConsoleSeverity {
-  if (level === 'fatal' || level === 'error') return 'critical'
-  if (level === 'warning') return 'warning'
-  return 'info'
 }
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'] as const
