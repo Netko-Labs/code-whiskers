@@ -67,12 +67,6 @@ export type WhiskersSpan = z.infer<typeof whiskersSpanSchema>
 export type WhiskersService = z.infer<typeof whiskersServiceSchema>
 /** Project ids to read from; undefined reads every project, empty reads none. */
 export type ProjectScope = string[] | undefined
-export type LogQuery = {
-  projectIds?: ProjectScope
-  service?: string
-  level?: 'error' | 'warn'
-  q?: string
-}
 /** `ids` narrows to known issues (studio's assignee filter); an empty list reads none. */
 export type IssueListParams = {
   projectIds?: ProjectScope

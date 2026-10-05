@@ -22,15 +22,21 @@ export {
   whiskersIssueQuery,
   whiskersIssuesQuery,
   whiskersIssueTotalQuery,
-  whiskersLogPatternsQuery,
-  whiskersLogsQuery,
   whiskersOverviewQuery,
   whiskersPullRequestReviewsQuery,
   whiskersReleasesQuery,
   whiskersReviewQuery,
   whiskersReviewsQuery,
+} from './queries'
+export {
+  whiskersExplorerPatternsQuery,
+  whiskersLogPatternsQuery,
+  whiskersLogStreamQuery,
+  whiskersLogVolumeQuery,
+  whiskersServiceStatsQuery,
   whiskersServicesQuery,
+  whiskersTraceContextQuery,
   whiskersTraceQuery,
   whiskersTracesQuery,
-} from './queries'
+} from './telemetry'
 export { whiskersReleaseQuery, whiskersSuspectCommitsQuery } from './releases'

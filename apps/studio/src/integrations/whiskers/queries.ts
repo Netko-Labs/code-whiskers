@@ -5,10 +5,12 @@ import {
   ISSUE_PAGE_SIZE,
   type IssueListParams,
   type IssuePeriod,
-  type LogQuery,
   NO_PROJECT,
   type OverviewParams,
   type ProjectScope,
+  params,
+  scoped,
+  scopeKey,
   WHISKERS_QUERY_KEY,
   type WhiskersIssuePage,
   whiskersEventDetailSchema,
@@ -17,16 +19,11 @@ import {
   whiskersIssueDetailSchema,
   whiskersIssueEventListSchema,
   whiskersIssuePageSchema,
-  whiskersLogListSchema,
-  whiskersLogPatternListSchema,
   whiskersOverviewSchema,
   whiskersPullRequestReviewsSchema,
   whiskersReleaseListSchema,
   whiskersReviewDetailSchema,
   whiskersReviewListSchema,
-  whiskersServiceListSchema,
-  whiskersSpanListSchema,
-  whiskersTraceListSchema,
 } from './lib'
 
 /** An empty project scope still reads the repository's reviews, so it asks for no project by name. */
@@ -44,21 +41,6 @@ export const whiskersOverviewQuery = ({ range, projectIds, repository }: Overvie
       ),
     placeholderData: keepPreviousData,
   })
-
-function params(values: Record<string, string | undefined>): string {
-  const defined = Object.entries(values).filter((entry): entry is [string, string] => !!entry[1])
-  return defined.length ? `?${new URLSearchParams(defined)}` : ''
-}
-
-/** A scope with no projects has nothing to read; answer empty instead of asking for everything. */
-function scoped<T>(projectIds: ProjectScope, read: (projectId?: string) => Promise<T[]>) {
-  if (projectIds?.length === 0) return Promise.resolve([] as T[])
-  return read(projectIds?.join(','))
-}
-
-function scopeKey(projectIds: ProjectScope): string | null {
-  return projectIds ? projectIds.join(',') || '-' : null
-}
 
 const EMPTY_ISSUE_PAGE: WhiskersIssuePage = { issues: [], nextCursor: null, total: 0 }
 
@@ -177,55 +159,6 @@ export const whiskersReleasesQuery = (projectIds?: ProjectScope) =>
     queryFn: () =>
       scoped(projectIds, (projectId) =>
         fetchWhiskers(`/releases${params({ projectId })}`, whiskersReleaseListSchema),
-      ),
-  })
-
-export const whiskersLogsQuery = ({ projectIds, ...query }: LogQuery) =>
-  queryOptions({
-    queryKey: [
-      WHISKERS_QUERY_KEY,
-      'logs',
-      scopeKey(projectIds),
-      query.service ?? null,
-      query.level ?? null,
-      query.q ?? null,
-    ],
-    queryFn: () =>
-      scoped(projectIds, (projectId) =>
-        fetchWhiskers(`/logs${params({ ...query, projectId })}`, whiskersLogListSchema),
-      ),
-  })
-
-export const whiskersTracesQuery = (service?: string, projectIds?: ProjectScope) =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'traces', scopeKey(projectIds), service ?? null],
-    queryFn: () =>
-      scoped(projectIds, (projectId) =>
-        fetchWhiskers(`/traces${params({ service, projectId })}`, whiskersTraceListSchema),
-      ),
-  })
-
-export const whiskersTraceQuery = (traceId: string) =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'trace', traceId],
-    queryFn: () => fetchWhiskers(`/traces/${encodeURIComponent(traceId)}`, whiskersSpanListSchema),
-  })
-
-export const whiskersServicesQuery = (projectIds?: ProjectScope) =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'services', scopeKey(projectIds)],
-    queryFn: () =>
-      scoped(projectIds, (projectId) =>
-        fetchWhiskers(`/services${params({ projectId })}`, whiskersServiceListSchema),
-      ),
-  })
-
-export const whiskersLogPatternsQuery = (projectIds?: ProjectScope) =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'log-patterns', scopeKey(projectIds)],
-    queryFn: () =>
-      scoped(projectIds, (projectId) =>
-        fetchWhiskers(`/log-patterns${params({ projectId })}`, whiskersLogPatternListSchema),
       ),
   })
 

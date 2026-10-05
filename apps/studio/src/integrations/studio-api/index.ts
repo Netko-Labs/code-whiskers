@@ -20,6 +20,7 @@ export {
   postTriageComment,
   recentTriageActivityQuery,
   recordTriage,
+  renameSavedQuery,
   repositoriesQuery,
   revokeApiKey,
   rulesQuery,

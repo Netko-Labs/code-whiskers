@@ -22,7 +22,7 @@ export const TOPIC_QUERY_KEYS: Record<RealtimeTopic, string[]> = {
     'latest-issue',
   ],
   logs: ['logs', 'log-patterns', 'services'],
-  traces: ['traces', 'services'],
+  traces: ['traces', 'trace', 'services'],
   alerts: [],
 }
 

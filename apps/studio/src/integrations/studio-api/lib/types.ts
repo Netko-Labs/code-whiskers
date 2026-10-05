@@ -77,6 +77,7 @@ export type SavedQueryInput = {
   tab: number
   query: string | null
   service: string | null
+  params?: Record<string, unknown>
 }
 export type ResolveMode = (typeof RESOLVE_MODES)[number]
 export type ArchiveMode = (typeof ARCHIVE_MODES)[number]

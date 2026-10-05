@@ -233,6 +233,9 @@ export const savedQueriesQuery = () =>
 export const createSavedQuery = (input: SavedQueryInput) =>
   fetchStudio('/saved-queries', createdSchema, 'POST', input)
 
+export const renameSavedQuery = (id: string, name: string) =>
+  fetchStudio(`/saved-queries/${id}`, okSchema, 'PATCH', { name })
+
 export const deleteSavedQuery = (id: string) =>
   fetchStudio(`/saved-queries/${id}`, okSchema, 'DELETE')
 

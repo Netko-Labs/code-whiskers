@@ -230,6 +230,7 @@ export const savedQuerySchema = z.object({
   tab: z.number(),
   query: z.string().nullable(),
   service: z.string().nullable(),
+  params: z.record(z.string(), z.unknown()).default({}),
   createdAt: z.coerce.date(),
 })
 export const savedQueryListSchema = z.array(savedQuerySchema)

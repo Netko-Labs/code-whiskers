@@ -216,9 +216,20 @@ export const whiskersSpanSchema = z.object({
   parentSpanId: z.string().nullable(),
   service: z.string(),
   name: z.string(),
+  kind: z.number().default(0),
   status: z.enum(['unset', 'ok', 'error']),
   startTime: z.coerce.date(),
   durationMs: z.number(),
+  attributes: z.record(z.string(), z.unknown()).default({}),
+  events: z
+    .array(
+      z.object({
+        name: z.string(),
+        timestamp: z.coerce.date(),
+        attributes: z.record(z.string(), z.unknown()).default({}),
+      }),
+    )
+    .default([]),
 })
 export const whiskersSpanListSchema = z.array(whiskersSpanSchema)
 
