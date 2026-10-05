@@ -33,13 +33,15 @@ their own GitHub installations. That is a design constraint, not a footnote:
 2. **Neither app opens the other's connection.** Studio reads whiskers through
    `/v1/*`. Whiskers reads studio through `/api/internal/*`, and announces what changed
    through `POST /api/internal/events` — a refetch hint, never the data. Studio pushes it to
-   open consoles over `/realtime`; the browser then reads through `/v1` as before.
+   open consoles over `/realtime`; the browser then reads through `/v1` as before. The one
+   exception to "whiskers only reads" is the **issue lifecycle mirror** below.
 3. **Auth differs by direction.** Studio→whiskers is the existing JWT/JWKS handshake:
    studio mints at `GET /api/auth/token`, whiskers verifies against `/api/auth/jwks`
    with `jose`, no shared secret. Whiskers→studio is a shared `INTERNAL_TOKEN`,
    compared in constant time — whiskers has no keypair studio could verify against,
    and minting one for a single-operator tool is ceremony without a threat behind it.
-   An unset token leaves `/api/internal/*` closed rather than open.
+   An unset token leaves `/api/internal/*` closed rather than open. Studio's server-side
+   writes into whiskers (`/internal/*`, never forwarded publicly) present the same token.
 4. **Whiskers caches studio config** (watched repos, review rules, project keys) with a
    short TTL. A webhook must not block on a studio round trip per event.
 
@@ -146,7 +148,7 @@ Whiskers caches `(id, public_key)` — ingest cannot round-trip per event.
 
 ### Triage decisions
 
-**`triage_state`** — the console's resolve / approve / assign / snooze. Human decisions
+**`triage_state`** — the console's resolve / archive / approve / assign / snooze. Human decisions
 *about* machine output, so they live on the human side and reference whiskers by id.
 
 | column | type | note |
@@ -155,13 +157,47 @@ Whiskers caches `(id, public_key)` — ingest cannot round-trip per event.
 | `installation_id` | bigint | |
 | `item_kind` | enum | `issue` \| `review` \| `log` |
 | `item_ref` | text | the whiskers row id — no FK |
-| `status` | enum | `open` \| `resolved` \| `snoozed` \| `tracked` \| `approved` \| `dismissed` |
+| `status` | enum | `open` \| `resolved` \| `archived` \| `snoozed` \| `tracked` \| `approved` \| `dismissed` — issues use `open` / `resolved` / `archived` |
 | `assignee_user_id` | text | nullable |
-| `snoozed_until` | timestamp | nullable |
+| `snoozed_until` | timestamp | nullable; reviews and logs |
+| `resolve_mode` | text | issues: `now` \| `next_release` |
+| `archive_mode` `archive_value` | text | issues: `forever` \| `until` (ISO time) \| `events` \| `users` (count) |
+| `mirrored_at` | timestamp | issues: when whiskers took the decision; null = not yet |
 | `note` | text | why it was dismissed |
 | `updated_by` `updated_at` | | |
 
-Unique on `(installation_id, item_kind, item_ref)`.
+Unique on `(scope, item_kind, item_ref)`.
+
+**`triage_activity`** — `id`, `scope`, `item_kind`, `item_ref`, `kind` (`resolved` \|
+`unresolved` \| `archived` \| `regressed` \| `unarchived` \| `assigned` \| `commented`),
+`actor_user_id` (null = whiskers), `data` jsonb, `created_at`. The item's timeline;
+`triage_comment` keeps comment bodies, and `GET /api/triage/activity` merges the two.
+
+#### The issue lifecycle mirror
+
+An issue is `unresolved`, `resolved` (now, or in the next release) or `archived` (forever, until a
+time, or until N more events / distinct users). Studio decides; whiskers has to *act* on the
+decision at ingest, where a studio round trip per event is not an option. So whiskers keeps a
+mirror on `issue`, and the two sides talk both ways with `INTERNAL_TOKEN`:
+
+```
+ console ──POST /api/triage/issues/lifecycle──▶ studio: triage_state + triage_activity
+                                                  │  write-through (bulk, ≤100 ids)
+                                                  ▼
+                                   whiskers POST /internal/issues/lifecycle → issue.status…
+ SDK event ──▶ whiskers ingest: resolved + recurrence → unresolved (`regressed_at`)
+                                archived + condition met → unresolved
+                                  │
+                                  ▼
+               studio POST /api/internal/issues/transition → triage_state `open`,
+                                system activity, realtime `issues`
+```
+
+Resolve-in-next-release records the issue's latest release; an event regresses it only when its
+release differs *and* first reached the project after the resolve. A write-through that fails
+leaves `mirrored_at` null and the response says `mirrored: false`; a sweep every five minutes
+pushes every unmirrored issue decision (it also carried the decisions made before the mirror
+existed).
 
 ### Instance settings
 
@@ -194,14 +230,18 @@ raw counts locally and pushes on a schedule.
 
 ### Errors
 
-**`issue`** — `id`, `project_id`, `fingerprint`, `title`, `level`, `event_count`,
+**`issue`** — `id`, `project_id`, `fingerprint`, `title`, `level`, `culprit`, `event_count`,
 `user_count`, `first_seen`, `last_seen`, `last_release`. Unique on
-`(project_id, fingerprint)`. Note there is **no `status`** — resolution is
-`triage_state` in studio.
+`(project_id, fingerprint)`. The lifecycle columns — `status` (`unresolved` \| `resolved` \|
+`archived`), `resolved_in_release`, `resolved_at`, `archived_until`, `archive_until_events`,
+`archive_until_users` (target totals), `regressed_at` — are a **mirror** of studio's
+`triage_state`, never decided here except by a recurrence. Badges (`new`, `regressed`,
+`spiking`) are derived per read, never stored.
 
 **`event`** — partitioned by `received_at`. `id`, `issue_id`, `project_id`, `event_id`,
-`level`, `message`, `environment`, `release`, `payload` jsonb, `received_at`. Unique on
-`(project_id, event_id)` so SDK retries are stored once.
+`level`, `message`, `environment`, `release`, `user_key` (sha256 of the SDK's user id, else
+email, else IP — counts people without holding who they are), `payload` jsonb, `received_at`.
+Unique on `(project_id, event_id)` so SDK retries are stored once.
 
 **`release`** — `id`, `project_id`, `version`, `deployed_at`, `deployed_by`,
 `crash_free_rate`, `adoption`, `new_issue_count`, `regression_count`.
@@ -285,7 +325,8 @@ Timescale is the natural first move because nothing above the driver changes.
    retention, ingest rate and queue depth — still fixtures until `setting` and `usage_rollup`
    exist.
 1. `project` moves studio-ward; whiskers keeps a cached copy for ingest.
-2. `issue.status` drops in favour of `triage_state`.
+2. ~~`issue.status` drops in favour of `triage_state`.~~ Superseded: `triage_state` decides,
+   and `issue.status` became its mirror (whiskers 0006, studio 0011) so ingest can reopen.
 3. Whiskers gains `installation_id` and `repository_id` on `review`.
 4. ~~Studio gains the GitHub, rules, access and triage tables.~~ Done (migrations 0003–0010):
    `organization`, `organization_member`, `repository`, `triage_state`, `triage_comment`,

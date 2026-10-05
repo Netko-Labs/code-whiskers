@@ -27,7 +27,7 @@ flowchart LR
 | | studio | whiskers |
 | --- | --- | --- |
 | Packages | `packages/studio/{domain,repository,service,api}`, `packages/configs/studio-config` | `packages/whiskers/{domain,repository,service,api}`, `packages/configs/whiskers-config` |
-| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/v1/{overview,issues,reviews}`, `/health` |
+| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/v1/{overview,issues,reviews}`, `/internal/*` (studio only), `/health` |
 | Database | auth tables | reviews, findings, projects, issues, events |
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
@@ -70,6 +70,14 @@ Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` wi
 DSN key. Events are grouped into issues by fingerprint (the SDK's, else the thrown exception plus
 its top in-app frame); `/v1/issues` and `/v1/overview` read them. Bodies may be gzip, deflate or br,
 up to 1 MiB on the wire and 20 MiB decoded (413 past that); a retried `event_id` is stored once.
+
+An issue is **unresolved**, **resolved** (now, or in the next release) or **archived** (forever,
+until a time, or until N more events or users). Studio records the decision
+(`POST /api/triage/issues/lifecycle`) and writes it through to whiskers, which keeps a mirror so
+ingest can act on it: a resolved issue that recurs regresses, an archive whose condition runs out
+ends, and whiskers tells studio (`POST /api/internal/issues/transition`). `/v1/issues` pages,
+filters and sorts server-side and carries `new` / `regressed` / `spiking` badges and a 14-day trend;
+`/v1/issues/:id`, `/v1/issues/:id/events` and `/v1/issues/:id/events/:eventId` read one issue.
 
 ## Deploy
 
