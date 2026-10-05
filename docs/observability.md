@@ -26,7 +26,16 @@ network call. The code lives in `packages/shared/observability` (`.` pure config
 3. Enable **Include Source Commit in Build** so `SOURCE_COMMIT` reaches the build and the browser
    events carry the release. Release is `SENTRY_RELEASE` ?? `SOURCE_COMMIT` ?? `dev`; environment is
    `SENTRY_ENVIRONMENT` ?? `production`/`development` from `NODE_ENV`.
-4. Deploy and check `GET /api/health` (studio) or `/health` (whiskers): both report `release` and
+4. Report each deploy so releases show where they run and what went into them: add the
+   project's deploy line (project settings → **Deploys**) as a post-deployment step, e.g.
+
+   ```bash
+   curl -fsS -X POST https://whiskers.netko.dev/api/<projectId>/deploys -H "Authorization: DSN <client key>" -H "Content-Type: application/json" -d "{\"version\":\"$SOURCE_COMMIT\",\"environment\":\"production\",\"commitSha\":\"$SOURCE_COMMIT\"}"
+   ```
+
+   The version must match the events' release (`SOURCE_COMMIT` here). With the project linked to
+   its repository, the release lists its commits and the issues it introduced name suspects.
+5. Deploy and check `GET /api/health` (studio) or `/health` (whiskers): both report `release` and
    `environment`. A production boot with no DSN logs one `error reporting is off` warn; a malformed
    DSN logs a warn and is treated as unset — neither refuses to boot.
 
@@ -47,7 +56,7 @@ network call. The code lives in `packages/shared/observability` (`.` pure config
 
 whiskers is the sink, so a fault in the ingest must never report itself into the ingest.
 
-- `beforeSend` drops any event whose `path` tag is an ingest path (`/api/:id/envelope|store`,
+- `beforeSend` drops any event whose `path` tag is an ingest path (`/api/:id/envelope|store|deploys`,
   `/otlp/*`, `/v1/projects/:id/test-event`); studio also drops its forwarded paths (`/webhooks/*`,
   `/v1/*`) and `/api/monitor`.
 - **Send test event** never goes through an SDK or the network: whiskers calls `ingestEvent`

@@ -278,8 +278,22 @@ repository counts no reviews. Nothing is stored for it: it is a handful of group
 email, else IP — counts people without holding who they are), `payload` jsonb, `received_at`.
 Unique on `(project_id, event_id)` so SDK retries are stored once.
 
-**`release`** — `id`, `project_id`, `version`, `deployed_at`, `deployed_by`,
-`crash_free_rate`, `adoption`, `new_issue_count`, `regression_count`.
+**`release`** — `id`, `project_id`, `version` (unique per project), `repository` and
+`commit_sha` (null falls back to the project's repository and to a sha-like version),
+`first_seen`, `last_seen`, `created_at`, `commits_synced_at`. Created at ingest on an event's first
+sight of a release (one upsert a minute per release, off the event path) or by a deploy; 0008
+backfilled it from events. What a release brought (events, new issues, environments) is read off
+`event` and `issue`, never stored.
+
+**`deploy`** — `id`, `release_id` (FK, cascade), `environment`, `deployed_at`, `url`, `name`.
+Written by `POST /api/:projectId/deploys` with a project client key; the newest per environment is
+what runs there.
+
+**`release_commit`** — `(release_id, sha)` PK, `message`, `author_name`, `author_login`,
+`author_avatar`, `committed_at`, `pr_number`, `files` jsonb. The range since the previous
+release's sha, read through the GitHub App (newest 50, files per commit); a review verdict is joined
+per read from `review`. Suspect commits are commits of an issue's first release whose files match
+its in-app frames.
 
 **`regression`** — `id`, `issue_id`, `resolved_at`, `reopened_at`, `suspect_sha`,
 `suspect_pr`. Written when an issue fires after a `triage_state` resolve.
@@ -344,7 +358,7 @@ Timescale is the natural first move because nothing above the driver changes.
 | Codebase map | `repository` ownership | `finding` `span` risk |
 | Review rules | `review_rule` | — |
 | Issues / Regressions | `triage_state` | `issue` `event` `regression` |
-| Releases | — | `release` |
+| Releases | — | `release` `deploy` `release_commit` |
 | Alert rules | `alert_rule` | evaluation in `job` |
 | Live logs / Traces / Services | `saved_query` | `log_line` `span` `service` |
 | Saved queries | `saved_query` | — |

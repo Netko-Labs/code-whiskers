@@ -27,7 +27,7 @@ flowchart LR
 | | studio | whiskers |
 | --- | --- | --- |
 | Packages | `packages/studio/{domain,repository,service,api}`, `packages/configs/studio-config` | `packages/whiskers/{domain,repository,service,api}`, `packages/configs/whiskers-config` |
-| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/v1/{overview,issues,reviews,projects}`, `/internal/*` (studio only), `/health` |
+| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store\|deploys`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/api/:projectId/deploys`, `/v1/{overview,issues,reviews,projects,releases}`, `/internal/*` (studio only), `/health` |
 | Database | auth tables | reviews, findings, projects, issues, events |
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
@@ -137,6 +137,17 @@ A reply, a 👎 or a resolved thread counts as an answer: that finding is not ra
   event**, which ingests a synthetic error server-side, no SDK needed). A project has any number of
   client keys (`/console/projects/<id>`: add, disable, delete — never the last enabled one); every
   enabled key is a valid DSN.
+- **Releases and deploys** — events carry `release` from `Sentry.init`, and each new one becomes a
+  release. Report deploys from CI or Coolify with the same client key (one line, also on the
+  project's settings page):
+
+  ```bash
+  curl -fsS -X POST https://<host>/api/<projectId>/deploys -H "Authorization: DSN <client key>" -H "Content-Type: application/json" -d "{\"version\":\"$SOURCE_COMMIT\",\"environment\":\"production\",\"commitSha\":\"$SOURCE_COMMIT\"}"
+  ```
+
+  Optional fields: `url`, `name`, `repository` (must match the project's linked one), `deployedAt`.
+  With a repository and a sha, whiskers reads the commits since the previous release through the
+  GitHub App, links each to its PR and review, and flags suspect commits on issues.
 - **Logs and traces** — OTLP over HTTP with JSON bodies: point an exporter at
   `https://<host>/otlp` with `OTEL_EXPORTER_OTLP_PROTOCOL=http/json` and the header
   `Authorization: Bearer <an enabled client key>`. Protobuf is refused with a 415 that says so.
