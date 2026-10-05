@@ -10,7 +10,6 @@ import {
   IconClock,
   IconCode,
   IconFolders,
-  IconGauge,
   IconGitCommit,
   IconGitPullRequest,
   IconInbox,
@@ -19,6 +18,7 @@ import {
   IconPlug,
   IconScale,
   IconScript,
+  IconSettings,
   IconTag,
   IconTopologyStar3,
   IconUser,
@@ -112,15 +112,15 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
     label: 'Organization',
     icon: IconBuildingCommunity,
     items: [
-      { label: 'Members', icon: IconUsers, to: SECTION_ROUTE, params: { section: 'members' } },
+      { label: 'Members', icon: IconUsers, to: '/console/settings/members' },
       {
         label: 'Integrations',
         icon: IconPlug,
         to: SECTION_ROUTE,
         params: { section: 'integrations' },
       },
-      { label: 'API keys', icon: IconKey, to: SECTION_ROUTE, params: { section: 'api-keys' } },
-      { label: 'Instance', icon: IconGauge, to: SECTION_ROUTE, params: { section: 'instance' } },
+      { label: 'API keys', icon: IconKey, to: '/console/settings/api-keys' },
+      { label: 'Settings', icon: IconSettings, to: '/console/settings/general' },
     ],
   },
 ]
@@ -137,5 +137,5 @@ export const RAIL_ITEMS: ConsoleNavItem[] = [
   },
   { label: 'Live logs', icon: IconScript, to: SECTION_ROUTE, params: { section: 'live-logs' } },
   { label: 'Traces', icon: IconGitCommit, to: SECTION_ROUTE, params: { section: 'traces' } },
-  { label: 'Members', icon: IconUsers, to: SECTION_ROUTE, params: { section: 'members' } },
+  { label: 'Settings', icon: IconSettings, to: '/console/settings/general' },
 ]

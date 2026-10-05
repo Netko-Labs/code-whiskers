@@ -3,34 +3,12 @@ import { setWhiskersProjectRepository, type WhiskersProject } from '@/integratio
 import type {
   SectionAction,
   SectionCell,
-  SectionDefinition,
   SectionFieldOption,
   SectionFilters,
   SectionForm,
   SectionTextCell,
 } from '../../shared/console-model'
 import type { ConsoleScope } from '../../shared/console-scope'
-import { MEMBERS_SECTION } from './values'
-
-const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'] as const
-
-export function formatBytes(bytes: number): string {
-  let value = bytes
-  let unit = 0
-  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
-    value /= 1024
-    unit += 1
-  }
-  return `${value >= 10 || unit === 0 ? Math.round(value) : value.toFixed(1)} ${BYTE_UNITS[unit]}`
-}
-
-export function formatSeconds(seconds: number | null): string {
-  if (seconds === null) return '—'
-  if (seconds < 90) return `${Math.round(seconds)}s`
-  if (seconds < 5400) return `${Math.round(seconds / 60)}m`
-  return `${(seconds / 3600).toFixed(1)}h`
-}
-
 export function textCell(
   value: string,
   extra: Partial<Omit<SectionTextCell, 'kind' | 'text'>> = {},
@@ -109,17 +87,5 @@ export function linkRepositoryForm(
       await onSaved(repository)
       return undefined
     },
-  }
-}
-
-/** The GitHub App install link is the next step once the instance knows it. */
-export function emptyMembers(installUrl: string | undefined): SectionDefinition {
-  const empty = MEMBERS_SECTION.empty
-  return {
-    ...MEMBERS_SECTION,
-    empty:
-      empty && installUrl
-        ? { ...empty, action: { label: 'Install on another account', href: installUrl } }
-        : empty,
   }
 }

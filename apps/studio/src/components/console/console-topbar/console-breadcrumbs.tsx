@@ -33,6 +33,10 @@ export function ConsoleBreadcrumbs({ crumbs }: ConsoleBreadcrumbsProps) {
                   >
                     {crumb.label}
                   </BreadcrumbLink>
+                ) : crumb.to ? (
+                  <BreadcrumbLink className={label} render={<Link to={crumb.to} />}>
+                    {crumb.label}
+                  </BreadcrumbLink>
                 ) : (
                   <span className={cn(label, 'text-muted-foreground')}>{crumb.label}</span>
                 )}

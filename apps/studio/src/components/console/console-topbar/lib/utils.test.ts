@@ -46,6 +46,21 @@ describe('crumbsFor', () => {
     expect(crumbsFor('/console/projects/new', names).at(-1)?.label).toBe('New project')
   })
 
+  test('the projects index stands alone; its children link back to it', () => {
+    expect(crumbsFor('/console/projects', names)).toEqual([{ label: 'Projects' }])
+    expect(crumbsFor('/console/projects/p1', names)[0]).toEqual({
+      label: 'Projects',
+      to: '/console/projects',
+    })
+  })
+
+  test('settings tabs sit under Settings', () => {
+    expect(crumbsFor('/console/settings/api-keys', names)).toEqual([
+      { label: 'Settings', to: '/console/settings/general' },
+      { label: 'API keys' },
+    ])
+  })
+
   test('unknown paths have no trail', () => {
     expect(crumbsFor('/console', names)).toEqual([])
     expect(crumbsFor('/console/nope', names)).toEqual([])

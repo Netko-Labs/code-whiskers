@@ -84,14 +84,6 @@ export type SectionActionsProps = {
   actions: SectionAction[]
 }
 
-export type StoreRow = {
-  table: string
-  database: string
-  bytes: number
-  rows: string
-  oldest: Date | null
-}
-
 export type SectionFormState = {
   values: Record<string, string>
   isPending: boolean

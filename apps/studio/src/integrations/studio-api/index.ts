@@ -14,6 +14,7 @@ export {
   deleteRule,
   deleteSavedQuery,
   githubLoginQuery,
+  instanceHealthQuery,
   instanceQuery,
   integrationsQuery,
   membersQuery,
@@ -35,6 +36,7 @@ export {
   triageActivityQuery,
   triageCommentsQuery,
   triageQuery,
+  updateInstanceSettings,
   updateRule,
   viewerQuery,
 } from './queries'

@@ -1,9 +1,6 @@
 import { useAlertRulesSection } from './hooks/use-alert-rules-section'
-import { useApiKeysSection } from './hooks/use-api-keys-section'
-import { useInstanceSection } from './hooks/use-instance-section'
 import { useIntegrationsSection } from './hooks/use-integrations-section'
 import { useLiveLogsSection } from './hooks/use-live-logs-section'
-import { useMembersSection } from './hooks/use-members-section'
 import { useSavedQueriesSection } from './hooks/use-saved-queries-section'
 import { useServicesSection } from './hooks/use-services-section'
 import { useTracesSection } from './hooks/use-traces-section'
@@ -19,10 +16,7 @@ export const SECTION_HOOKS: Record<Exclude<TableSectionView, 'releases'>, Sectio
   traces: useTracesSection,
   services: useServicesSection,
   'saved-queries': useSavedQueriesSection,
-  members: useMembersSection,
   integrations: useIntegrationsSection,
-  'api-keys': useApiKeysSection,
-  instance: useInstanceSection,
 }
 
 export const SECTION_ROW =

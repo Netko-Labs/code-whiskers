@@ -5,7 +5,6 @@ import type {
   ConsoleNotification,
   ConsoleOrg,
   ConsoleNavGroup as NavGroup,
-  SectionView,
 } from '../../shared/console-model'
 
 export type ConsoleNavItemProps = {
@@ -42,7 +41,7 @@ export type OrgChoices = {
 export type UserMenuEntry = {
   label: string
   icon: Icon
-  section: SectionView
+  to: string
 }
 
 export type ClassNameProps = {

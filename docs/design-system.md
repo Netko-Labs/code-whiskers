@@ -76,7 +76,10 @@ Rules: motion explains a change (arrived, moved, opened); 120–240ms, ease-out,
 loops except waiting states (`shimmer`, `LiveDot`, the cat in empty states). Alerts arrive, they
 don't shake. Route changes cross-fade the page panel only (View Transitions, path changes only;
 search-param changes never animate). Reduced motion zeroes every token: nothing moves, fades
-become instant, `useCountUp` jumps, `EmptyState` keeps the cat still. Never add an animation
+become instant, `useCountUp` jumps, `EmptyState` keeps the cat still. It comes from the OS
+setting or from Settings → Account → Motion, which sets `data-motion="reduce"` on `<html>`
+(`useMotionPreference`, restored by the shell with `useStoredMotion`); read it with
+`usePrefersReducedMotion`, never `matchMedia` directly. Never add an animation
 library; CSS and `@/shared/motion` (`useCountUp`, `usePrefersReducedMotion`) cover it.
 
 ## Shell
@@ -113,7 +116,8 @@ Low-level primitives (Button, DropdownMenu, Dialog, Tooltip, Skeleton, Kbd, Comm
 `Page` (the route's scroll container), `PageBody` (`width="default" | "narrow" | "full"`),
 `PageHeader` (title, description, icon, meta, actions, tabs), `PageTabs`, `Panel` (hairline box
 with optional header), `Section` (unboxed heading + content), `KeyValueList`/`KeyValue` (detail
-rail), skeletons `PageHeaderSkeleton`, `PanelSkeleton`, `KeyValueSkeleton`.
+rail), `SettingRow` (one setting inside a flush `Panel`: label + description left, control right,
+`htmlFor` ties the label to it), skeletons `PageHeaderSkeleton`, `PanelSkeleton`, `KeyValueSkeleton`.
 
 ```tsx
 <Page>
@@ -224,6 +228,15 @@ keys are handled by the shell: ⌘K, `?`, `[`, `g` + key. Page keys use `useDocu
   evidence left (`Section`s, code in dark panes), context right (`KeyValueList`, activity).
 - **Settings page**: `PageBody width="narrow"` → stacked `Section`s or `Panel`s, one form each,
   save buttons inside the section they save. Destructive zone last, its button `variant="destructive"`.
+  Instance and account settings live under `/console/settings/<tab>` (`components/console/settings`):
+  a 220px rail (`SETTINGS_NAV` in `shared/console-data`; a scrolling tab row below `md`) beside
+  the page. A tab is `SettingsPage` → `Panel isFlush` of `SettingRow`s (what it is left, control or
+  value right). Forms validate inline with the domain's zod schema (`formError`), the error under
+  the field in `text-severity-error-ink`; Save appears only when the value is dirty, Escape reverts.
+  Safe writes are optimistic (rename, revoke) and roll back with a toast; every save toasts.
+  Env-driven values are read-only with the variable named in the description. Rail entries that
+  live elsewhere (Projects, Notifications) carry an arrow. Secrets are shown once in a dialog with
+  copy and a "won't be shown again" line.
 - **Dashboard**: `PageHeader` → `StatGrid` of 4 `StatCard`s (with `trend`) → `Panel`s in a
   2-column grid (`grid gap-4 lg:grid-cols-2`), each a chart or a short `DataList` with a "View all"
   link in `actions`.
@@ -334,6 +347,14 @@ Mobbin screens used for the direction:
   [31bc9279](https://mobbin.com/screens/31bc9279-f1e6-449c-9143-583e558609b4), stat row over a
   chart (Browserbase) [654392d0](https://mobbin.com/screens/654392d0-9063-4db4-8987-6b7fc6742537),
   history feed (Railway) [fca24d24](https://mobbin.com/screens/fca24d24-ab3c-4dec-a5d3-e90b18e90af1)
+- Linear settings rail and row-style setting groups —
+  [fea37c46](https://mobbin.com/screens/fea37c46-ab06-4d46-86c7-333ffb0db455),
+  [fc41ba13](https://mobbin.com/screens/fc41ba13-34f5-429c-8f96-d37e18311c2d)
+- Vercel inline token create and the shown-once secret dialog —
+  [6f1b5ef1](https://mobbin.com/screens/6f1b5ef1-935e-413b-9aec-89f70ac8e04e),
+  [d6fa2659](https://mobbin.com/screens/d6fa2659-7f0a-4cc2-81fc-2f5b16f13265)
+- Vercel connected accounts as rows with a trailing action —
+  [fe7d7e6e](https://mobbin.com/screens/fe7d7e6e-ad12-48be-bc7f-d3e6ec6297c7)
 - Inset content panel beside a canvas sidebar (AirOps) —
   [7add224e](https://mobbin.com/screens/7add224e-bafe-4c01-80f9-1e86514011d0)
 - GitHub files-changed review and PR conversation (code review pages) —

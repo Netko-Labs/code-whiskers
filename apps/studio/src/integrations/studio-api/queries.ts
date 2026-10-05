@@ -9,9 +9,12 @@ import {
   createdSchema,
   deliverySchema,
   githubLoginSchema,
+  type InstanceSettingsInput,
   type IntegrationInput,
   type IssueLifecycleInput,
+  instanceHealthSchema,
   instanceSchema,
+  instanceSettingsSchema,
   integrationListSchema,
   issueLifecycleResultSchema,
   memberListSchema,
@@ -96,6 +99,16 @@ export const instanceQuery = () =>
     queryFn: () => fetchStudio('/instance', instanceSchema),
     staleTime: Number.POSITIVE_INFINITY,
   })
+
+export const instanceHealthQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance', 'health'],
+    queryFn: () => fetchStudio('/instance/health', instanceHealthSchema),
+    refetchInterval: 30_000,
+  })
+
+export const updateInstanceSettings = (input: InstanceSettingsInput) =>
+  fetchStudio('/instance', instanceSettingsSchema, 'PATCH', input)
 
 export const studioStorageQuery = () =>
   queryOptions({

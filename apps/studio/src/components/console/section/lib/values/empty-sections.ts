@@ -73,37 +73,8 @@ export const SAVED_QUERIES_SECTION: SectionDefinition = {
   subtitle: 'Views you come back to, one click away',
 }
 
-export const MEMBERS_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Members',
-  subtitle: 'Everyone who has signed in with GitHub',
-  empty: {
-    title: 'No members yet',
-    description:
-      'Access follows the GitHub App: teammates appear after they sign in and belong to an installation.',
-  },
-}
-
 export const INTEGRATIONS_SECTION: SectionDefinition = {
   ...BARE,
   title: 'Integrations',
   subtitle: 'Where alerts go, what sends errors in, and the GitHub App reviews run through',
-}
-
-export const API_KEYS_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'API keys',
-  subtitle: 'Read access to /v1 for scripts and CI',
-}
-
-export const INSTANCE_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Instance',
-  subtitle: 'What this deployment is holding, and whether the worker is keeping up',
-  empty: {
-    title: 'No storage numbers',
-    description:
-      'Neither studio nor whiskers answered with their storage stats. Check that both services are running.',
-    expression: 'confused',
-  },
 }

@@ -21,6 +21,7 @@ export {
   reasonOf,
   restoreTriageCache,
   reviewToConsoleItem,
+  settingsLabelFor,
   statusFor,
   triageKey,
 } from './utils'

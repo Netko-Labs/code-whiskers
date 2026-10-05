@@ -14,3 +14,16 @@ export type ConsoleNavGroup = {
   icon: Icon
   items: ConsoleNavItem[]
 }
+
+export type SettingsNavEntry = {
+  label: string
+  icon: Icon
+  to: string
+  /** Lives outside the settings layout; the rail row shows an arrow. */
+  isElsewhere?: boolean
+}
+
+export type SettingsNavGroup = {
+  label: string
+  entries: SettingsNavEntry[]
+}

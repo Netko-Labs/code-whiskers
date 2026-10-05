@@ -6,8 +6,11 @@ const MARA: Member = {
   id: 'u1',
   name: 'Mara Ito',
   image: null,
+  githubLogin: null,
+  role: 'member',
   organizations: [],
   lastSyncedAt: new Date(0),
+  lastActiveAt: null,
 }
 
 describe('assign trigger label', () => {

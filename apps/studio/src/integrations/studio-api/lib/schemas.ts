@@ -123,8 +123,11 @@ export const memberSchema = z.object({
   id: z.string(),
   name: z.string(),
   image: z.string().nullable(),
+  githubLogin: z.string().nullable().default(null),
+  role: z.enum(['owner', 'member']).default('member'),
   organizations: z.array(z.string()),
   lastSyncedAt: z.coerce.date(),
+  lastActiveAt: z.coerce.date().nullable().default(null),
 })
 export const memberListSchema = z.array(memberSchema)
 
@@ -141,8 +144,23 @@ export const triageCommentListSchema = z.array(triageCommentSchema)
 export const okSchema = z.object({ ok: z.boolean() })
 export const createdSchema = z.object({ id: z.string() })
 
-export const instanceSchema = z.object({
+export const instanceSettingsSchema = z.object({
+  name: z.string(),
+  updatedAt: z.coerce.date().nullable().default(null),
+})
+
+export const instanceSchema = instanceSettingsSchema.extend({
+  baseUrl: z.string().default(''),
+  release: z.string().default(''),
+  environment: z.string().default(''),
   githubApp: z.object({ slug: z.string(), url: z.string(), installUrl: z.string() }),
+})
+
+export const instanceHealthSchema = z.object({
+  status: z.enum(['ok', 'degraded', 'unreachable']),
+  latencyMs: z.number().nullable(),
+  checkedAt: z.coerce.date(),
+  release: z.string().nullable(),
 })
 
 export const studioStorageSchema = z.object({

@@ -22,15 +22,23 @@ import { Route as ConsoleOverviewRouteImport } from './routes/console/overview'
 import { Route as ConsolePullRequestsRouteImport } from './routes/console/pull-requests'
 import { Route as ConsoleRepositoriesRouteImport } from './routes/console/repositories'
 import { Route as ConsoleReviewRulesRouteImport } from './routes/console/review-rules'
+import { Route as ConsoleSettingsRouteImport } from './routes/console/settings'
 import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ConsoleIssuesIssueIdRouteImport } from './routes/console/issues.$issueId'
+import { Route as ConsoleProjectsIndexRouteImport } from './routes/console/projects.index'
 import { Route as ConsoleProjectsProjectIdRouteImport } from './routes/console/projects.$projectId'
 import { Route as ConsoleProjectsNewRouteImport } from './routes/console/projects.new'
 import { Route as ConsoleReleasesVersionRouteImport } from './routes/console/releases.$version'
 import { Route as ConsoleReviewsReviewIdRouteImport } from './routes/console/reviews.$reviewId'
+import { Route as ConsoleSettingsIndexRouteImport } from './routes/console/settings.index'
+import { Route as ConsoleSettingsAccountRouteImport } from './routes/console/settings.account'
+import { Route as ConsoleSettingsApiKeysRouteImport } from './routes/console/settings.api-keys'
+import { Route as ConsoleSettingsGeneralRouteImport } from './routes/console/settings.general'
+import { Route as ConsoleSettingsGithubRouteImport } from './routes/console/settings.github'
+import { Route as ConsoleSettingsMembersRouteImport } from './routes/console/settings.members'
 import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
 const IndexRoute = IndexRouteImport.update({
@@ -98,6 +106,11 @@ const ConsoleReviewRulesRoute = ConsoleReviewRulesRouteImport.update({
   path: '/review-rules',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleSettingsRoute = ConsoleSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const OtlpSplatRoute = OtlpSplatRouteImport.update({
   id: '/otlp/$',
   path: '/otlp/$',
@@ -123,6 +136,11 @@ const ConsoleIssuesIssueIdRoute = ConsoleIssuesIssueIdRouteImport.update({
   path: '/issues/$issueId',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleProjectsIndexRoute = ConsoleProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleProjectsProjectIdRoute =
   ConsoleProjectsProjectIdRouteImport.update({
     id: '/projects/$projectId',
@@ -144,6 +162,36 @@ const ConsoleReviewsReviewIdRoute = ConsoleReviewsReviewIdRouteImport.update({
   path: '/reviews/$reviewId',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleSettingsIndexRoute = ConsoleSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
+const ConsoleSettingsAccountRoute = ConsoleSettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
+const ConsoleSettingsApiKeysRoute = ConsoleSettingsApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
+const ConsoleSettingsGeneralRoute = ConsoleSettingsGeneralRouteImport.update({
+  id: '/general',
+  path: '/general',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
+const ConsoleSettingsGithubRoute = ConsoleSettingsGithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
+const ConsoleSettingsMembersRoute = ConsoleSettingsMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => ConsoleSettingsRoute,
+} as any)
 const ConsoleTriageBucketRoute = ConsoleTriageBucketRouteImport.update({
   id: '/triage/$bucket',
   path: '/triage/$bucket',
@@ -163,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
+  '/console/settings': typeof ConsoleSettingsRouteWithChildren
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -173,7 +222,14 @@ export interface FileRoutesByFullPath {
   '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
+  '/console/settings/account': typeof ConsoleSettingsAccountRoute
+  '/console/settings/api-keys': typeof ConsoleSettingsApiKeysRoute
+  '/console/settings/general': typeof ConsoleSettingsGeneralRoute
+  '/console/settings/github': typeof ConsoleSettingsGithubRoute
+  '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/projects/': typeof ConsoleProjectsIndexRoute
+  '/console/settings/': typeof ConsoleSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,7 +253,14 @@ export interface FileRoutesByTo {
   '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
+  '/console/settings/account': typeof ConsoleSettingsAccountRoute
+  '/console/settings/api-keys': typeof ConsoleSettingsApiKeysRoute
+  '/console/settings/general': typeof ConsoleSettingsGeneralRoute
+  '/console/settings/github': typeof ConsoleSettingsGithubRoute
+  '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/projects': typeof ConsoleProjectsIndexRoute
+  '/console/settings': typeof ConsoleSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -213,6 +276,7 @@ export interface FileRoutesById {
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
+  '/console/settings': typeof ConsoleSettingsRouteWithChildren
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -223,7 +287,14 @@ export interface FileRoutesById {
   '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
+  '/console/settings/account': typeof ConsoleSettingsAccountRoute
+  '/console/settings/api-keys': typeof ConsoleSettingsApiKeysRoute
+  '/console/settings/general': typeof ConsoleSettingsGeneralRoute
+  '/console/settings/github': typeof ConsoleSettingsGithubRoute
+  '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/projects/': typeof ConsoleProjectsIndexRoute
+  '/console/settings/': typeof ConsoleSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +311,7 @@ export interface FileRouteTypes {
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
+    | '/console/settings'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -250,7 +322,14 @@ export interface FileRouteTypes {
     | '/console/projects/new'
     | '/console/releases/$version'
     | '/console/reviews/$reviewId'
+    | '/console/settings/account'
+    | '/console/settings/api-keys'
+    | '/console/settings/general'
+    | '/console/settings/github'
+    | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/projects/'
+    | '/console/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -274,7 +353,14 @@ export interface FileRouteTypes {
     | '/console/projects/new'
     | '/console/releases/$version'
     | '/console/reviews/$reviewId'
+    | '/console/settings/account'
+    | '/console/settings/api-keys'
+    | '/console/settings/general'
+    | '/console/settings/github'
+    | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/projects'
+    | '/console/settings'
   id:
     | '__root__'
     | '/'
@@ -289,6 +375,7 @@ export interface FileRouteTypes {
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
+    | '/console/settings'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -299,7 +386,14 @@ export interface FileRouteTypes {
     | '/console/projects/new'
     | '/console/releases/$version'
     | '/console/reviews/$reviewId'
+    | '/console/settings/account'
+    | '/console/settings/api-keys'
+    | '/console/settings/general'
+    | '/console/settings/github'
+    | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/projects/'
+    | '/console/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -408,6 +502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleReviewRulesRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/settings': {
+      id: '/console/settings'
+      path: '/settings'
+      fullPath: '/console/settings'
+      preLoaderRoute: typeof ConsoleSettingsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/otlp/$': {
       id: '/otlp/$'
       path: '/otlp/$'
@@ -443,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleIssuesIssueIdRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/projects/': {
+      id: '/console/projects/'
+      path: '/projects'
+      fullPath: '/console/projects/'
+      preLoaderRoute: typeof ConsoleProjectsIndexRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/projects/$projectId': {
       id: '/console/projects/$projectId'
       path: '/projects/$projectId'
@@ -471,6 +579,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleReviewsReviewIdRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/settings/': {
+      id: '/console/settings/'
+      path: '/'
+      fullPath: '/console/settings/'
+      preLoaderRoute: typeof ConsoleSettingsIndexRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
+    '/console/settings/account': {
+      id: '/console/settings/account'
+      path: '/account'
+      fullPath: '/console/settings/account'
+      preLoaderRoute: typeof ConsoleSettingsAccountRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
+    '/console/settings/api-keys': {
+      id: '/console/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/console/settings/api-keys'
+      preLoaderRoute: typeof ConsoleSettingsApiKeysRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
+    '/console/settings/general': {
+      id: '/console/settings/general'
+      path: '/general'
+      fullPath: '/console/settings/general'
+      preLoaderRoute: typeof ConsoleSettingsGeneralRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
+    '/console/settings/github': {
+      id: '/console/settings/github'
+      path: '/github'
+      fullPath: '/console/settings/github'
+      preLoaderRoute: typeof ConsoleSettingsGithubRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
+    '/console/settings/members': {
+      id: '/console/settings/members'
+      path: '/members'
+      fullPath: '/console/settings/members'
+      preLoaderRoute: typeof ConsoleSettingsMembersRouteImport
+      parentRoute: typeof ConsoleSettingsRoute
+    }
     '/console/triage/$bucket': {
       id: '/console/triage/$bucket'
       path: '/triage/$bucket'
@@ -481,6 +631,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ConsoleSettingsRouteChildren {
+  ConsoleSettingsAccountRoute: typeof ConsoleSettingsAccountRoute
+  ConsoleSettingsApiKeysRoute: typeof ConsoleSettingsApiKeysRoute
+  ConsoleSettingsGeneralRoute: typeof ConsoleSettingsGeneralRoute
+  ConsoleSettingsGithubRoute: typeof ConsoleSettingsGithubRoute
+  ConsoleSettingsMembersRoute: typeof ConsoleSettingsMembersRoute
+  ConsoleSettingsIndexRoute: typeof ConsoleSettingsIndexRoute
+}
+
+const ConsoleSettingsRouteChildren: ConsoleSettingsRouteChildren = {
+  ConsoleSettingsAccountRoute: ConsoleSettingsAccountRoute,
+  ConsoleSettingsApiKeysRoute: ConsoleSettingsApiKeysRoute,
+  ConsoleSettingsGeneralRoute: ConsoleSettingsGeneralRoute,
+  ConsoleSettingsGithubRoute: ConsoleSettingsGithubRoute,
+  ConsoleSettingsMembersRoute: ConsoleSettingsMembersRoute,
+  ConsoleSettingsIndexRoute: ConsoleSettingsIndexRoute,
+}
+
+const ConsoleSettingsRouteWithChildren = ConsoleSettingsRoute._addFileChildren(
+  ConsoleSettingsRouteChildren,
+)
+
 interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
   ConsoleCodebaseMapRoute: typeof ConsoleCodebaseMapRoute
@@ -488,6 +660,7 @@ interface ConsoleRouteChildren {
   ConsolePullRequestsRoute: typeof ConsolePullRequestsRoute
   ConsoleRepositoriesRoute: typeof ConsoleRepositoriesRoute
   ConsoleReviewRulesRoute: typeof ConsoleReviewRulesRoute
+  ConsoleSettingsRoute: typeof ConsoleSettingsRouteWithChildren
   ConsoleIndexRoute: typeof ConsoleIndexRoute
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
   ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
@@ -495,6 +668,7 @@ interface ConsoleRouteChildren {
   ConsoleReleasesVersionRoute: typeof ConsoleReleasesVersionRoute
   ConsoleReviewsReviewIdRoute: typeof ConsoleReviewsReviewIdRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
+  ConsoleProjectsIndexRoute: typeof ConsoleProjectsIndexRoute
 }
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
@@ -504,6 +678,7 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsolePullRequestsRoute: ConsolePullRequestsRoute,
   ConsoleRepositoriesRoute: ConsoleRepositoriesRoute,
   ConsoleReviewRulesRoute: ConsoleReviewRulesRoute,
+  ConsoleSettingsRoute: ConsoleSettingsRouteWithChildren,
   ConsoleIndexRoute: ConsoleIndexRoute,
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
   ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,
@@ -511,6 +686,7 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleReleasesVersionRoute: ConsoleReleasesVersionRoute,
   ConsoleReviewsReviewIdRoute: ConsoleReviewsReviewIdRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
+  ConsoleProjectsIndexRoute: ConsoleProjectsIndexRoute,
 }
 
 const ConsoleRouteWithChildren =

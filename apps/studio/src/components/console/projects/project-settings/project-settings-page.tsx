@@ -42,13 +42,11 @@ export function ProjectSettingsPage({ projectId }: ProjectSettingsPageProps) {
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <nav className="flex shrink-0 items-center border-border border-b px-8 py-2.5">
         <Link
-          to="/console/$section"
-          params={{ section: 'integrations' }}
-          search={{ tab: 1 }}
+          to="/console/projects"
           className="flex items-center gap-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
         >
           <IconArrowLeft className="size-3.5" stroke={1.75} />
-          Error ingest
+          All projects
         </Link>
       </nav>
       <div className="flex min-h-0 flex-1 flex-col overflow-auto">

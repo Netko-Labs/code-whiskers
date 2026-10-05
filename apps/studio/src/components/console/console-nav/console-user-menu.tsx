@@ -62,7 +62,7 @@ export function ConsoleUserMenu({ isCompact = false }: UserMenuProps) {
             key={entry.label}
             onClick={() => {
               setOpen(false)
-              navigate({ to: '/console/$section', params: { section: entry.section } })
+              void navigate({ to: entry.to })
             }}
             className={MENU_ROW}
           >

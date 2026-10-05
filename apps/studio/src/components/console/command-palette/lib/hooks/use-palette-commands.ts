@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo } from 'react'
 import { whiskersProjectsQuery } from '@/integrations/whiskers'
-import { NAV_GROUPS, NAV_PRIMARY } from '../../../shared/console-data'
+import { NAV_GROUPS, NAV_PRIMARY, SETTINGS_NAV } from '../../../shared/console-data'
 import { useConsoleStore } from '../../../use-console-store'
 import type { PaletteCommand } from '../types'
 import { goShortcut } from '../utils'
@@ -41,6 +41,17 @@ export function usePaletteCommands(query: string): PaletteCommand[] {
       shortcut: goShortcut(item.label),
       run: go(item.to, item.params),
     }))
+    const listed = new Set(pages.map((page) => page.label))
+    const settings: PaletteCommand[] = SETTINGS_NAV.flatMap((group) => group.entries)
+      .filter((entry) => !listed.has(entry.label))
+      .map((entry) => ({
+        id: `go:${entry.to}`,
+        group: 'Go to',
+        label: entry.isElsewhere ? entry.label : `${entry.label} settings`,
+        icon: entry.icon,
+        keywords: ['settings', 'preferences'],
+        run: go(entry.to),
+      }))
     const projectCommands: PaletteCommand[] = (projects ?? []).map((project) => ({
       id: `project:${project.id}`,
       group: 'Projects',
@@ -92,7 +103,7 @@ export function usePaletteCommands(query: string): PaletteCommand[] {
         run: () => useConsoleStore.getState().setShortcutsOpen(true),
       },
     ]
-    return [...pages, ...projectCommands, ...actions]
+    return [...pages, ...settings, ...projectCommands, ...actions]
   }, [projects, resolvedTheme, setTheme, navigate, close])
 
   return useMemo(() => [...issues, ...commands], [issues, commands])

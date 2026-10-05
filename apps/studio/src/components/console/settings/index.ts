@@ -1,0 +1,6 @@
+export { SettingsAccount } from './account'
+export { SettingsApiKeys } from './api-keys'
+export { SettingsGeneral } from './general'
+export { SettingsGithub } from './github'
+export { SettingsMembers } from './members'
+export { SettingsLayout } from './settings-layout'

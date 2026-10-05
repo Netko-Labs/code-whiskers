@@ -162,7 +162,4 @@ export type SectionView =
   | 'traces'
   | 'services'
   | 'saved-queries'
-  | 'members'
   | 'integrations'
-  | 'api-keys'
-  | 'instance'

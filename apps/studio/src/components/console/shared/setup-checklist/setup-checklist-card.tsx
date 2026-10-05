@@ -2,7 +2,6 @@ import { cn } from '@code-whiskers/ui/lib/utils'
 import { IconX } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import {
-  INSTANCE_SETUP_TAB,
   type SetupChecklistCardProps,
   setupProgressOf,
   useSetupDismissal,
@@ -48,9 +47,8 @@ export function SetupChecklistCard({ className }: SetupChecklistCardProps) {
         ))}
       </div>
       <Link
-        to="/console/$section"
-        params={{ section: 'instance' }}
-        search={{ tab: INSTANCE_SETUP_TAB }}
+        to="/console/settings/general"
+        hash="setup"
         className="px-1 text-[12px] text-muted-foreground hover:text-foreground"
       >
         All steps →

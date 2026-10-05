@@ -1,6 +1,10 @@
-import { createFileRoute, notFound } from '@tanstack/react-router'
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
 import { SectionView } from '@/components/console'
-import { parseSectionTab, toSectionView } from '@/components/console/shared/console-routing'
+import {
+  MOVED_SECTIONS,
+  parseSectionTab,
+  toSectionView,
+} from '@/components/console/shared/console-routing'
 
 function SectionPage() {
   const { section } = Route.useParams()
@@ -13,5 +17,9 @@ function SectionPage() {
 
 export const Route = createFileRoute('/console/$section')({
   validateSearch: parseSectionTab,
+  beforeLoad: ({ params }) => {
+    const moved = MOVED_SECTIONS[params.section]
+    if (moved) throw redirect({ to: moved, replace: true })
+  },
   component: SectionPage,
 })

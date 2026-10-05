@@ -1,7 +1,7 @@
-import { NAV_GROUPS, NAV_PRIMARY } from '../../shared/console-data'
+import { NAV_GROUPS, NAV_PRIMARY, settingsLabelFor } from '../../shared/console-data'
 import { shortRelease } from '../../shared/issue-lifecycle'
 import type { Crumb, ProjectNameLookup } from './types'
-import { SHORT_ID } from './values'
+import { PROJECTS_PATH, SETTINGS_PATH, SHORT_ID } from './values'
 
 function sectionCrumbs(section: string): Crumb[] {
   for (const group of NAV_GROUPS) {
@@ -58,9 +58,17 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
     ]
   }
   if (area === 'projects') {
-    if (!id || id === 'new') return [{ label: 'Projects' }, { label: 'New project' }]
+    if (!id) return [{ label: 'Projects' }]
+    const projects = { label: 'Projects', to: PROJECTS_PATH }
+    if (id === 'new') return [projects, { label: 'New project' }]
     const name = projectName(id)
-    return [{ label: 'Projects' }, { label: name ?? id.slice(0, SHORT_ID), isMono: !name }]
+    return [projects, { label: name ?? id.slice(0, SHORT_ID), isMono: !name }]
+  }
+  if (area === 'settings') {
+    return [
+      { label: 'Settings', to: SETTINGS_PATH },
+      { label: settingsLabelFor(pathname) ?? 'General' },
+    ]
   }
   return sectionCrumbs(area)
 }

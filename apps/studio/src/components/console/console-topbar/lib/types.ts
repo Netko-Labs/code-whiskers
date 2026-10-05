@@ -7,6 +7,8 @@ export type Crumb = {
   isMono?: boolean
   /** Earlier crumbs that are a section link back to it. */
   section?: SectionView
+  /** Earlier crumbs that are a plain console page link to its path. */
+  to?: string
 }
 
 export type ProjectNameLookup = (projectId: string) => string | undefined
