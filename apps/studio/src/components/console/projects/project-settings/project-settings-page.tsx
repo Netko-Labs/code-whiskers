@@ -14,6 +14,7 @@ import { projectScopeValue } from '../../shared/console-scope'
 import { consoleOrigin, DsnChip, ProjectInstallPanel, projectDsn } from '../../shared/project-setup'
 import type { ProjectSettingsPageProps } from './lib'
 import { ProjectDangerZone } from './project-danger-zone'
+import { ProjectDeploys } from './project-deploys'
 import { ProjectGeneral } from './project-general'
 import { ProjectKeys } from './project-keys'
 import { ProjectTestEvent } from './project-test-event'
@@ -84,6 +85,7 @@ export function ProjectSettingsPage({ projectId }: ProjectSettingsPageProps) {
           )}
           <ProjectGeneral key={`${project.name}:${project.repository}`} project={project} />
           <ProjectKeys project={project} />
+          <ProjectDeploys project={project} />
           <ProjectDangerZone project={project} />
         </div>
       </div>

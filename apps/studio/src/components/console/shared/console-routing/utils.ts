@@ -42,6 +42,7 @@ export function parseSectionTab(search: SectionSearchInput): SectionSearch {
     release: text(search.release),
     sort: ISSUE_SORTS.find((sort) => sort === search.sort),
     mine: search.mine === '1' ? '1' : undefined,
+    project: text(search.project),
   }
 }
 

@@ -12,7 +12,7 @@ import { isUuid } from '../tracker/utils'
 import { commitsOf, inAppFramesOf, reviewVerdictsOf } from './release-commits'
 import type { SuspectCommits } from './types'
 
-const NONE: SuspectCommits = { version: null, commitStatus: null, commits: [] }
+const NONE: SuspectCommits = { version: null, repository: null, commitStatus: null, commits: [] }
 
 /**
  * Commits of the issue's first release that changed a file its stack runs through — the likely
@@ -51,6 +51,7 @@ export const getSuspectCommits = async (issueId: string): Promise<SuspectCommits
   )
   return {
     version: row.release.version,
+    repository: target.repository,
     commitStatus: requestCommitSync(row.release, target),
     commits: matches.flatMap((match) => {
       const commit = bySha.get(match.sha)

@@ -33,3 +33,4 @@ export {
   whiskersTraceQuery,
   whiskersTracesQuery,
 } from './queries'
+export { whiskersReleaseQuery, whiskersSuspectCommitsQuery } from './releases'

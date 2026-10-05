@@ -24,7 +24,6 @@ import type {
   whiskersLogSchema,
   whiskersOverviewSchema,
   whiskersPullRequestReviewsSchema,
-  whiskersReleaseSchema,
   whiskersReviewDetailSchema,
   whiskersReviewSchema,
   whiskersServiceSchema,
@@ -62,7 +61,6 @@ export type WhiskersTestEvent = z.infer<typeof whiskersTestEventSchema>
 export type ProjectPatch = { name?: string; repository?: string | null }
 export type ProjectKeyPatch = { label?: string; isEnabled?: boolean }
 export type WhiskersMethod = 'POST' | 'PATCH' | 'DELETE'
-export type WhiskersRelease = z.infer<typeof whiskersReleaseSchema>
 export type WhiskersLog = z.infer<typeof whiskersLogSchema>
 export type WhiskersTrace = z.infer<typeof whiskersTraceSchema>
 export type WhiskersSpan = z.infer<typeof whiskersSpanSchema>

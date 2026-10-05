@@ -83,6 +83,8 @@ export type DeployEntry = DeploySummary & {
 
 export interface ReleaseDetail {
   release: Release
+  /** Where the commits live: the release's repository, else the project's. */
+  repository: string | null
   previousVersion: string | null
   commitStatus: CommitStatus
   stats: { events: number; issues: number; users: number; newIssues: number }
@@ -97,6 +99,8 @@ export interface ReleaseDetail {
 
 export interface SuspectCommits {
   version: string | null
+  /** Where the commits live: the release's repository, else the project's. */
+  repository: string | null
   commitStatus: CommitStatus | null
   commits: SuspectCommit[]
 }

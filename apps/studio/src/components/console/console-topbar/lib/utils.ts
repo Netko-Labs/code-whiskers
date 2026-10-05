@@ -1,4 +1,5 @@
 import { NAV_GROUPS, NAV_PRIMARY } from '../../shared/console-data'
+import { shortRelease } from '../../shared/issue-lifecycle'
 import type { Crumb, ProjectNameLookup } from './types'
 import { SHORT_ID } from './values'
 
@@ -11,6 +12,15 @@ function sectionCrumbs(section: string): Crumb[] {
     if (item) return [{ label: group.label }, { label: item.label }]
   }
   return []
+}
+
+/** A malformed escape stays as typed rather than breaking the bar. */
+function decodedSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
 }
 
 /** The top bar's trail, read off the URL alone so it is right on the first paint. */
@@ -38,6 +48,13 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
       { label: 'Code review' },
       { label: 'Pull requests', section: 'pull-requests' },
       { label: id.slice(0, SHORT_ID), isMono: true },
+    ]
+  }
+  if (area === 'releases' && id) {
+    return [
+      { label: 'Errors' },
+      { label: 'Releases', section: 'releases' },
+      { label: shortRelease(decodedSegment(id)), isMono: true },
     ]
   }
   if (area === 'projects') {

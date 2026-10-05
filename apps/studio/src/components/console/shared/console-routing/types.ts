@@ -20,6 +20,7 @@ export type SectionSearch = {
   release?: string
   sort?: IssueSort
   mine?: '1'
+  project?: string
 }
 
 export type SectionSearchInput = {
@@ -30,6 +31,7 @@ export type SectionSearchInput = {
   release?: string
   sort?: string
   mine?: string
+  project?: string
 } & SearchSchemaInput
 
 export type ConsoleScopeSearch = {

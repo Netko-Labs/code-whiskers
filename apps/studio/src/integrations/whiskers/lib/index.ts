@@ -1,4 +1,6 @@
 export * from './constants'
 export * from './project-schemas'
+export * from './release-schemas'
+export type * from './release-types'
 export * from './schemas'
 export * from './types'

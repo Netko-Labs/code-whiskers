@@ -1,3 +1,4 @@
+import { ReleaseList } from '../releases'
 import { useConsoleScope } from '../shared/console-scope'
 import { IssueList } from './issue-list'
 import { SECTION_HOOKS, type SectionScreenProps, type SectionViewProps } from './lib'
@@ -12,6 +13,7 @@ export function SectionView({ section, tab, filters }: SectionViewProps) {
   if (section === 'issues' || section === 'regressions') {
     return <IssueList key={section} section={section} tab={tab} filters={filters} />
   }
+  if (section === 'releases') return <ReleaseList tab={tab} filters={filters} />
   return (
     <SectionScreen
       key={section}

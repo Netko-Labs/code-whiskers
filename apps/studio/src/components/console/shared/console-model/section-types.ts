@@ -96,6 +96,8 @@ export type SectionFilters = {
   sort?: IssueSort
   /** `1` keeps only issues assigned to the viewer. */
   mine?: '1'
+  /** Comma-separated project ids: the releases list's project facet. */
+  project?: string
 }
 
 export type SectionRowLink =

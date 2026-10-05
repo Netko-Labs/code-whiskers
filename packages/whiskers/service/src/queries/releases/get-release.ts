@@ -92,6 +92,7 @@ export const getRelease = async ({
 
   return {
     release,
+    repository: target.repository,
     previousVersion: neighbours.previous?.version ?? null,
     commitStatus: requestCommitSync(release, target),
     stats: {

@@ -31,6 +31,15 @@ describe('crumbsFor', () => {
     expect(crumbs[2]).toEqual({ label: '01234567', isMono: true })
   })
 
+  test('a release reads as its version, decoded and short when it is a sha', () => {
+    expect(crumbsFor('/console/releases/web%401.4.0', names).at(-1)).toEqual({
+      label: 'web@1.4.0',
+      isMono: true,
+    })
+    expect(crumbsFor(`/console/releases/${'a'.repeat(40)}`, names).at(-1)?.label).toBe('aaaaaaa')
+    expect(crumbsFor('/console/releases/%E0%A4%A', names).at(-1)?.label).toBe('%E0%A4%A')
+  })
+
   test('projects use the name when known, the id otherwise', () => {
     expect(crumbsFor('/console/projects/p1', names).at(-1)).toEqual({ label: 'web', isMono: false })
     expect(crumbsFor('/console/projects/zzzzzzzzzz', names).at(-1)?.isMono).toBe(true)
