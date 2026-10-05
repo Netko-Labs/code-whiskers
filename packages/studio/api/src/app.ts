@@ -55,5 +55,7 @@ export const app = new Elysia({ prefix: '/api' })
   // (=^･ω･^=) Sentry SDKs post here; whiskers checks the DSN key
   .post('/:projectId/envelope', ({ request }) => forwardToWhiskers(request))
   .post('/:projectId/store', ({ request }) => forwardToWhiskers(request))
+  // ┬─┬ノ( º _ ºノ) CI reports deploys with the same client key
+  .post('/:projectId/deploys', ({ request }) => forwardToWhiskers(request))
 
 export type App = typeof app

@@ -7,6 +7,7 @@ import {
 import { db } from '@code-whiskers/whiskers-repository'
 import { and, eq, min, ne, sql, TransactionRollbackError } from 'drizzle-orm'
 import { announce } from '../../realtime'
+import { touchRelease } from '../../releases'
 import { postToStudio } from '../../review/studio-client'
 import {
   eventCulpritOf,
@@ -132,6 +133,7 @@ export const ingestEvent = async (
 
     announce('issues')
     const { stored, transition } = outcome
+    if (release) touchRelease(projectId, release, stored.receivedAt)
     if (transition) {
       void postToStudio('issues/transition', {
         issueId: stored.issueId,

@@ -4,12 +4,14 @@ import { reportError } from '@code-whiskers/observability/server'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { pingDatabase } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
+import { deployRoutes } from './routes/deploys'
 import { ingestRoutes } from './routes/ingest'
 import { insightRoutes } from './routes/insights'
 import { internalRoutes } from './routes/internal'
 import { issueRoutes } from './routes/issues'
 import { otlpRoutes } from './routes/otlp'
 import { projectRoutes } from './routes/projects'
+import { releaseRoutes } from './routes/releases'
 import { webhookRoutes } from './routes/webhooks'
 
 const logger = createLogger('whiskers-api')
@@ -59,7 +61,9 @@ export const app = new Elysia()
   })
   .use(webhookRoutes)
   .use(ingestRoutes)
+  .use(deployRoutes)
   .use(insightRoutes)
+  .use(releaseRoutes)
   .use(projectRoutes)
   .use(issueRoutes)
   .use(otlpRoutes)

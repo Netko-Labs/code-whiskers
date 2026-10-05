@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const RepositorySlugSchema = z
+export const RepositorySlugSchema = z
   .string()
   .trim()
   .regex(/^[\w.-]+\/[\w.-]+$/, 'owner/name')

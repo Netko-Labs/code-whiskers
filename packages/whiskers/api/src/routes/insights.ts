@@ -13,7 +13,6 @@ import {
   getLogs,
   getOverview,
   getPullRequestReviews,
-  getReleases,
   getReview,
   getReviews,
   getServices,
@@ -58,10 +57,6 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   // (｀-´)> every service that logged or traced today
   .get('/services', { query: ProjectScopeSchema }, ({ query }) =>
     getServices(projectIdsOf(query.projectId)),
-  )
-  // (ﾉ≧∀≦)ﾉ what each release brought in
-  .get('/releases', { query: ProjectScopeSchema }, ({ query }) =>
-    getReleases(projectIdsOf(query.projectId)),
   )
   // (・_・ヾ where findings keep landing
   .get('/hotspots', () => getHotspots())

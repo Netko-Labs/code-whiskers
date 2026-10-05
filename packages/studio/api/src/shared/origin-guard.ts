@@ -2,8 +2,9 @@ import { studioEnvConfig } from '@code-whiskers/studio-config'
 import { Elysia } from 'elysia'
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
-// Cross-site by design: browser Sentry SDKs on other origins, and whiskers calling in with a token.
-const OPEN_PATHS = /^\/api\/(\d+\/(envelope|store)|internal\/)/
+// Cross-site by design: browser Sentry SDKs and deploy scripts on other origins, and whiskers
+// calling in with a token.
+const OPEN_PATHS = /^\/api\/(\d+\/(envelope|store|deploys)|internal\/)/
 
 let allowedOrigins: Set<string> | undefined
 

@@ -38,6 +38,7 @@ describe('what gets reported', () => {
   test('the ingest paths are always ignored, extra patterns on top', () => {
     expect(isIgnoredPath('/api/7/envelope/')).toBe(true)
     expect(isIgnoredPath('/api/7/store')).toBe(true)
+    expect(isIgnoredPath('/api/7/deploys')).toBe(true)
     expect(isIgnoredPath('/otlp/v1/logs')).toBe(true)
     expect(isIgnoredPath('/v1/projects/7/test-event')).toBe(true)
     expect(isIgnoredPath('/v1/projects/7')).toBe(false)

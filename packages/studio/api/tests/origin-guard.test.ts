@@ -6,6 +6,7 @@ const app = new Elysia({ prefix: '/api' })
   .use(originGuard)
   .post('/rules', () => 'ok')
   .post('/:projectId/envelope', () => 'ok')
+  .post('/:projectId/deploys', () => 'ok')
   .get('/rules', () => 'ok')
 
 const post = (path: string, origin?: string) =>
@@ -28,6 +29,10 @@ describe('originGuard', () => {
 
   test('browser SDKs on other sites still reach the ingest', async () => {
     expect((await post('/api/42/envelope', 'https://customer.example')).status).toBe(200)
+  })
+
+  test('deploy scripts post from anywhere; the client key decides', async () => {
+    expect((await post('/api/42/deploys', 'https://ci.example')).status).toBe(200)
   })
 
   test('reads are never blocked', async () => {

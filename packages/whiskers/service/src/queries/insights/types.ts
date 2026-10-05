@@ -42,17 +42,6 @@ export interface InstanceStats {
   }
 }
 
-export interface ReleaseSummary {
-  projectId: string
-  release: string
-  environment: string | null
-  firstSeen: Date
-  lastSeen: Date
-  events: number
-  issues: number
-  newIssues: number
-}
-
 export interface LogFilter {
   projectIds?: string[]
   service?: string
