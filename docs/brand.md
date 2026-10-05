@@ -61,8 +61,9 @@ and `#FCA5A5`/`#FCD34D`/`#4ADE80`/`#93C5FD` on dark.
 Dark ground (CLI, log views, the sign-in page): background `ink`, card/code `ink-card` `#171717`,
 hairline `ink-hairline` `#262626`, removed line `ink-removed` `#404040`, muted text `ink-muted`
 `#A3A3A3`, text `ink-text` `#FAFAFA`. A surface that is dark regardless of the app theme carries the
-`dark` class so its severity tokens resolve to the dark column — the sign-in page, the console's
-sidebar, and its log, trace and toast panes all do.
+`dark` class so its severity tokens resolve to the dark column — the sign-in page and the
+console's log, trace, stack and toast panes all do. The console sidebar follows the theme; its
+tokens and layout live in `docs/design-system.md`.
 
 Severity is a dot or a 1px left rule on a row, never a filled card. Badge text stays ink; the color
 sits in the dot. Blue is never branding, only focus and data. Charts use the five system blues; an
@@ -116,7 +117,8 @@ the frame to the drawing (720×620) for hero placements.
 4. Backgrounds are flat. Depth is a hairline and a soft shadow.
 5. Evidence in mono, product in Inter.
 6. Sentence case. No exclamation marks. No emoji. No puns in product copy.
-7. Motion belongs to waiting states only. Alerts arrive, they don't bounce.
+7. Looping motion belongs to waiting states only; anything else moves once, briefly, to explain a
+   change (`docs/design-system.md` → Motion). Alerts arrive, they don't bounce.
 8. Below 48px use the favicon cut; below 48px never animate.
 9. Wordmark is Inter 600, never redrawn.
 10. When in doubt, remove it. The brand is what's left.
