@@ -1,7 +1,8 @@
-import { CursorSchema } from '@code-whiskers/whiskers-domain'
+import { CursorSchema, type OverviewRange } from '@code-whiskers/whiskers-domain'
 import {
   DAY_MS,
   NEW_ISSUE_WINDOW_MS,
+  OVERVIEW_WINDOWS,
   REGRESSED_WINDOW_MS,
   SPIKE_BASELINE_HOURS,
   SPIKE_FACTOR,
@@ -9,7 +10,7 @@ import {
   TREND_DAYS,
   UUID_PATTERN,
 } from './constants'
-import type { BadgeInput, Cursor, IssueBadge } from './types'
+import type { BadgeInput, Cursor, IssueBadge, OverviewWindow } from './types'
 
 /** Opaque to clients: base64url of `[sortValue, id]`. */
 export function encodeCursor(value: string | number, id: string): string {
@@ -53,6 +54,13 @@ export function startOfUtcDay(date: Date): Date {
 /** Midnight UTC of the oldest of the trend's days; today is the last. */
 export function trendStartOf(now: Date, days = TREND_DAYS): Date {
   return new Date(startOfUtcDay(now).getTime() - (days - 1) * DAY_MS)
+}
+
+/** The range's buckets end with the one holding `now`; the oldest starts `length - 1` steps back. */
+export function overviewWindowOf(range: OverviewRange, now: Date): OverviewWindow {
+  const { stepMs, length } = OVERVIEW_WINDOWS[range]
+  const current = Math.floor(now.getTime() / stepMs) * stepMs
+  return { start: new Date(current - (length - 1) * stepMs), stepMs, length }
 }
 
 /** Sparse `(bucket, count)` rows into a dense series; out-of-range buckets are dropped. */

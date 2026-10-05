@@ -20,6 +20,8 @@ const VERDICT_SEVERITY: Record<string, ConsoleSeverity> = {
   approve: 'ok',
 }
 
+const ISSUE_BADGE_WORDS = { new: 'New', regressed: 'Regressed', spiking: 'Spiking' } as const
+
 const NO_READ = 'Whiskers has not written a read for this one yet.'
 
 function shortId(id: string) {
@@ -60,8 +62,6 @@ export function issueToConsoleItem(
     badge2: '',
     confidence: 'from ingest',
     read: NO_READ,
-    fixLabel: '',
-    evidenceLabel: '',
     issue,
   }
 }
@@ -108,14 +108,11 @@ export function reviewToConsoleItem(review: WhiskersReview): ConsoleItem {
           .map((line) => `• ${line.trim()}`)
           .join('\n')
       : NO_READ,
-    fixLabel: '',
-    evidenceLabel: '',
     author: review.author ?? review.owner,
     fileCount: '—',
     diff: formatDiff(review),
     checks: review.status,
     files: [],
-    hunk: [],
   }
 }
 
@@ -179,8 +176,6 @@ export function logPatternToConsoleItem(
     badge2: `${pattern.count} ${pattern.count === 1 ? 'LINE' : 'LINES'}`,
     confidence: 'grouped by message shape',
     read: `${pattern.count} error lines from ${pattern.service} share this shape; ${lastHour} in the last hour.`,
-    fixLabel: '',
-    evidenceLabel: '',
     metricLabel: 'Matching lines per hour',
     metricSub: 'last 24 hours',
     metric: pattern.count.toLocaleString(),
@@ -197,4 +192,19 @@ export function logPatternToConsoleItem(
       message: line.message,
     })),
   }
+}
+
+/** Why the row is here, in a few words: the badge, the verdict, the rate, the condition. */
+export function reasonOf(item: ConsoleItem): string {
+  if (item.issue) {
+    const badges = item.issue.badges.map((badge) => ISSUE_BADGE_WORDS[badge])
+    return [...badges, `${item.issue.eventCount.toLocaleString()} events`].join(' · ')
+  }
+  if (item.kind === 'review') {
+    if (item.badge === 'FAILED') return `${item.handle} · review failed`
+    const verdict = item.severity === 'critical' ? 'changes requested' : item.meta
+    return `${item.handle} · ${verdict} · ${item.meta}`
+  }
+  if (item.kind === 'log') return `Log pattern · ${item.metricDelta ?? item.meta}`
+  return `Alert · ${item.subtitle}`
 }

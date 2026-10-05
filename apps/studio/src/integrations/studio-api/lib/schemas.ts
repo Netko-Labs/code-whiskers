@@ -111,6 +111,14 @@ export const triageActivitySchema = z.object({
 })
 export const triageActivityListSchema = z.array(triageActivitySchema)
 
+/** Newest first, across every item the user can see; the item says where it happened. */
+export const recentTriageActivitySchema = triageActivitySchema.omit({ body: true }).extend({
+  scope: z.string(),
+  itemKind: z.enum(TRIAGE_ITEM_KINDS),
+  itemRef: z.string(),
+})
+export const recentTriageActivityListSchema = z.array(recentTriageActivitySchema)
+
 export const memberSchema = z.object({
   id: z.string(),
   name: z.string(),

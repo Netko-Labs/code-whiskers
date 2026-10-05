@@ -1,6 +1,7 @@
 export { ConsoleShell } from './console-shell'
 export { TopbarActions } from './console-topbar'
 export { IssuePage } from './issue-detail'
+export { OverviewView, parseOverviewSearch } from './overview'
 export { ProjectSettingsPage, ProjectSetupPage, parseSetupSearch } from './projects'
 export { SectionView } from './section'
 export { TriageView } from './triage'

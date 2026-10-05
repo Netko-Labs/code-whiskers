@@ -15,7 +15,6 @@ export const useConsoleStore = create<ConsoleStore>((set, get) => ({
   isNavCollapsed: false,
   orgLogin: null,
   readIds: {},
-  fixItemId: null,
   drafts: {},
   isPaletteOpen: false,
   isShortcutsOpen: false,
@@ -35,9 +34,6 @@ export const useConsoleStore = create<ConsoleStore>((set, get) => ({
     set((state) => ({
       readIds: { ...state.readIds, ...Object.fromEntries(itemIds.map((id) => [id, true])) },
     })),
-
-  openFix: (fixItemId) => set({ fixItemId }),
-  closeFix: () => set({ fixItemId: null }),
 
   setDraft: (itemId, draft) => set((state) => ({ drafts: { ...state.drafts, [itemId]: draft } })),
   setPaletteOpen: (isPaletteOpen) => set({ isPaletteOpen, isShortcutsOpen: false }),

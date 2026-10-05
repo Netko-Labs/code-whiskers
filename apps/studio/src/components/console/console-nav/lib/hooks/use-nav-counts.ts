@@ -28,8 +28,8 @@ export function useNavCounts(): Record<string, number> {
     const now = new Date()
     const statuses = items.map((item) => ({ item, status: statusFor(item, records, now) }))
     for (const bucket of ['inbox', 'assigned', 'snoozed'] as const) {
-      counts[`bucket:${bucket}`] = statuses.filter(
-        ({ status }) => !status.done && inBucket(status, bucket, viewer?.id),
+      counts[`bucket:${bucket}`] = statuses.filter(({ item, status }) =>
+        inBucket(item, status, bucket, viewer?.id),
       ).length
     }
     counts['section:pull-requests'] = items.filter((item) => item.kind === 'review').length

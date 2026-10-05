@@ -18,7 +18,7 @@ import type { ConsoleItem } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
 import type { DetailActions } from '../types'
 import { formatUntil, snoozeDeadline } from '../utils'
-import { DISMISS_NOTE, FIX_UNAVAILABLE_NOTE, NO_EVIDENCE_NOTE, NOTHING_TO_DECIDE } from '../values'
+import { DISMISS_NOTE, NOTHING_TO_DECIDE } from '../values'
 
 type DecisionExtra = Pick<TriageDecision, 'note' | 'snoozedUntil'>
 
@@ -64,7 +64,7 @@ function decide(
   )
 }
 
-/** Review and log-pattern decisions; issues go through the lifecycle actions instead. */
+/** Review and log-pattern decisions; issues and alerts carry their own actions. */
 export function useDetailActions(item: ConsoleItem): DetailActions {
   const queryClient = useQueryClient()
 
@@ -73,6 +73,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
       if (!item.triage) flash(NOTHING_TO_DECIDE)
       return item.triage
     }
+    const until = item.kind === 'review' ? 'Whiskers reviews it again' : 'it logs again'
 
     const assign = (target: TriageItemRef, assigneeUserId: string | null) => {
       const previous = patchTriageCache(queryClient, target, { assigneeUserId })
@@ -84,26 +85,17 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
     }
 
     return {
-      onPrimary: () => {
+      done: () => {
         const target = live()
         if (!target) return
-        const current = readTriage(queryClient, target)?.status
-        if (item.kind === 'review') {
-          if (current === 'approved') {
-            decide(queryClient, target, 'open', `Approval withdrawn on ${item.handle}`)
-          } else decide(queryClient, target, 'approved', `Approved ${item.handle} in CodeWhiskers`)
+        if (readTriage(queryClient, target)?.status === 'archived') {
+          decide(queryClient, target, 'open', `${item.handle} is back in the inbox`)
           return
         }
-        if (current === 'tracked') {
-          decide(queryClient, target, 'open', `Stopped tracking ${item.handle}`)
-        } else decide(queryClient, target, 'tracked', `Tracking ${item.handle}`)
+        decide(queryClient, target, 'archived', `Done — ${item.handle} returns when ${until}`)
       },
 
-      onSecondary: () => {
-        if (item.kind === 'review' && item.url) {
-          window.open(item.url, '_blank', 'noopener')
-          return
-        }
+      snooze: () => {
         const target = live()
         if (!target) return
         const record = readTriage(queryClient, target)
@@ -123,8 +115,6 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         )
       },
 
-      onEvidence: () => flash(NO_EVIDENCE_NOTE),
-
       toggleFinding: (finding, isDismissed) => {
         const target = live()
         if (!target) return
@@ -140,13 +130,6 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
             { note: DISMISS_NOTE },
           )
         }
-      },
-
-      openFix: () => useConsoleStore.getState().openFix(item.id),
-      closeFix: () => useConsoleStore.getState().closeFix(),
-      commitFix: () => {
-        useConsoleStore.getState().closeFix()
-        flash(FIX_UNAVAILABLE_NOTE)
       },
 
       assignTo: (member) => {

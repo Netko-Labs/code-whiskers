@@ -1,6 +1,7 @@
 import type { GoTarget, ShortcutGroup } from './types'
 
 export const GO_TARGETS: GoTarget[] = [
+  { key: 'o', label: 'Overview', path: '/console/overview' },
   { key: 'i', label: 'Inbox', bucket: 'inbox' },
   { key: 'a', label: 'Assigned to me', bucket: 'assigned' },
   { key: 'e', label: 'Issues', section: 'issues' },
@@ -38,8 +39,9 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
     title: 'Triage',
     entries: [
-      { keys: ['e'], label: 'Primary action on the open item' },
-      { keys: ['s'], label: 'Secondary action on the open item' },
+      { keys: ['e'], label: 'Resolve the issue, or mark the item done' },
+      { keys: ['s'], label: 'Snooze a review or log pattern' },
+      { keys: ['enter'], label: 'Open the selected item in full' },
     ],
   },
 ]

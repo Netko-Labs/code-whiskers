@@ -191,6 +191,9 @@ Unique on `(scope, item_kind, item_ref)`.
 `unresolved` \| `archived` \| `regressed` \| `unarchived` \| `assigned` \| `commented`),
 `actor_user_id` (null = whiskers), `data` jsonb, `created_at`. The item's timeline;
 `triage_comment` keeps comment bodies, and `GET /api/triage/activity` merges the two.
+`GET /api/triage/activity/recent` is the cross-item stream the console overview reads: the
+newest entries on every repository the user is a member of plus every `project:` scope, scoped
+exactly like `GET /api/triage`.
 
 #### The issue lifecycle mirror
 
@@ -263,6 +266,12 @@ were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before 
 `archive_until_users` (target totals), `regressed_at` — are a **mirror** of studio's
 `triage_state`, never decided here except by a recurrence. Badges (`new`, `regressed`,
 `spiking`) are derived per read, never stored.
+
+`GET /v1/overview?range=24h|7d|30d&projectId=…&repository=…` buckets events (`received_at`), new
+issues (`first_seen`), regressions (`regressed_at`) and reviews (`created_at`, failed apart)
+over the range — hourly, six-hourly or daily, aligned to the step — plus the unresolved count
+now. `projectId` scopes the error side, `repository` the reviews; a project scope without a
+repository counts no reviews. Nothing is stored for it: it is a handful of grouped scans.
 
 **`event`** — partitioned by `received_at`. `id`, `issue_id`, `project_id`, `event_id`,
 `level`, `message`, `environment`, `release`, `user_key` (sha256 of the SDK's user id, else

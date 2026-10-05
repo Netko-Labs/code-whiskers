@@ -1,7 +1,21 @@
 import { z } from 'zod'
 
+export const OVERVIEW_RANGES = ['24h', '7d', '30d'] as const
+
+const overviewCountsSchema = z.object({
+  events: z.number(),
+  newIssues: z.number(),
+  regressions: z.number(),
+  reviews: z.number(),
+  failedReviews: z.number(),
+})
+
 export const whiskersOverviewSchema = z.object({
   summary: z.object({ events: z.number(), issues: z.number() }),
+  range: z.enum(OVERVIEW_RANGES),
+  stepMs: z.number(),
+  series: z.array(overviewCountsSchema.extend({ bucket: z.coerce.date() })),
+  totals: overviewCountsSchema.extend({ unresolved: z.number() }),
 })
 
 export const ISSUE_STATUSES = ['unresolved', 'resolved', 'archived'] as const

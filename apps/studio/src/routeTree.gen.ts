@@ -18,6 +18,7 @@ import { Route as ApiMonitorRouteImport } from './routes/api/monitor'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
 import { Route as ConsoleCodebaseMapRouteImport } from './routes/console/codebase-map'
+import { Route as ConsoleOverviewRouteImport } from './routes/console/overview'
 import { Route as ConsolePullRequestsRouteImport } from './routes/console/pull-requests'
 import { Route as ConsoleRepositoriesRouteImport } from './routes/console/repositories'
 import { Route as ConsoleReviewRulesRouteImport } from './routes/console/review-rules'
@@ -74,6 +75,11 @@ const ConsoleSectionRoute = ConsoleSectionRouteImport.update({
 const ConsoleCodebaseMapRoute = ConsoleCodebaseMapRouteImport.update({
   id: '/codebase-map',
   path: '/codebase-map',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsolePullRequestsRoute = ConsolePullRequestsRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
   '/console/review-rules': typeof ConsoleReviewRulesRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/api/monitor'
     | '/console/$section'
     | '/console/codebase-map'
+    | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
     | '/console/review-rules'
@@ -356,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleCodebaseMapRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/overview': {
+      id: '/console/overview'
+      path: '/overview'
+      fullPath: '/console/overview'
+      preLoaderRoute: typeof ConsoleOverviewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/pull-requests': {
       id: '/console/pull-requests'
       path: '/pull-requests'
@@ -446,6 +465,7 @@ declare module '@tanstack/react-router' {
 interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
   ConsoleCodebaseMapRoute: typeof ConsoleCodebaseMapRoute
+  ConsoleOverviewRoute: typeof ConsoleOverviewRoute
   ConsolePullRequestsRoute: typeof ConsolePullRequestsRoute
   ConsoleRepositoriesRoute: typeof ConsoleRepositoriesRoute
   ConsoleReviewRulesRoute: typeof ConsoleReviewRulesRoute
@@ -460,6 +480,7 @@ interface ConsoleRouteChildren {
 const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
   ConsoleCodebaseMapRoute: ConsoleCodebaseMapRoute,
+  ConsoleOverviewRoute: ConsoleOverviewRoute,
   ConsolePullRequestsRoute: ConsolePullRequestsRoute,
   ConsoleRepositoriesRoute: ConsoleRepositoriesRoute,
   ConsoleReviewRulesRoute: ConsoleReviewRulesRoute,

@@ -1,53 +1,60 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
-import { useMembers } from '../../shared/console-data'
-import { SEVERITY_BG } from '../../shared/console-ui'
-import { rowMeta, type TriageRowProps, useItemStatus } from '../lib'
-import { TriageRowIssue } from './triage-row-issue'
+import { DataRow, DataRowLead, DataRowMeta } from '@/components/shared/data-list'
+import { SeverityDot } from '@/components/shared/status'
+import { reasonOf, SEVERITY_TONE } from '../../shared/console-data'
+import { TrendBars } from '../../shared/issue-ui'
+import { formatUntil, type TriageRowProps, useItemStatus } from '../lib'
 
-export function TriageRow({ bucket, item, active }: TriageRowProps) {
+/** Two quiet lines: what it is, then why it is here. A triaged row folds away in place. */
+export function TriageRow({ bucket, entry, isSelected }: TriageRowProps) {
+  const { item, isLeaving } = entry
   const status = useItemStatus(item)
-  const owner = useMembers().find((m) => m.id === status.assigneeUserId)?.name
+  const tone = SEVERITY_TONE[item.severity]
+  const reason = status.snoozedUntil
+    ? `Snoozed until ${formatUntil(status.snoozedUntil)}`
+    : reasonOf(item)
 
   return (
-    <Link
-      to="/console/triage/$bucket"
-      params={{ bucket }}
-      search={(prev) => ({ ...prev, sel: item.id })}
+    <DataRow
+      isSelected={isSelected && !isLeaving}
+      tone={tone}
+      density="auto"
       className={cn(
-        'flex cursor-pointer gap-3 border-rule-soft border-b border-l-2 py-3 pr-5 pl-[18px] transition-colors',
-        active
-          ? 'border-l-foreground bg-surface-subtle'
-          : 'border-l-transparent hover:bg-surface-subtle/60',
+        'h-[54px] overflow-hidden transition-[height,opacity,padding] duration-base ease-out-quart',
+        isLeaving && 'pointer-events-none h-0 min-h-0! py-0 opacity-0',
       )}
+      render={
+        <Link
+          to="/console/triage/$bucket"
+          params={{ bucket }}
+          search={(prev) => ({ ...prev, sel: item.id })}
+          replace
+          tabIndex={isLeaving ? -1 : undefined}
+        />
+      }
     >
-      <span
-        className={cn(
-          'mt-[6px] size-2 shrink-0 rounded-full',
-          status.done ? 'bg-rule-strong' : SEVERITY_BG[item.severity],
-        )}
-      />
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span
-          className={cn(
-            'line-clamp-2 text-[13.5px] leading-[19px] text-pretty',
-            active ? 'font-semibold' : 'font-medium',
-            status.done && 'text-muted-foreground',
-          )}
-        >
-          {item.title}
-        </span>
-        {item.issue ? (
-          <TriageRowIssue item={item} owner={owner} />
-        ) : (
-          <span className="flex items-baseline gap-2 text-[12px] text-muted-foreground">
-            <span className="min-w-0 flex-1 truncate">{rowMeta(item, status, owner)}</span>
-            <span className="shrink-0 font-mono text-[11px] text-faint tabular-nums">
-              {item.age}
-            </span>
+      <DataRowLead>
+        <SeverityDot tone={tone} isPulsing={item.kind === 'alert'} label={item.label} />
+      </DataRowLead>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 items-baseline gap-3">
+          <span
+            className={cn('min-w-0 flex-1 truncate', isSelected ? 'font-semibold' : 'font-medium')}
+          >
+            {item.title}
           </span>
-        )}
-      </div>
-    </Link>
+          <DataRowMeta>{item.age}</DataRowMeta>
+        </span>
+        <span className="flex min-w-0 items-center gap-3 text-2xs text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate">
+            {item.scopeLabel} · {reason}
+          </span>
+          {item.issue && item.issue.trend.length > 1 && (
+            <TrendBars values={item.issue.trend} className="h-3 w-12 shrink-0" />
+          )}
+        </span>
+      </span>
+    </DataRow>
   )
 }

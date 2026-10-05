@@ -18,6 +18,7 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
   const [, area, id] = pathname.split('/').filter(Boolean)
   if (!area) return []
 
+  if (area === 'overview') return [{ label: 'Overview' }]
   if (area === 'triage') {
     const item = NAV_PRIMARY.find(
       (candidate) =>

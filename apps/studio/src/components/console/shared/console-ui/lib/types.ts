@@ -1,4 +1,4 @@
-import type { ConsoleSeverity, ConsoleTone, DiffLine, LogLine, PillTone } from '../../console-model'
+import type { ConsoleSeverity, ConsoleTone, LogLine, PillTone } from '../../console-model'
 
 export type SeverityDotProps = {
   severity: ConsoleSeverity
@@ -10,11 +10,6 @@ export type ConsolePillProps = {
   tone: PillTone
   children: React.ReactNode
   className?: string
-}
-
-export type CodeHunkProps = {
-  lines: DiffLine[]
-  numberWidth?: string
 }
 
 export type LogLinesProps = {

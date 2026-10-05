@@ -48,6 +48,6 @@ export const BAR_TONE: Record<PillTone, string> = {
 export const LOG_LEVEL_TEXT: Record<LogLevel, string> = {
   ERROR: 'text-severity-error',
   WARN: 'text-severity-warning',
-  INFO: 'text-zinc-400',
+  INFO: 'text-muted-foreground',
   OK: 'text-severity-resolved',
 }

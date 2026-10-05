@@ -11,7 +11,7 @@ import type {
 } from './types'
 
 const BUCKETS: TriageBucket[] = ['inbox', 'assigned', 'snoozed']
-const FILTERS: TriageFilter[] = ['all', 'errors', 'reviews', 'logs']
+const FILTERS: TriageFilter[] = ['all', 'errors', 'reviews', 'logs', 'alerts']
 
 export function parseTriageBucket(value: string): TriageBucket {
   return BUCKETS.find((bucket) => bucket === value) ?? 'inbox'

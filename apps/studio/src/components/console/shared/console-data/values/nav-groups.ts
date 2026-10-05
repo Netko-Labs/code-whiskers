@@ -15,6 +15,7 @@ import {
   IconGitPullRequest,
   IconInbox,
   IconKey,
+  IconLayoutDashboard,
   IconPlug,
   IconScale,
   IconScript,
@@ -30,6 +31,7 @@ const SECTION_ROUTE = '/console/$section'
 
 /** Always visible above the groups: what needs a human right now. */
 export const NAV_PRIMARY: ConsoleNavItem[] = [
+  { label: 'Overview', icon: IconLayoutDashboard, to: '/console/overview' },
   { label: 'Inbox', icon: IconInbox, to: TRIAGE_ROUTE, params: { bucket: 'inbox' } },
   { label: 'Assigned to me', icon: IconUser, to: TRIAGE_ROUTE, params: { bucket: 'assigned' } },
   { label: 'Snoozed', icon: IconClock, to: TRIAGE_ROUTE, params: { bucket: 'snoozed' } },
@@ -125,7 +127,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
 
 /** The collapsed rail keeps one door into each surface. */
 export const RAIL_ITEMS: ConsoleNavItem[] = [
-  ...NAV_PRIMARY.slice(0, 2),
+  ...NAV_PRIMARY.slice(0, 3),
   { label: 'Issues', icon: IconAlertCircle, to: SECTION_ROUTE, params: { section: 'issues' } },
   {
     label: 'Pull requests',

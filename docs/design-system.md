@@ -86,7 +86,7 @@ inset panel (`rounded-xl border shadow-panel`) with a 44px top bar. Below `lg` t
 the only nav.
 
 - **Sidebar** (`console-nav`): workspace switcher (GitHub installations; "Connect GitHub" when
-  none), search button (⌘K), `NAV_PRIMARY` (inbox buckets), collapsible `NAV_GROUPS`, a live
+  none), search button (⌘K), `NAV_PRIMARY` (Overview, then the inbox buckets), collapsible `NAV_GROUPS`, a live
   Projects group, account menu (theme, shortcuts, sign out). `[` folds it to the rail.
 - **Top bar** (`console-topbar`): breadcrumbs derived from the URL (`crumbsFor`), a page-actions
   slot, notifications, help. Pages put buttons there with `<TopbarActions>`:
@@ -230,6 +230,30 @@ keys are handled by the shell: ⌘K, `?`, `[`, `g` + key. Page keys use `useDocu
 - **Triage (split)**: `SplitView` with a dense list left and the detail right; `j/k` move, `e`/`s`
   act, the URL (`?sel=`) owns the selection.
 
+### Overview (`/console/overview`, the console's landing page)
+
+`components/console/overview`. Greeting `PageHeader` with the `ScopePicker` and a 24h/7d/30d
+segmented control (`?range=`, links, never animates) → `StatGrid` of eight `StatCard`s (ranged
+numbers carry a sparkline from `/v1/overview`; "right now" numbers — blocking reviews, alerts
+firing — come from the same live lists as the inbox, so both always agree) → an "Errors over
+time" recharts area (events in `chart-1`, new issues in `severity-error`) beside the live
+activity feed (`/api/triage/activity/recent` + finished reviews; entries newer than the page
+arriving over realtime get `animate-highlight` once) → "Needs attention" (`DataList`, loudest
+first: firing alerts, regressions, spikes, blocking reviews, new issues) with the compact setup
+card beside it. An instance with no review and no error event yet shows only the setup steps,
+the next one as the primary action.
+
+### Inbox (`/console/triage/$bucket`)
+
+Linear's inbox. The inbox bucket holds only what needs a human: new, regressed or spiking issues,
+reviews that request changes or failed, log patterns active this hour, firing alerts
+(`needsAttention` in `shared/console-data`; the sidebar count uses the same rule). Assigned and
+Snoozed show anything assigned or snoozed. Rows are two lines (title, then why it is here) in
+Today / This week / Earlier bands inside one `DataList`. `e` resolves an issue (the issue detail
+owns it), marks a review or log pattern done (`archived`; it returns when the item moves again),
+or mutes an alert; `s` snoozes; `enter` opens the item in full. A triaged row folds away in
+place (`useLeavingRows`, 180ms) and the selection moves to the row that took its place.
+
 ## Empty, loading and error
 
 1. Every query-backed surface has three states: skeleton while the first answer is pending,
@@ -303,6 +327,13 @@ Mobbin screens used for the direction:
   [fc242c04](https://mobbin.com/screens/fc242c04-1347-4292-b719-e6584955cd7d)
 - Sentry issue feed skeleton and search tokens —
   [f53e7f03](https://mobbin.com/screens/f53e7f03-0407-4886-8122-49a7a9fe53e5)
+- Linear inbox list and grouped bands (overview/inbox pass) —
+  [ed670cda](https://mobbin.com/screens/ed670cda-0527-4716-a1a6-0159f12c4f42),
+  [e4104890](https://mobbin.com/screens/e4104890-7660-4557-851b-57b499125ea4)
+- Overview: greeting header (Mintlify)
+  [31bc9279](https://mobbin.com/screens/31bc9279-f1e6-449c-9143-583e558609b4), stat row over a
+  chart (Browserbase) [654392d0](https://mobbin.com/screens/654392d0-9063-4db4-8987-6b7fc6742537),
+  history feed (Railway) [fca24d24](https://mobbin.com/screens/fca24d24-ab3c-4dec-a5d3-e90b18e90af1)
 - Inset content panel beside a canvas sidebar (AirOps) —
   [7add224e](https://mobbin.com/screens/7add224e-bafe-4c01-80f9-1e86514011d0)
 - GitHub files-changed review and PR conversation (code review pages) —

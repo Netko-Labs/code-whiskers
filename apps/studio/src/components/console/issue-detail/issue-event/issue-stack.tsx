@@ -8,9 +8,9 @@ export function IssueStack({ event }: IssueStackProps) {
   const culprit = event.frames.findIndex((frame) => frame.isInApp)
 
   return (
-    <div className="dark overflow-hidden rounded-xl bg-zinc-950 font-mono text-xs leading-5 text-zinc-400">
-      <div className="border-zinc-800 border-b px-4 py-2.5 text-zinc-50">{event.message}</div>
-      {groups.length === 0 && <div className="px-4 py-3 text-zinc-500">{EMPTY_STACK}</div>}
+    <div className="dark overflow-hidden rounded-xl border border-border bg-canvas font-mono text-xs leading-5 text-muted-foreground">
+      <div className="border-border border-b px-4 py-2.5 text-foreground">{event.message}</div>
+      {groups.length === 0 && <div className="px-4 py-3 text-faint">{EMPTY_STACK}</div>}
       {groups.map((group) =>
         group.kind === 'app' ? (
           <IssueFrame key={group.index} frame={group.frame} isCulprit={group.index === culprit} />

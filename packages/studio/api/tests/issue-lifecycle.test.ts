@@ -8,6 +8,7 @@ const ISSUE_ID = '6762076c-880a-40ba-ac33-2830f16207d5'
 const published: string[][] = []
 const transitions: unknown[] = []
 const lifecycles: unknown[] = []
+const recentReads: { userId: string; limit: number }[] = []
 let sessionUser: { id: string } | null = null
 
 // Bun keeps a module mock for the rest of the process: spread the real module so later test
@@ -35,6 +36,10 @@ mock.module('@code-whiskers/studio-service', () => ({
   authorizeTriageScope: async (userId: string, scope: string) =>
     userId === 'outsider' ? null : { scope, installationId: null },
   getTriageActivity: async () => [],
+  getRecentTriageActivity: async (userId: string, limit: number) => {
+    recentReads.push({ userId, limit })
+    return []
+  },
 }))
 
 const { internalRoutes } = await import('../src/routes/internal')
@@ -143,5 +148,29 @@ describe('GET /triage/activity', () => {
     const response = await triageRoutes.handle(new Request(url))
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual([])
+  })
+})
+
+describe('GET /triage/activity/recent', () => {
+  const read = (query = '') =>
+    triageRoutes.handle(new Request(`http://studio.test/triage/activity/recent${query}`))
+
+  test('needs a session and reads nothing without one', async () => {
+    const before = recentReads.length
+    expect((await read()).status).toBe(401)
+    expect(recentReads).toHaveLength(before)
+  })
+
+  test('reads for the signed-in user with a default limit', async () => {
+    sessionUser = { id: 'u1' }
+    expect((await read()).status).toBe(200)
+    expect(recentReads.at(-1)).toEqual({ userId: 'u1', limit: 40 })
+  })
+
+  test('refuses a limit past the cap', async () => {
+    sessionUser = { id: 'u1' }
+    expect((await read('?limit=500')).status).toBe(422)
+    expect((await read('?limit=10')).status).toBe(200)
+    expect(recentReads.at(-1)).toEqual({ userId: 'u1', limit: 10 })
   })
 })

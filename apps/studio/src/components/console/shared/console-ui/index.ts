@@ -1,4 +1,3 @@
-export { CodeHunk } from './code-hunk'
 export { ConsolePill } from './console-pill'
 export * from './lib'
 export { LogLines } from './log-lines'

@@ -1,20 +1,33 @@
+import type { AlertRule } from '@/integrations/studio-api'
 import type { TriageBucket, TriageFilter } from '../../shared/console-model'
+import type { RecencyGroup } from './types'
 
 export const TRIAGE_FILTERS: { value: TriageFilter; label: string }[] = [
   { value: 'all', label: 'Everything' },
-  { value: 'reviews', label: 'Reviews' },
   { value: 'errors', label: 'Errors' },
+  { value: 'reviews', label: 'Reviews' },
   { value: 'logs', label: 'Logs' },
+  { value: 'alerts', label: 'Alerts' },
 ]
+
+export const RECENCY_LABELS: Record<RecencyGroup, string> = {
+  today: 'Today',
+  week: 'This week',
+  earlier: 'Earlier',
+}
+
+export const RECENCY_ORDER: RecencyGroup[] = ['today', 'week', 'earlier']
 
 /** Reviews and log patterns snooze; issues archive with their own conditions instead. */
 export const SNOOZE_MS = 24 * 60 * 60 * 1000
+/** How long a triaged row takes to fold away; matches `duration-base`. */
+export const LEAVE_MS = 180
 export const DISMISS_NOTE = 'dismissed in the CodeWhiskers console'
 export const EMPTY_BUCKET: Record<TriageBucket, { title: string; description: string }> = {
   inbox: {
     title: 'Inbox zero',
     description:
-      'New errors, review findings and noisy log patterns land here as whiskers sees them.',
+      'New, regressed and spiking issues, blocking reviews and firing alerts land here as they happen.',
   },
   assigned: {
     title: 'Nothing assigned to you',
@@ -22,15 +35,19 @@ export const EMPTY_BUCKET: Record<TriageBucket, { title: string; description: st
   },
   snoozed: {
     title: 'Nothing snoozed',
-    description: 'Snooze an item with s; it comes back to the inbox when the snooze ends.',
+    description: 'Snooze a review or log pattern with s; it comes back when the snooze ends.',
   },
 }
+export const NO_MATCHES = 'Nothing here matches that filter.'
 export const UNREACHABLE_TITLE = 'Whiskers is not answering'
 export const UNREACHABLE_DESCRIPTION =
   'The worker behind errors, reviews and logs did not respond. Check WHISKERS_URL and the worker logs.'
 export const NOTHING_TO_DECIDE = 'Nothing to decide on this item yet'
-export const NO_EVIDENCE_NOTE = 'No evidence is attached to this item'
-export const FIX_UNAVAILABLE_NOTE = 'Committing a fix from here is not available yet'
 export const NO_COMMENTS_NOTE = 'Comments open once this item is tracked.'
-export const NO_EVENT_NOTE =
-  'No ingested issue backs this error, so there is no stack trace or event history to show.'
+
+export const ALERT_KIND_LABEL: Record<AlertRule['kind'], string> = {
+  new_issue: 'New issue',
+  error_rate: 'Error rate',
+  review_failed: 'Review failed',
+  blocking_review: 'Blocking review',
+}

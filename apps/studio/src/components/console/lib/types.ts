@@ -11,8 +11,6 @@ export type ConsoleStore = {
   /** `null` shows every installation the viewer can see. */
   orgLogin: string | null
   readIds: Record<string, boolean>
-  /** The item the fix drawer was opened for; the drawer closes if the selection moves elsewhere. */
-  fixItemId: string | null
   drafts: Record<string, string>
   isPaletteOpen: boolean
   isShortcutsOpen: boolean
@@ -24,8 +22,6 @@ export type ConsoleStore = {
   pickOrg: (login: string | null) => void
   markRead: (itemId: string) => void
   markAllRead: (itemIds: string[]) => void
-  openFix: (itemId: string) => void
-  closeFix: () => void
   setDraft: (itemId: string, draft: string) => void
   setPaletteOpen: (isOpen: boolean) => void
   setShortcutsOpen: (isOpen: boolean) => void
@@ -38,7 +34,7 @@ export type ConsoleStore = {
 export type GoTarget =
   | { key: string; label: string; bucket: TriageBucket }
   | { key: string; label: string; section: SectionView }
-  | { key: string; label: string; path: '/console/projects/new' }
+  | { key: string; label: string; path: '/console/projects/new' | '/console/overview' }
 
 export type ShortcutEntry = {
   keys: string[]
