@@ -181,10 +181,13 @@ decision at ingest, where a studio round trip per event is not an option. So whi
 mirror on `issue`, and the two sides talk both ways with `INTERNAL_TOKEN`:
 
 ```
- console ──POST /api/triage/issues/lifecycle──▶ studio: triage_state + triage_activity
-                                                  │  write-through (bulk, ≤100 ids)
+ console ──POST /api/triage/issues/lifecycle (scope project:<id>)──▶ studio authorizes
+                                                  │  write-through (bulk, ≤100 ids + projectId)
                                                   ▼
                                    whiskers POST /internal/issues/lifecycle → issue.status…
+                                                  │  only that project's ids come back
+                                                  ▼
+                                   studio: triage_state + triage_activity for those ids
  SDK event ──▶ whiskers ingest: resolved + recurrence → unresolved (`regressed_at`)
                                 archived + condition met → unresolved
                                   │
@@ -194,10 +197,12 @@ mirror on `issue`, and the two sides talk both ways with `INTERNAL_TOKEN`:
 ```
 
 Resolve-in-next-release records the issue's latest release; an event regresses it only when its
-release differs *and* first reached the project after the resolve. A write-through that fails
-leaves `mirrored_at` null and the response says `mirrored: false`; a sweep every five minutes
-pushes every unmirrored issue decision (it also carried the decisions made before the mirror
-existed).
+release differs *and* first reached the project after the resolve. Whiskers updates only
+`issue.project_id = projectId`, so an id from another project changes nothing on either side. A
+write-through that fails cannot check the ids: studio records the whole selection under the
+authorized scope with `mirrored_at` null, the response says `mirrored: false`, and a sweep every
+five minutes pushes every unmirrored issue decision bound to its row's project (whiskers ignores
+mismatches; the sweep also carried the decisions made before the mirror existed).
 
 ### Instance settings
 

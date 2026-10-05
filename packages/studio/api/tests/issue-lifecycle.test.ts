@@ -116,6 +116,14 @@ describe('POST /triage/issues/lifecycle', () => {
     expect((await postLifecycle(body)).status).toBe(403)
   })
 
+  test('only a project scope can change issues', async () => {
+    sessionUser = { id: 'u1' }
+    const before = lifecycles.length
+    expect((await postLifecycle({ ...body, scope: 'acme/api' })).status).toBe(422)
+    expect((await postLifecycle({ ...body, scope: 'project:' })).status).toBe(422)
+    expect(lifecycles).toHaveLength(before)
+  })
+
   test('an archive without its count is refused before anything is written', async () => {
     sessionUser = { id: 'u1' }
     const response = await postLifecycle({ ...body, archive: { mode: 'events' } })

@@ -72,17 +72,25 @@ export const IssueArchiveSchema = z.discriminatedUnion('mode', [
 ])
 export type IssueArchive = z.infer<typeof IssueArchiveSchema>
 
-/** The body whiskers' `/internal/issues/lifecycle` takes; studio adds the scope it authorizes. */
-export const WhiskersLifecycleSchema = z.object({
+const IssueLifecycleChangeSchema = z.object({
   issueIds: z.array(z.guid()).min(1).max(MAX_BULK_TRIAGE),
   status: z.enum(ISSUE_STATUSES),
   resolve: IssueResolveSchema.optional(),
   archive: IssueArchiveSchema.optional(),
 })
+
+/** The body whiskers' `/internal/issues/lifecycle` takes: the project studio authorized. */
+export const WhiskersLifecycleSchema = IssueLifecycleChangeSchema.extend({
+  projectId: z.string().min(1).max(200),
+})
 export type WhiskersLifecycleBody = z.infer<typeof WhiskersLifecycleSchema>
 
-export const IssueLifecycleRequestSchema = WhiskersLifecycleSchema.extend({
-  scope: z.string().min(1).max(200),
+/** Issues live in whiskers projects, so a lifecycle change is only ever scoped to one. */
+export const IssueLifecycleRequestSchema = IssueLifecycleChangeSchema.extend({
+  scope: z
+    .string()
+    .regex(/^project:.+$/)
+    .max(200),
 })
 export type IssueLifecycleRequest = z.infer<typeof IssueLifecycleRequestSchema>
 

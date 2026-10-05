@@ -1,8 +1,14 @@
 import { describe, expect, test } from 'bun:test'
-import { issueDecisionOf, type LifecycleDecision, lifecycleOf } from '../src/mutations'
+import {
+  issueDecisionOf,
+  type LifecycleDecision,
+  lifecycleOf,
+  recordedIssueIds,
+} from '../src/mutations'
 
 const row = (fields: Partial<Parameters<typeof lifecycleOf>[0]>) => ({
   id: 'r',
+  scope: 'project:p1',
   itemRef: 'i',
   status: 'open',
   resolveMode: null,
@@ -53,5 +59,18 @@ describe('issueDecisionOf / lifecycleOf', () => {
 
   test('statuses issues never use have nothing to mirror', () => {
     expect(lifecycleOf(row({ status: 'approved' }))).toBeNull()
+  })
+})
+
+describe('recordedIssueIds', () => {
+  const requested = ['mine', 'theirs', 'gone']
+
+  test('only the ids whiskers found in the authorized project are recorded', () => {
+    expect(recordedIssueIds(requested, [{ id: 'mine' }])).toEqual(['mine'])
+    expect(recordedIssueIds(requested, [])).toEqual([])
+  })
+
+  test('whiskers unreachable: the selection is recorded under its scope, unchecked', () => {
+    expect(recordedIssueIds(requested, null)).toEqual(requested)
   })
 })

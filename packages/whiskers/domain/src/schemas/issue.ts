@@ -26,8 +26,12 @@ export const ArchiveSchema = z.discriminatedUnion('mode', [
 ])
 export type Archive = z.infer<typeof ArchiveSchema>
 
-/** Studio → whiskers: a human's lifecycle decision, mirrored so ingest can act on it. */
+/**
+ * Studio → whiskers: a human's lifecycle decision, mirrored so ingest can act on it. `projectId`
+ * is the project studio authorized; ids outside it are left alone.
+ */
 export const IssueLifecycleBodySchema = z.object({
+  projectId: z.string().min(1).max(200),
   issueIds: z.array(z.guid()).min(1).max(MAX_LIFECYCLE_ISSUES),
   status: IssueStatusSchema,
   resolve: ResolveSchema.optional(),

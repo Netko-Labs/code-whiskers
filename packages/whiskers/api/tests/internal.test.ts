@@ -33,7 +33,12 @@ const postLifecycle = (body: unknown, token?: string) =>
   )
 
 describe('POST /internal/issues/lifecycle', () => {
-  const body = { issueIds: [ISSUE_ID], status: 'resolved', resolve: { mode: 'next_release' } }
+  const body = {
+    projectId: 'p1',
+    issueIds: [ISSUE_ID],
+    status: 'resolved',
+    resolve: { mode: 'next_release' },
+  }
 
   test('studio with the token mirrors a decision', async () => {
     const response = await postLifecycle(body, 'internal-test-token')
@@ -46,6 +51,13 @@ describe('POST /internal/issues/lifecycle', () => {
     const before = mirrored.length
     expect((await postLifecycle(body)).status).toBe(401)
     expect((await postLifecycle(body, 'internal-test-tokeX')).status).toBe(401)
+    expect(mirrored).toHaveLength(before)
+  })
+
+  test('a decision not bound to a project is refused', async () => {
+    const { projectId: _, ...unbound } = body
+    const before = mirrored.length
+    expect((await postLifecycle(unbound, 'internal-test-token')).status).toBe(422)
     expect(mirrored).toHaveLength(before)
   })
 

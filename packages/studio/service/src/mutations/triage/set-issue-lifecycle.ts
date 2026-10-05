@@ -5,32 +5,41 @@ import {
   triageState,
 } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { authorizeTriageScope } from '../../queries/triage'
+import { authorizeTriageScope, PROJECT_SCOPE_PREFIX } from '../../queries/triage'
 import { mirrorIssueLifecycle } from '../../whiskers'
-import { markMirrored } from './mark-mirrored'
 import type { IssueLifecycleResult } from './types'
-import { issueDecisionOf } from './utils'
+import { issueDecisionOf, recordedIssueIds } from './utils'
 
 const logger = createLogger('studio-triage')
 
 /**
- * Resolve, archive or reopen a selection of issues. Studio records the decision and its activity
- * first, then writes it through to whiskers; a failed write-through leaves the decision unmirrored
- * for the sweep instead of undoing it.
+ * Resolve, archive or reopen a selection of one project's issues. Whiskers takes the write first
+ * and answers only the ids that are that project's, so studio records the decision for those.
+ * When whiskers is unreachable the ids cannot be checked: studio records them under the
+ * authorized scope alone, and the sweep's write-through is bound to the same project.
  */
 export const setIssueLifecycle = async (
   userId: string,
   request: IssueLifecycleRequest,
 ): Promise<IssueLifecycleResult | null> => {
   const authorized = await authorizeTriageScope(userId, request.scope)
-  if (!authorized) return null
+  if (!authorized?.scope.startsWith(PROJECT_SCOPE_PREFIX)) return null
 
+  const projectId = authorized.scope.slice(PROJECT_SCOPE_PREFIX.length)
   const lifecycle = { status: request.status, resolve: request.resolve, archive: request.archive }
-  const itemRefs = [...new Set(request.issueIds)]
+  const requested = [...new Set(request.issueIds)]
+  const issues = await mirrorIssueLifecycle({ projectId, issueIds: requested, ...lifecycle })
+  const itemRefs = recordedIssueIds(requested, issues)
+  if (!issues) {
+    logger.warn({ scope: authorized.scope, count: itemRefs.length }, 'issue lifecycle unmirrored')
+  }
+  if (itemRefs.length === 0) return { issues: [], mirrored: true }
+
   const decision = issueDecisionOf(lifecycle)
   const decidedAt = new Date()
-  const written = await db.transaction(async (tx) => {
-    const rows = await tx
+  const mirroredAt = issues ? decidedAt : null
+  await db.transaction(async (tx) => {
+    await tx
       .insert(triageState)
       .values(
         itemRefs.map((itemRef) => ({
@@ -41,6 +50,7 @@ export const setIssueLifecycle = async (
           ...decision,
           updatedBy: userId,
           updatedAt: decidedAt,
+          mirroredAt,
         })),
       )
       .onConflictDoUpdate({
@@ -50,10 +60,9 @@ export const setIssueLifecycle = async (
           snoozedUntil: null,
           updatedBy: userId,
           updatedAt: decidedAt,
-          mirroredAt: null,
+          mirroredAt,
         },
       })
-      .returning({ id: triageState.id })
     await tx.insert(triageActivity).values(
       itemRefs.map((itemRef) => ({
         scope: authorized.scope,
@@ -64,17 +73,6 @@ export const setIssueLifecycle = async (
         data: { ...lifecycle.resolve, ...lifecycle.archive },
       })),
     )
-    return rows
   })
-
-  const issues = await mirrorIssueLifecycle({ issueIds: itemRefs, ...lifecycle })
-  if (issues) {
-    await markMirrored(
-      written.map((row) => row.id),
-      decidedAt,
-    )
-  } else {
-    logger.warn({ scope: authorized.scope, count: itemRefs.length }, 'issue lifecycle unmirrored')
-  }
   return { issues: issues ?? [], mirrored: issues !== null }
 }

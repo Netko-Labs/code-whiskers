@@ -1,6 +1,6 @@
 import { type IssueLifecycleBody, issueTable } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { REOPENED } from './constants'
 import type { IssueLifecycle, IssuePatch } from './types'
 
@@ -37,23 +37,26 @@ function patchOf(body: IssueLifecycleBody, now: Date): IssuePatch {
   }
 }
 
-export const setIssueLifecycle = async (body: IssueLifecycleBody): Promise<IssueLifecycle[]> => {
-  return await db
+/** Only the authorized project's issues change, and only those come back. */
+export const lifecycleUpdateOf = (body: IssueLifecycleBody, now: Date) =>
+  db
     .update(issueTable)
-    .set(patchOf(body, new Date()))
-    .where(inArray(issueTable.id, body.issueIds))
-    .returning({
-      id: issueTable.id,
-      projectId: issueTable.projectId,
-      status: issueTable.status,
-      resolvedInRelease: issueTable.resolvedInRelease,
-      resolvedAt: issueTable.resolvedAt,
-      archivedUntil: issueTable.archivedUntil,
-      archiveUntilEvents: issueTable.archiveUntilEvents,
-      archiveUntilUsers: issueTable.archiveUntilUsers,
-      regressedAt: issueTable.regressedAt,
-      eventCount: issueTable.eventCount,
-      userCount: issueTable.userCount,
-      lastRelease: issueTable.lastRelease,
-    })
+    .set(patchOf(body, now))
+    .where(and(eq(issueTable.projectId, body.projectId), inArray(issueTable.id, body.issueIds)))
+
+export const setIssueLifecycle = async (body: IssueLifecycleBody): Promise<IssueLifecycle[]> => {
+  return await lifecycleUpdateOf(body, new Date()).returning({
+    id: issueTable.id,
+    projectId: issueTable.projectId,
+    status: issueTable.status,
+    resolvedInRelease: issueTable.resolvedInRelease,
+    resolvedAt: issueTable.resolvedAt,
+    archivedUntil: issueTable.archivedUntil,
+    archiveUntilEvents: issueTable.archiveUntilEvents,
+    archiveUntilUsers: issueTable.archiveUntilUsers,
+    regressedAt: issueTable.regressedAt,
+    eventCount: issueTable.eventCount,
+    userCount: issueTable.userCount,
+    lastRelease: issueTable.lastRelease,
+  })
 }

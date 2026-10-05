@@ -1,4 +1,4 @@
-import type { IssueArchive } from '@code-whiskers/studio-domain'
+import type { IssueArchive, IssueLifecycle } from '@code-whiskers/studio-domain'
 import type { IssueDecision, LifecycleDecision, MirrorRow } from './types'
 
 const STATUS_OF = { unresolved: 'open', resolved: 'resolved', archived: 'archived' } as const
@@ -62,4 +62,17 @@ export function chunks<T>(items: T[], size: number): T[][] {
   return Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
     items.slice(index * size, (index + 1) * size),
   )
+}
+
+/**
+ * Whiskers answers only the issues it found in the authorized project; studio records just those.
+ * No answer means nothing could be checked, so the whole selection is recorded under its scope.
+ */
+export function recordedIssueIds(
+  requested: string[],
+  mirrored: Pick<IssueLifecycle, 'id'>[] | null,
+): string[] {
+  if (!mirrored) return requested
+  const confirmed = new Set(mirrored.map((issue) => issue.id))
+  return requested.filter((id) => confirmed.has(id))
 }
