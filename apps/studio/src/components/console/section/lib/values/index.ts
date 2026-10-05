@@ -1,7 +1,6 @@
 import type { SectionDefinition } from '../../../shared/console-model'
 import type { IssueSectionView, SectionScreenView, TableSectionView } from '../types'
 import {
-  ALERT_RULES_SECTION,
   INTEGRATIONS_SECTION,
   LIVE_LOGS_SECTION,
   RELEASES_SECTION,
@@ -11,7 +10,6 @@ import {
 } from './empty-sections'
 
 export {
-  ALERT_RULES_SECTION,
   INTEGRATIONS_SECTION,
   LIVE_LOGS_SECTION,
   RELEASES_SECTION,
@@ -21,7 +19,6 @@ export {
 
 export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
   releases: RELEASES_SECTION,
-  'alert-rules': ALERT_RULES_SECTION,
   'live-logs': LIVE_LOGS_SECTION,
   traces: TRACES_SECTION,
   services: SERVICES_SECTION,

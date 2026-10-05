@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { alertRulesQuery } from '@/integrations/alerts-api'
 import {
-  alertRulesQuery,
   instanceQuery,
   integrationsQuery,
   organizationsQuery,
@@ -63,14 +63,14 @@ export function useSetupSteps(): SetupStep[] {
       {
         step: 'Add a webhook',
         isDone: (hooks?.length ?? 0) > 0,
-        how: 'Integrations → Add webhook (Slack, Discord or any HTTPS endpoint)',
-        link: { kind: 'section', section: 'integrations' },
+        how: 'Alerts → Destinations (Slack, Discord or any HTTPS endpoint)',
+        link: { kind: 'path', path: '/console/alerts/destinations' },
       },
       {
         step: 'Arm an alert rule',
         isDone: (alerts?.length ?? 0) > 0,
-        how: 'Alert rules → New alert rule',
-        link: { kind: 'section', section: 'alert-rules' },
+        how: 'Alerts → New rule, or start from a template',
+        link: { kind: 'path', path: '/console/alerts' },
       },
       {
         step: 'Write a review rule',

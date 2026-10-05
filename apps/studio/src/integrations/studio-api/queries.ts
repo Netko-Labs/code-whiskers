@@ -2,8 +2,6 @@ import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
 import { ResponseError } from '@/integrations/observability'
 import {
-  type AlertRuleInput,
-  alertRuleListSchema,
   apiKeyListSchema,
   createdKeySchema,
   createdSchema,
@@ -59,7 +57,7 @@ async function failureMessage(response: Response): Promise<string> {
 }
 
 /** Studio's own API is same-origin; these are browser-only like the whiskers ones. */
-async function fetchStudio<T>(
+export async function fetchStudio<T>(
   path: string,
   schema: ZodType<T>,
   method = 'GET',
@@ -225,21 +223,6 @@ export const testIntegration = (id: string) =>
 
 export const deleteIntegration = (id: string) =>
   fetchStudio(`/integrations/${id}`, okSchema, 'DELETE')
-
-export const alertRulesQuery = () =>
-  queryOptions({
-    queryKey: [STUDIO_QUERY_KEY, 'alerts'],
-    queryFn: () => fetchStudio('/alerts', alertRuleListSchema),
-    refetchInterval: 30_000,
-  })
-
-export const createAlertRule = (input: AlertRuleInput) =>
-  fetchStudio('/alerts', createdSchema, 'POST', input)
-
-export const setAlertRuleMuted = (id: string, isMuted: boolean) =>
-  fetchStudio(`/alerts/${id}`, okSchema, 'PATCH', { isMuted })
-
-export const deleteAlertRule = (id: string) => fetchStudio(`/alerts/${id}`, okSchema, 'DELETE')
 
 export const savedQueriesQuery = () =>
   queryOptions({

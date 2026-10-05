@@ -1,8 +1,6 @@
 import type { z } from 'zod'
 import type {
-  ALERT_KINDS,
   ARCHIVE_MODES,
-  alertRuleSchema,
   apiKeySchema,
   INTEGRATION_KINDS,
   instanceHealthSchema,
@@ -71,16 +69,6 @@ export type IntegrationInput = {
   kind: IntegrationKind
   name: string
   url: string
-}
-export type AlertRule = z.infer<typeof alertRuleSchema>
-export type AlertKind = (typeof ALERT_KINDS)[number]
-export type AlertRuleInput = {
-  installationId: number
-  name: string
-  kind: AlertKind
-  projectId: string | null
-  threshold: number
-  windowMinutes: number
 }
 export type SavedQuery = z.infer<typeof savedQuerySchema>
 export type SavedQueryInput = {

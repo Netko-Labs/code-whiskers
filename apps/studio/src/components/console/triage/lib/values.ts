@@ -1,4 +1,4 @@
-import type { AlertRule } from '@/integrations/studio-api'
+import type { AlertTrigger } from '@/integrations/alerts-api'
 import type { TriageBucket, TriageFilter } from '../../shared/console-model'
 import type { RecencyGroup } from './types'
 
@@ -45,9 +45,11 @@ export const UNREACHABLE_DESCRIPTION =
 export const NOTHING_TO_DECIDE = 'Nothing to decide on this item yet'
 export const NO_COMMENTS_NOTE = 'Comments open once this item is tracked.'
 
-export const ALERT_KIND_LABEL: Record<AlertRule['kind'], string> = {
+export const ALERT_KIND_LABEL: Record<AlertTrigger, string> = {
   new_issue: 'New issue',
-  error_rate: 'Error rate',
+  issue_regressed: 'Regression',
+  issue_frequency: 'Issue frequency',
+  error_rate: 'Project error volume',
   review_failed: 'Review failed',
   blocking_review: 'Blocking review',
 }

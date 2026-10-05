@@ -100,12 +100,16 @@ export type SectionFilters = {
   project?: string
 }
 
+/** Console pages outside the section table, linked by their own route. */
+export type ConsolePath = '/console/alerts' | '/console/alerts/destinations'
+
 export type SectionRowLink =
   | { kind: 'triage'; itemId: string }
   | { kind: 'external'; href: string }
   | { kind: 'section'; section: SectionView; tab?: number; filters?: SectionFilters }
   | { kind: 'project-setup' }
   | { kind: 'project'; projectId: string }
+  | { kind: 'path'; path: ConsolePath }
 
 export type SectionTable = {
   grid: string
@@ -157,7 +161,6 @@ export type SectionView =
   | 'issues'
   | 'regressions'
   | 'releases'
-  | 'alert-rules'
   | 'live-logs'
   | 'traces'
   | 'services'

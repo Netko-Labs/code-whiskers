@@ -1,6 +1,6 @@
 import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
-import { type AlertRule, alertRulesQuery, setAlertRuleMuted } from '@/integrations/studio-api'
+import { type AlertRule, alertRulesQuery, updateAlertRule } from '@/integrations/alerts-api'
 import { isTyping, useDocumentKeydown } from '@/shared/dom-events'
 import { useConsoleStore } from '../../../use-console-store'
 import type { AlertActions } from '../types'
@@ -18,7 +18,7 @@ export function useAlertActions(rule: AlertRule): AlertActions {
   const actions = useMemo(() => {
     const write = (isMuted: boolean, previous: AlertRule['state']) => {
       setState(queryClient, rule.id, isMuted ? 'muted' : 'armed')
-      setAlertRuleMuted(rule.id, isMuted).catch(() => {
+      updateAlertRule(rule.id, { isMuted }).catch(() => {
         setState(queryClient, rule.id, previous)
         useConsoleStore.getState().flash('Could not change the alert — nothing changed')
       })

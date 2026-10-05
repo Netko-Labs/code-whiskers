@@ -1,3 +1,4 @@
+export { AlertsPage, parseRuleEditorSearch, RuleEditorPage } from './alerts'
 export { ConsoleShell } from './console-shell'
 export { TopbarActions } from './console-topbar'
 export { IssuePage } from './issue-detail'

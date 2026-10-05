@@ -27,6 +27,11 @@ import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ConsoleAlertsIndexRouteImport } from './routes/console/alerts.index'
+import { Route as ConsoleAlertsRuleIdRouteImport } from './routes/console/alerts.$ruleId'
+import { Route as ConsoleAlertsActivityRouteImport } from './routes/console/alerts.activity'
+import { Route as ConsoleAlertsDestinationsRouteImport } from './routes/console/alerts.destinations'
+import { Route as ConsoleAlertsNewRouteImport } from './routes/console/alerts.new'
 import { Route as ConsoleIssuesIssueIdRouteImport } from './routes/console/issues.$issueId'
 import { Route as ConsoleProjectsIndexRouteImport } from './routes/console/projects.index'
 import { Route as ConsoleProjectsProjectIdRouteImport } from './routes/console/projects.$projectId'
@@ -131,6 +136,32 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsoleAlertsIndexRoute = ConsoleAlertsIndexRouteImport.update({
+  id: '/alerts/',
+  path: '/alerts/',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleAlertsRuleIdRoute = ConsoleAlertsRuleIdRouteImport.update({
+  id: '/alerts/$ruleId',
+  path: '/alerts/$ruleId',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleAlertsActivityRoute = ConsoleAlertsActivityRouteImport.update({
+  id: '/alerts/activity',
+  path: '/alerts/activity',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleAlertsDestinationsRoute =
+  ConsoleAlertsDestinationsRouteImport.update({
+    id: '/alerts/destinations',
+    path: '/alerts/destinations',
+    getParentRoute: () => ConsoleRoute,
+  } as any)
+const ConsoleAlertsNewRoute = ConsoleAlertsNewRouteImport.update({
+  id: '/alerts/new',
+  path: '/alerts/new',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleIssuesIssueIdRoute = ConsoleIssuesIssueIdRouteImport.update({
   id: '/issues/$issueId',
   path: '/issues/$issueId',
@@ -217,6 +248,10 @@ export interface FileRoutesByFullPath {
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/alerts/$ruleId': typeof ConsoleAlertsRuleIdRoute
+  '/console/alerts/activity': typeof ConsoleAlertsActivityRoute
+  '/console/alerts/destinations': typeof ConsoleAlertsDestinationsRoute
+  '/console/alerts/new': typeof ConsoleAlertsNewRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
@@ -228,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/alerts/': typeof ConsoleAlertsIndexRoute
   '/console/projects/': typeof ConsoleProjectsIndexRoute
   '/console/settings/': typeof ConsoleSettingsIndexRoute
 }
@@ -248,6 +284,10 @@ export interface FileRoutesByTo {
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/alerts/$ruleId': typeof ConsoleAlertsRuleIdRoute
+  '/console/alerts/activity': typeof ConsoleAlertsActivityRoute
+  '/console/alerts/destinations': typeof ConsoleAlertsDestinationsRoute
+  '/console/alerts/new': typeof ConsoleAlertsNewRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
@@ -259,6 +299,7 @@ export interface FileRoutesByTo {
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/alerts': typeof ConsoleAlertsIndexRoute
   '/console/projects': typeof ConsoleProjectsIndexRoute
   '/console/settings': typeof ConsoleSettingsIndexRoute
 }
@@ -282,6 +323,10 @@ export interface FileRoutesById {
   '/webhooks/$': typeof WebhooksSplatRoute
   '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/console/alerts/$ruleId': typeof ConsoleAlertsRuleIdRoute
+  '/console/alerts/activity': typeof ConsoleAlertsActivityRoute
+  '/console/alerts/destinations': typeof ConsoleAlertsDestinationsRoute
+  '/console/alerts/new': typeof ConsoleAlertsNewRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
@@ -293,6 +338,7 @@ export interface FileRoutesById {
   '/console/settings/github': typeof ConsoleSettingsGithubRoute
   '/console/settings/members': typeof ConsoleSettingsMembersRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
+  '/console/alerts/': typeof ConsoleAlertsIndexRoute
   '/console/projects/': typeof ConsoleProjectsIndexRoute
   '/console/settings/': typeof ConsoleSettingsIndexRoute
 }
@@ -317,6 +363,10 @@ export interface FileRouteTypes {
     | '/webhooks/$'
     | '/console/'
     | '/api/auth/$'
+    | '/console/alerts/$ruleId'
+    | '/console/alerts/activity'
+    | '/console/alerts/destinations'
+    | '/console/alerts/new'
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
@@ -328,6 +378,7 @@ export interface FileRouteTypes {
     | '/console/settings/github'
     | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/alerts/'
     | '/console/projects/'
     | '/console/settings/'
   fileRoutesByTo: FileRoutesByTo
@@ -348,6 +399,10 @@ export interface FileRouteTypes {
     | '/webhooks/$'
     | '/console'
     | '/api/auth/$'
+    | '/console/alerts/$ruleId'
+    | '/console/alerts/activity'
+    | '/console/alerts/destinations'
+    | '/console/alerts/new'
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
@@ -359,6 +414,7 @@ export interface FileRouteTypes {
     | '/console/settings/github'
     | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/alerts'
     | '/console/projects'
     | '/console/settings'
   id:
@@ -381,6 +437,10 @@ export interface FileRouteTypes {
     | '/webhooks/$'
     | '/console/'
     | '/api/auth/$'
+    | '/console/alerts/$ruleId'
+    | '/console/alerts/activity'
+    | '/console/alerts/destinations'
+    | '/console/alerts/new'
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
@@ -392,6 +452,7 @@ export interface FileRouteTypes {
     | '/console/settings/github'
     | '/console/settings/members'
     | '/console/triage/$bucket'
+    | '/console/alerts/'
     | '/console/projects/'
     | '/console/settings/'
   fileRoutesById: FileRoutesById
@@ -537,6 +598,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/console/alerts/': {
+      id: '/console/alerts/'
+      path: '/alerts'
+      fullPath: '/console/alerts/'
+      preLoaderRoute: typeof ConsoleAlertsIndexRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/alerts/$ruleId': {
+      id: '/console/alerts/$ruleId'
+      path: '/alerts/$ruleId'
+      fullPath: '/console/alerts/$ruleId'
+      preLoaderRoute: typeof ConsoleAlertsRuleIdRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/alerts/activity': {
+      id: '/console/alerts/activity'
+      path: '/alerts/activity'
+      fullPath: '/console/alerts/activity'
+      preLoaderRoute: typeof ConsoleAlertsActivityRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/alerts/destinations': {
+      id: '/console/alerts/destinations'
+      path: '/alerts/destinations'
+      fullPath: '/console/alerts/destinations'
+      preLoaderRoute: typeof ConsoleAlertsDestinationsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/alerts/new': {
+      id: '/console/alerts/new'
+      path: '/alerts/new'
+      fullPath: '/console/alerts/new'
+      preLoaderRoute: typeof ConsoleAlertsNewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/issues/$issueId': {
       id: '/console/issues/$issueId'
       path: '/issues/$issueId'
@@ -662,12 +758,17 @@ interface ConsoleRouteChildren {
   ConsoleReviewRulesRoute: typeof ConsoleReviewRulesRoute
   ConsoleSettingsRoute: typeof ConsoleSettingsRouteWithChildren
   ConsoleIndexRoute: typeof ConsoleIndexRoute
+  ConsoleAlertsRuleIdRoute: typeof ConsoleAlertsRuleIdRoute
+  ConsoleAlertsActivityRoute: typeof ConsoleAlertsActivityRoute
+  ConsoleAlertsDestinationsRoute: typeof ConsoleAlertsDestinationsRoute
+  ConsoleAlertsNewRoute: typeof ConsoleAlertsNewRoute
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
   ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
   ConsoleProjectsNewRoute: typeof ConsoleProjectsNewRoute
   ConsoleReleasesVersionRoute: typeof ConsoleReleasesVersionRoute
   ConsoleReviewsReviewIdRoute: typeof ConsoleReviewsReviewIdRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
+  ConsoleAlertsIndexRoute: typeof ConsoleAlertsIndexRoute
   ConsoleProjectsIndexRoute: typeof ConsoleProjectsIndexRoute
 }
 
@@ -680,12 +781,17 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleReviewRulesRoute: ConsoleReviewRulesRoute,
   ConsoleSettingsRoute: ConsoleSettingsRouteWithChildren,
   ConsoleIndexRoute: ConsoleIndexRoute,
+  ConsoleAlertsRuleIdRoute: ConsoleAlertsRuleIdRoute,
+  ConsoleAlertsActivityRoute: ConsoleAlertsActivityRoute,
+  ConsoleAlertsDestinationsRoute: ConsoleAlertsDestinationsRoute,
+  ConsoleAlertsNewRoute: ConsoleAlertsNewRoute,
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
   ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,
   ConsoleProjectsNewRoute: ConsoleProjectsNewRoute,
   ConsoleReleasesVersionRoute: ConsoleReleasesVersionRoute,
   ConsoleReviewsReviewIdRoute: ConsoleReviewsReviewIdRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
+  ConsoleAlertsIndexRoute: ConsoleAlertsIndexRoute,
   ConsoleProjectsIndexRoute: ConsoleProjectsIndexRoute,
 }
 

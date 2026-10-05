@@ -42,6 +42,13 @@ export function SetupStepLink({ step }: SetupStepLinkProps) {
       </Link>
     )
   }
+  if (link?.kind === 'path') {
+    return (
+      <Link to={link.path} className={ROW}>
+        <Label step={step} />
+      </Link>
+    )
+  }
   if (link?.kind === 'external') {
     return (
       <a href={link.href} target="_blank" rel="noreferrer" className={ROW}>

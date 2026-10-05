@@ -1,7 +1,7 @@
 import { NAV_GROUPS, NAV_PRIMARY, settingsLabelFor } from '../../shared/console-data'
 import { shortRelease } from '../../shared/issue-lifecycle'
 import type { Crumb, ProjectNameLookup } from './types'
-import { PROJECTS_PATH, SETTINGS_PATH, SHORT_ID } from './values'
+import { ALERT_CRUMBS, PROJECTS_PATH, SETTINGS_PATH, SHORT_ID } from './values'
 
 function sectionCrumbs(section: string): Crumb[] {
   for (const group of NAV_GROUPS) {
@@ -56,6 +56,10 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
       { label: 'Releases', section: 'releases' },
       { label: shortRelease(decodedSegment(id)), isMono: true },
     ]
+  }
+  if (area === 'alerts') {
+    const page = id ? (ALERT_CRUMBS[id] ?? { label: 'Rule' }) : null
+    return [{ label: 'Errors' }, { label: 'Alerts' }, ...(page ? [page] : [])]
   }
   if (area === 'projects') {
     if (!id) return [{ label: 'Projects' }]

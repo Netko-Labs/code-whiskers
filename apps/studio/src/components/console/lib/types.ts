@@ -34,7 +34,11 @@ export type ConsoleStore = {
 export type GoTarget =
   | { key: string; label: string; bucket: TriageBucket }
   | { key: string; label: string; section: SectionView }
-  | { key: string; label: string; path: '/console/projects/new' | '/console/overview' }
+  | {
+      key: string
+      label: string
+      path: '/console/projects/new' | '/console/overview' | '/console/alerts'
+    }
 
 export type ShortcutEntry = {
   keys: string[]

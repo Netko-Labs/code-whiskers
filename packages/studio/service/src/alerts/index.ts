@@ -1,4 +1,4 @@
-export { armUntouchedDefaults, createDefaultRules } from './defaults'
+export { armRulesAwaitingDestination, createDefaultRules } from './defaults'
 export { getEvaluableRules, markRulesEvaluated, quietAlertRule } from './evaluable'
 export { fireAlertRule } from './fire'
 export { getAlertFiringsForUser } from './firings'

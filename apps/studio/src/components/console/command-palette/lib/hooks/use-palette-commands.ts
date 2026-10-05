@@ -1,5 +1,6 @@
 import { useTheme } from '@code-whiskers/ui/components/theme'
 import {
+  IconBellPlus,
   IconBox,
   IconKeyboard,
   IconLayoutSidebar,
@@ -71,6 +72,14 @@ export function usePaletteCommands(query: string): PaletteCommand[] {
         keywords: ['new', 'dsn', 'sentry', 'setup'],
         shortcut: ['g', 'n'],
         run: go('/console/projects/new'),
+      },
+      {
+        id: 'action:new-alert-rule',
+        group: 'Actions',
+        label: 'Create an alert rule',
+        icon: IconBellPlus,
+        keywords: ['alert', 'notify', 'slack', 'discord', 'webhook', 'rule'],
+        run: go('/console/alerts/new'),
       },
       {
         id: 'action:theme',

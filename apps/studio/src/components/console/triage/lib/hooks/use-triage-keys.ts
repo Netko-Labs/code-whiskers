@@ -21,8 +21,8 @@ export function useTriageKeys(items: ConsoleItem[], selectedId: string, bucket: 
           void navigate({ to: '/console/issues/$issueId', params: { issueId: item.issue.id } })
         } else if (item.kind === 'review' && item.url) {
           window.open(item.url, '_blank', 'noopener')
-        } else if (item.kind === 'alert') {
-          void navigate({ to: '/console/$section', params: { section: 'alert-rules' } })
+        } else if (item.kind === 'alert' && item.alert) {
+          void navigate({ to: '/console/alerts/$ruleId', params: { ruleId: item.alert.id } })
         } else {
           void navigate({ to: '/console/$section', params: { section: 'live-logs' } })
         }

@@ -6,7 +6,6 @@ const NO_ROWS: SectionTable = { grid: '1fr', columns: [], rows: [], footer: '' }
 const BARE = { actions: [], stats: [], tabs: [], table: NO_ROWS }
 
 const SET_UP_PROJECT = { label: 'Set up a project', href: '/console/projects/new' }
-const CONNECT_REPOSITORY = { label: 'Connect a repository', href: '/console/repositories' }
 
 export const RELEASES_SECTION: SectionDefinition = {
   ...BARE,
@@ -17,17 +16,6 @@ export const RELEASES_SECTION: SectionDefinition = {
     description:
       'Set release in Sentry.init and every event carries it. Each release then lists the issues it introduced.',
     action: SET_UP_PROJECT,
-  },
-}
-
-export const ALERT_RULES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Alert rules',
-  subtitle: 'Conditions the worker checks every minute, delivered to your webhooks',
-  empty: {
-    title: 'Connect GitHub first',
-    description: 'Alert rules belong to an organization; install the GitHub App to create one.',
-    action: CONNECT_REPOSITORY,
   },
 }
 

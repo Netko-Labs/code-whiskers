@@ -1,15 +1,11 @@
-import type { AlertRule } from '@/integrations/studio-api'
+import type { AlertRule } from '@/integrations/alerts-api'
 import { formatAge } from '@/shared/format-date'
+import { whenSummary } from '../../../alerts/shared/rule-copy'
 import type { ConsoleItem } from '../../console-model'
 
+/** The rule's WHEN line, the same mono shorthand the alerts list shows. */
 export function alertCondition(rule: AlertRule): string {
-  const where = rule.projectId ? ` in project ${rule.projectId}` : ''
-  if (rule.kind === 'new_issue') return `A new issue${where}`
-  if (rule.kind === 'error_rate') {
-    return `${rule.threshold}+ errors in ${rule.windowMinutes}m${where}`
-  }
-  if (rule.kind === 'review_failed') return 'A review failed'
-  return 'A review requested changes'
+  return whenSummary(rule)
 }
 
 /** A firing rule is an inbox item until it calms down or someone mutes it. */
@@ -24,7 +20,7 @@ export function alertToConsoleItem(rule: AlertRule): ConsoleItem {
     at,
     kind: 'alert',
     repository: null,
-    projectId: rule.projectId ?? undefined,
+    projectId: rule.projectIds[0],
     scopeLabel: rule.organization,
     label: 'Alert firing',
     severity: 'critical',

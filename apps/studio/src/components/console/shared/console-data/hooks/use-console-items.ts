@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { alertRulesQuery } from '@/integrations/studio-api'
+import { alertRulesQuery } from '@/integrations/alerts-api'
 import {
   whiskersIssuesQuery,
   whiskersLogPatternsQuery,

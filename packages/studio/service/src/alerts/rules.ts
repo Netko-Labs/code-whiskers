@@ -8,6 +8,7 @@ import {
 } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
 import { and, desc, eq, inArray } from 'drizzle-orm'
+import { hasDestination } from '../integrations'
 import { isInstallationMember } from '../queries/github'
 import type { AlertRuleRecord } from './types'
 
@@ -82,6 +83,7 @@ export const createAlertRule = async (
     .values({
       ...input,
       destinationIds: await ownDestinations(input.installationId, input.destinationIds),
+      state: (await hasDestination(input.installationId)) ? 'armed' : 'muted',
       createdBy: userId,
     })
     .returning({ id: alertRule.id })

@@ -1,4 +1,3 @@
-import { useAlertRulesSection } from './hooks/use-alert-rules-section'
 import { useIntegrationsSection } from './hooks/use-integrations-section'
 import { useLiveLogsSection } from './hooks/use-live-logs-section'
 import { useSavedQueriesSection } from './hooks/use-saved-queries-section'
@@ -11,7 +10,6 @@ import type { SectionHook, TableSectionView } from './types'
  * Releases render their own list.
  */
 export const SECTION_HOOKS: Record<Exclude<TableSectionView, 'releases'>, SectionHook> = {
-  'alert-rules': useAlertRulesSection,
   'live-logs': useLiveLogsSection,
   traces: useTracesSection,
   services: useServicesSection,

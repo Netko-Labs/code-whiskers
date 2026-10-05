@@ -10,6 +10,7 @@ export const GO_TARGETS: GoTarget[] = [
   { key: 'l', label: 'Live logs', section: 'live-logs' },
   { key: 't', label: 'Traces', section: 'traces' },
   { key: 's', label: 'Services', section: 'services' },
+  { key: 'b', label: 'Alerts', path: '/console/alerts' },
   { key: 'n', label: 'New project', path: '/console/projects/new' },
 ]
 

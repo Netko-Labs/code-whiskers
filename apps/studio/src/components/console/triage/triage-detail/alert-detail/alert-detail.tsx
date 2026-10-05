@@ -20,11 +20,11 @@ export function AlertDetail({ rule }: AlertDetailProps) {
           </span>
           <div className="flex shrink-0 items-center gap-2">
             <Link
-              to="/console/$section"
-              params={{ section: 'alert-rules' }}
+              to="/console/alerts/$ruleId"
+              params={{ ruleId: rule.id }}
               className={buttonVariants({ variant: 'ghost', size: 'sm' })}
             >
-              Alert rules
+              Edit rule
             </Link>
             <Button size="sm" onClick={mute} title="e">
               Mute
@@ -43,12 +43,14 @@ export function AlertDetail({ rule }: AlertDetailProps) {
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto px-8 py-6">
         <Section
           title="Condition"
-          description="Whiskers checks it every minute; the webhooks on this installation hear about it."
+          description="Whiskers checks it every minute; its destinations hear about it."
         >
           <p className="m-0 font-mono text-body text-ui">{alertCondition(rule)}</p>
         </Section>
         <KeyValueList>
-          <KeyValue label="Kind">{ALERT_KIND_LABEL[rule.kind]}</KeyValue>
+          <KeyValue label="Trigger">
+            {rule.triggers.map((trigger) => ALERT_KIND_LABEL[trigger]).join(' or ')}
+          </KeyValue>
           <KeyValue label="Window">{rule.windowMinutes}m</KeyValue>
           <KeyValue label="Threshold">{rule.threshold}</KeyValue>
           <KeyValue label="Last fired">{firedAt ? formatDateTime(firedAt) : '—'}</KeyValue>

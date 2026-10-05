@@ -50,12 +50,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
         params: { section: 'regressions' },
       },
       { label: 'Releases', icon: IconTag, to: SECTION_ROUTE, params: { section: 'releases' } },
-      {
-        label: 'Alert rules',
-        icon: IconBellRinging,
-        to: SECTION_ROUTE,
-        params: { section: 'alert-rules' },
-      },
+      { label: 'Alerts', icon: IconBellRinging, to: '/console/alerts' },
     ],
   },
   {

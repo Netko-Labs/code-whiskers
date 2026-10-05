@@ -15,6 +15,12 @@ describe('crumbsFor', () => {
     expect(crumbsFor('/console/overview', names)).toEqual([{ label: 'Overview' }])
   })
 
+  test('alerts pages, and a rule id reads as a rule', () => {
+    expect(crumbsFor('/console/alerts', names).map((c) => c.label)).toEqual(['Errors', 'Alerts'])
+    expect(crumbsFor('/console/alerts/destinations', names).at(-1)?.label).toBe('Destinations')
+    expect(crumbsFor('/console/alerts/0b6f7c1e', names).at(-1)?.label).toBe('Rule')
+  })
+
   test('triage buckets', () => {
     expect(crumbsFor('/console/triage/assigned', names).at(-1)?.label).toBe('Assigned to me')
   })

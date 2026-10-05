@@ -141,16 +141,53 @@ Ingest reads the project's keys from its own database on each envelope; no studi
 | `is_muted` | boolean | |
 | `created_at` | timestamp | |
 
-**`alert_rule`** — thresholds over errors, logs and traces.
+**`alert_rule`** — WHEN a trigger fires, IF the filters hold, THEN notify destinations.
 
 | column | type | note |
 | --- | --- | --- |
 | `id` | uuid PK | |
-| `installation_id` | bigint | |
-| `name` `condition` | text | e.g. `p95(/v2/ingest) > 500ms` |
-| `window_seconds` `occurrences` | integer | `5m × 3` |
-| `notify` | jsonb | channels, escalation targets |
-| `state` | enum | `armed` \| `firing` \| `muted` |
+| `installation_id` | bigint FK → organization | |
+| `name` | text | |
+| `triggers` | text[] | `new_issue` \| `issue_regressed` (these two combine) \| `issue_frequency` \| `error_rate` \| `review_failed` \| `blocking_review` |
+| `project_ids` | text[] | empty = every project the installation owns (below) |
+| `environment` `release` | text null | exact match on the event |
+| `min_level` | text null | floor: `debug` < `info` < `warning` < `error` < `fatal` |
+| `threshold` `window_minutes` | integer | rate triggers: N events within W minutes |
+| `notify_all` `destination_ids` | boolean, uuid[] | every `integration` on the installation, or the chosen ones |
+| `action_interval_minutes` | integer | 5/30/60/180/1440: at most once per subject per interval |
+| `default_for` | text null | the project a default rule was created for; unique per installation |
+| `state` | enum | `armed` \| `firing` (a rate condition holds) \| `muted` |
+| `last_fired_at` `last_evaluated_at` | timestamp | `last_evaluated_at` is the worker's cursor |
+
+**`alert_firing`** — one delivery attempt: `rule_id` (cascade), `installation_id`, `trigger`,
+`subject_kind` (`issue` \| `review` \| `project`) + `subject_ref`, `project_id`, `title`,
+`text`, `url`, `status` (`delivered` \| `partial` \| `failed` \| `undelivered`),
+`deliveries` jsonb (per destination: name, kind, delivered, error), `created_at`. Kept 90 days.
+Throttled repeats are not recorded.
+
+How it runs. Whiskers reads `/api/internal/alert-rules` every minute: new issues and finished
+reviews since the rule's cursor, per-issue and per-project event counts over the window, and
+posts one `/fire` per subject; then `/alert-rules/evaluated` moves the cursors. Studio throttles
+(`new_issue` and reviews are news once; everything else once per subject per action interval,
+across the rule's triggers), delivers, records the firing and publishes the `alerts` realtime
+topic. Regressions skip the loop: the ingest transition hook (`/api/internal/issues/transition`,
+which now carries title, level, environment and the project's repository) fires matching
+`issue_regressed` rules at once. The editor's "would have fired N times" line is
+`POST /api/alerts/preview` → whiskers `POST /internal/alerts/preview` (7 days, tumbling windows
+for rate triggers).
+
+**Scoping.** A rule with no project filter counts the projects its installation owns: a
+project belongs to the installation whose account owns the project's linked repository
+(`owner/name` → `owner` = `organization.login`, case-insensitive). A project with no linked
+repository has no owner — its triage scope is instance-wide too — so it counts for every
+installation. Reviews follow the installation's account; a project filter narrows them to those
+projects' repositories.
+
+**Defaults.** Creating a project (whiskers posts `/api/internal/projects/created`) gives the
+owning installation (every installation when unlinked) "new or regressed issue in production →
+all destinations, once per issue per 30 min". A rule saved without a destination on its
+installation starts muted; the first destination added arms every rule still untouched since
+(`updated_at = created_at`).
 
 **`saved_query`** — `id`, `installation_id`, `name`, `surface`
 (`logs` \| `traces` \| `issues`), `query`, `shared_with` jsonb, `created_by`,
@@ -158,9 +195,10 @@ Ingest reads the project's keys from its own database on each envelope; no studi
 
 ### Access
 
-**`integration`** — `id`, `installation_id`, `kind`
-(`github` \| `slack` \| `pagerduty` \| `otel` \| `linear` \| `gitlab`), `status`,
-`scope` jsonb, `connected_by`, `connected_at`.
+**`integration`** — an alert destination: `id`, `installation_id`, `kind`
+(`slack` \| `discord` \| `webhook`), `name`, `url_encrypted` (the URL is a credential),
+`url_host`, `last_delivered_at`, `last_error`. Deleting one removes it from every rule's
+`destination_ids`.
 
 **`api_key`** — `id`, `installation_id`, `name`, `prefix` (shown in the UI),
 `hash` (never the key), `scope` jsonb, `environment`, `created_by`, `last_used_at`,
@@ -391,8 +429,9 @@ Timescale is the natural first move because nothing above the driver changes.
    `x-suppressions-truncated: true` and whiskers logs it. `POST /api/triage` only
    writes under an `owner/repo` scope the caller is a member of. Since then:
    `/api/internal/rules`, `/api/internal/repository` (is it watched?),
-   `/api/internal/alert-rules` and `/api/internal/alert-rules/:id/fire|quiet` — whiskers
-   evaluates alert conditions every minute and studio delivers them to webhooks.
+   `/api/internal/alert-rules`, `/api/internal/alert-rules/:id/fire|quiet`,
+   `/api/internal/alert-rules/evaluated` and `/api/internal/projects/created` — whiskers
+   evaluates alert conditions every minute and studio delivers them (see `alert_rule`).
 6. Telemetry landed on Postgres as planned: `log_line` and `span` in whiskers (migration 0002),
    BRIN on time, deleted by age after `TELEMETRY_RETENTION_DAYS` (default 7) by an hourly
    pass. Ingest is OTLP/HTTP JSON at `/otlp/v1/logs|traces`, authenticated by the project's

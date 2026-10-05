@@ -6,7 +6,7 @@ import {
   type ProjectCreatedBody,
 } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { and, eq, isNotNull, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { hasDestination } from '../integrations'
 import { repositoryOwner } from './utils'
 
@@ -43,15 +43,17 @@ export const createDefaultRules = async (body: ProjectCreatedBody): Promise<numb
   return created
 }
 
-/** Default rules muted only for want of a destination; a rule a human touched stays as is. */
-export const armUntouchedDefaults = async (installationId: number): Promise<void> => {
+/**
+ * Rules saved muted for want of a destination arm with the first one. A rule a human muted or
+ * edited since (`updated_at` moved) stays as it is.
+ */
+export const armRulesAwaitingDestination = async (installationId: number): Promise<void> => {
   await db
     .update(alertRule)
     .set({ state: 'armed' })
     .where(
       and(
         eq(alertRule.installationId, installationId),
-        isNotNull(alertRule.defaultFor),
         eq(alertRule.state, 'muted'),
         eq(alertRule.updatedAt, alertRule.createdAt),
       ),

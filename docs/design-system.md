@@ -363,3 +363,11 @@ Mobbin screens used for the direction:
 - Vercel deployments list and deployment detail (push timeline, verdict dots) —
   [e9576405](https://mobbin.com/screens/e9576405-bcef-419a-922a-8fb84b044a54),
   [ff81f1e9](https://mobbin.com/screens/ff81f1e9-25b1-46f9-8448-31fa40a77e4b)
+- Alert rule editor as a vertical WHEN → IF → THEN card stack with hairline connectors, a live
+  summary and per-destination tests (incident.io workflow editor and test run, Braintrust alert
+  dialog), empty rule list as templates (Better Stack) —
+  [51b7433b](https://mobbin.com/screens/51b7433b-9f3c-4217-9a61-bb0b371324b1),
+  [d67a6d08](https://mobbin.com/screens/d67a6d08-8e89-432d-9114-47b5a2c588fa),
+  [f148dcc8](https://mobbin.com/screens/f148dcc8-7973-4726-9e87-fcafd4aedc4f),
+  [462ef360](https://mobbin.com/screens/462ef360-9160-4fe2-b78b-90942bd9504e),
+  [f24e911c](https://mobbin.com/screens/f24e911c-677f-408e-bb54-fc13a33a6881)

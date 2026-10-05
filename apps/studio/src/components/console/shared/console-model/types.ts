@@ -1,4 +1,5 @@
-import type { AlertRule, TriageItemRef } from '@/integrations/studio-api'
+import type { AlertRule } from '@/integrations/alerts-api'
+import type { TriageItemRef } from '@/integrations/studio-api'
 import type { WhiskersIssue } from '@/integrations/whiskers'
 
 export type ConsoleSeverity = 'critical' | 'warning' | 'info' | 'ok' | 'idle'

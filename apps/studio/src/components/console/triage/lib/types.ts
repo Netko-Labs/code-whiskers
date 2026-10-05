@@ -1,5 +1,6 @@
 import type { Tone } from '@/components/shared/status'
-import type { AlertRule, Member } from '@/integrations/studio-api'
+import type { AlertRule } from '@/integrations/alerts-api'
+import type { Member } from '@/integrations/studio-api'
 import type { WhiskersFinding } from '@/integrations/whiskers'
 import type {
   ConsoleItem,
