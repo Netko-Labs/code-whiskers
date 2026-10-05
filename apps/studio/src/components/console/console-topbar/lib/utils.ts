@@ -65,6 +65,13 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
       ALERT_CRUMBS[id] ?? { label: 'Rule' },
     ]
   }
+  if (area === 'traces' && id) {
+    return [
+      { label: 'Telemetry' },
+      { label: 'Traces', section: 'traces' },
+      { label: id.slice(0, SHORT_ID), isMono: true },
+    ]
+  }
   if (area === 'projects') {
     if (!id) return [{ label: 'Projects' }]
     const projects = { label: 'Projects', to: PROJECTS_PATH }

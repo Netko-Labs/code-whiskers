@@ -50,6 +50,15 @@ describe('crumbsFor', () => {
     expect(crumbsFor('/console/releases/%E0%A4%A', names).at(-1)?.label).toBe('%E0%A4%A')
   })
 
+  test('a trace links back to traces and shows a short id', () => {
+    const crumbs = crumbsFor('/console/traces/4bf92f3577b34da6a3ce929d0e0e4736', names)
+    expect(crumbs).toEqual([
+      { label: 'Telemetry' },
+      { label: 'Traces', section: 'traces' },
+      { label: '4bf92f35', isMono: true },
+    ])
+  })
+
   test('projects use the name when known, the id otherwise', () => {
     expect(crumbsFor('/console/projects/p1', names).at(-1)).toEqual({ label: 'web', isMono: false })
     expect(crumbsFor('/console/projects/zzzzzzzzzz', names).at(-1)?.isMono).toBe(true)

@@ -1,8 +1,4 @@
 import { useIntegrationsSection } from './hooks/use-integrations-section'
-import { useLiveLogsSection } from './hooks/use-live-logs-section'
-import { useSavedQueriesSection } from './hooks/use-saved-queries-section'
-import { useServicesSection } from './hooks/use-services-section'
-import { useTracesSection } from './hooks/use-traces-section'
 import type { SectionHook, TableSectionView } from './types'
 
 /**
@@ -10,10 +6,6 @@ import type { SectionHook, TableSectionView } from './types'
  * Releases render their own list.
  */
 export const SECTION_HOOKS: Record<Exclude<TableSectionView, 'releases'>, SectionHook> = {
-  'live-logs': useLiveLogsSection,
-  traces: useTracesSection,
-  services: useServicesSection,
-  'saved-queries': useSavedQueriesSection,
   integrations: useIntegrationsSection,
 }
 

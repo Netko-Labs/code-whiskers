@@ -1,0 +1,1 @@
+export { attributeEntries } from './utils'

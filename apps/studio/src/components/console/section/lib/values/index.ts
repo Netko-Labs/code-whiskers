@@ -2,27 +2,16 @@ import type { SectionDefinition } from '../../../shared/console-model'
 import type { IssueSectionView, SectionScreenView, TableSectionView } from '../types'
 import {
   INTEGRATIONS_SECTION,
-  LIVE_LOGS_SECTION,
   RELEASES_SECTION,
-  SAVED_QUERIES_SECTION,
-  SERVICES_SECTION,
-  TRACES_SECTION,
 } from './empty-sections'
 
 export {
   INTEGRATIONS_SECTION,
-  LIVE_LOGS_SECTION,
   RELEASES_SECTION,
-  SERVICES_SECTION,
-  TRACES_SECTION,
 }
 
 export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
   releases: RELEASES_SECTION,
-  'live-logs': LIVE_LOGS_SECTION,
-  traces: TRACES_SECTION,
-  services: SERVICES_SECTION,
-  'saved-queries': SAVED_QUERIES_SECTION,
   integrations: INTEGRATIONS_SECTION,
 }
 

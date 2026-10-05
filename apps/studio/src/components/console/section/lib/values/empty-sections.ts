@@ -19,48 +19,6 @@ export const RELEASES_SECTION: SectionDefinition = {
   },
 }
 
-export const LIVE_LOGS_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Live logs',
-  subtitle: 'Log lines your services send over OTLP',
-  empty: {
-    title: 'No logs yet',
-    description:
-      'Point an OpenTelemetry log exporter at /otlp with a project key, and lines stream in here.',
-    action: SET_UP_PROJECT,
-  },
-}
-
-export const TRACES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Traces',
-  subtitle: 'Spans your services send over OTLP',
-  empty: {
-    title: 'No traces yet',
-    description:
-      'Export spans to /otlp/v1/traces with a project key and each request shows up as a waterfall.',
-    action: SET_UP_PROJECT,
-  },
-}
-
-export const SERVICES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Services',
-  subtitle: 'Every service.name that sent telemetry today',
-  empty: {
-    title: 'No services reporting',
-    description:
-      'A service appears once logs or spans arrive carrying a service.name resource attribute.',
-    action: SET_UP_PROJECT,
-  },
-}
-
-export const SAVED_QUERIES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Saved queries',
-  subtitle: 'Views you come back to, one click away',
-}
-
 export const INTEGRATIONS_SECTION: SectionDefinition = {
   ...BARE,
   title: 'Integrations',

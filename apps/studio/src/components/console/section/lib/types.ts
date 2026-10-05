@@ -20,7 +20,15 @@ export type CodeReviewSectionView = Extract<
   SectionView,
   'pull-requests' | 'repositories' | 'codebase-map' | 'review-rules'
 >
-export type TableSectionView = Exclude<SectionView, IssueSectionView | CodeReviewSectionView>
+/** Telemetry pages have routes of their own (`components/console/telemetry`). */
+export type TelemetrySectionView = Extract<
+  SectionView,
+  'live-logs' | 'traces' | 'services' | 'saved-queries'
+>
+export type TableSectionView = Exclude<
+  SectionView,
+  IssueSectionView | CodeReviewSectionView | TelemetrySectionView
+>
 export type SectionScreenView = IssueSectionView | TableSectionView
 
 export type SectionViewProps = {
