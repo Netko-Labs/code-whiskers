@@ -8,6 +8,7 @@ import {
   createdKeySchema,
   createdSchema,
   deliverySchema,
+  githubLoginSchema,
   type IntegrationInput,
   type IssueLifecycleInput,
   instanceSchema,
@@ -78,6 +79,13 @@ export const viewerQuery = () =>
   queryOptions({
     queryKey: [STUDIO_QUERY_KEY, 'me'],
     queryFn: () => fetchStudio('/me', viewerSchema),
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
+export const githubLoginQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'me', 'github'],
+    queryFn: () => fetchStudio('/me/github', githubLoginSchema),
     staleTime: Number.POSITIVE_INFINITY,
   })
 

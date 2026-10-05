@@ -13,6 +13,7 @@ export {
   deleteIntegration,
   deleteRule,
   deleteSavedQuery,
+  githubLoginQuery,
   instanceQuery,
   integrationsQuery,
   membersQuery,

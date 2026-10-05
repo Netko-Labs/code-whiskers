@@ -1,4 +1,5 @@
 export { octokitForUser } from './client'
+export { getGithubLogin } from './login'
 export { fetchGithubSnapshot } from './snapshot'
 export type { SyncResult } from './sync'
 export { syncGithubInstallations } from './sync'

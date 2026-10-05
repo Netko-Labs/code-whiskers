@@ -49,6 +49,8 @@ export const viewerSchema = z.object({
   image: z.string().nullish(),
 })
 
+export const githubLoginSchema = z.object({ login: z.string().nullable() })
+
 export const triageRecordSchema = z.object({
   scope: z.string(),
   itemKind: z.enum(TRIAGE_ITEM_KINDS),
