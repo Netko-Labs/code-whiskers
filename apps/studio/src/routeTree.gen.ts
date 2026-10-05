@@ -17,6 +17,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiMonitorRouteImport } from './routes/api/monitor'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
+import { Route as ConsoleOverviewRouteImport } from './routes/console/overview'
 import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
@@ -64,6 +65,11 @@ const ConsoleIndexRoute = ConsoleIndexRouteImport.update({
 const ConsoleSectionRoute = ConsoleSectionRouteImport.update({
   id: '/$section',
   path: '/$section',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const OtlpSplatRoute = OtlpSplatRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/overview': typeof ConsoleOverviewRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/overview'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/overview'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/overview'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -289,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleSectionRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/overview': {
+      id: '/console/overview'
+      path: '/overview'
+      fullPath: '/console/overview'
+      preLoaderRoute: typeof ConsoleOverviewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/otlp/$': {
       id: '/otlp/$'
       path: '/otlp/$'
@@ -350,6 +369,7 @@ declare module '@tanstack/react-router' {
 
 interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
+  ConsoleOverviewRoute: typeof ConsoleOverviewRoute
   ConsoleIndexRoute: typeof ConsoleIndexRoute
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
   ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
@@ -359,6 +379,7 @@ interface ConsoleRouteChildren {
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
+  ConsoleOverviewRoute: ConsoleOverviewRoute,
   ConsoleIndexRoute: ConsoleIndexRoute,
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
   ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,

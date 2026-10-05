@@ -17,6 +17,7 @@ import {
   okSchema,
   organizationListSchema,
   type ReviewRuleInput,
+  recentTriageActivityListSchema,
   repositoryListSchema,
   reviewRuleListSchema,
   type SavedQueryInput,
@@ -126,6 +127,13 @@ export const triageCommentsQuery = (item: TriageItemRef) =>
         `/triage/comments?${new URLSearchParams({ scope: item.scope, itemKind: item.itemKind, itemRef: item.itemRef })}`,
         triageCommentListSchema,
       ),
+  })
+
+/** Under `triage-activity`, so the realtime map that refreshes an item's timeline refreshes this. */
+export const recentTriageActivityQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'triage-activity', 'recent'],
+    queryFn: () => fetchStudio('/triage/activity/recent', recentTriageActivityListSchema),
   })
 
 export const triageActivityQuery = (item: TriageItemRef) =>

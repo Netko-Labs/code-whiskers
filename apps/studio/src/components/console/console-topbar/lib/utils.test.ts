@@ -11,6 +11,10 @@ describe('crumbsFor', () => {
     ])
   })
 
+  test('the overview is one crumb', () => {
+    expect(crumbsFor('/console/overview', names)).toEqual([{ label: 'Overview' }])
+  })
+
   test('triage buckets', () => {
     expect(crumbsFor('/console/triage/assigned', names).at(-1)?.label).toBe('Assigned to me')
   })

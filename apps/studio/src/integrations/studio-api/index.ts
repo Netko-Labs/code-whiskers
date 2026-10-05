@@ -18,6 +18,7 @@ export {
   membersQuery,
   organizationsQuery,
   postTriageComment,
+  recentTriageActivityQuery,
   recordTriage,
   repositoriesQuery,
   revokeApiKey,

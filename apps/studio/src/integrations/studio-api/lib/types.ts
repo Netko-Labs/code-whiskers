@@ -13,6 +13,7 @@ import type {
   organizationSchema,
   RESOLVE_MODES,
   REVIEW_RULE_EFFECTS,
+  recentTriageActivitySchema,
   repositorySchema,
   reviewRuleSchema,
   SAVED_QUERY_SECTIONS,
@@ -104,5 +105,6 @@ export type IssueLifecycleInput = {
 export type IssueLifecycle = z.infer<typeof issueLifecycleSchema>
 export type IssueLifecycleResult = z.infer<typeof issueLifecycleResultSchema>
 export type TriageActivity = z.infer<typeof triageActivitySchema>
+export type RecentTriageActivity = z.infer<typeof recentTriageActivitySchema>
 export type TriageActivityKind = (typeof TRIAGE_ACTIVITY_KINDS)[number]
 export type TriageItemRefs = Omit<TriageItemRef, 'itemRef'> & { itemRefs: string[] }

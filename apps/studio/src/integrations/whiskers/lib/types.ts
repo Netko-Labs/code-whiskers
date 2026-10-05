@@ -10,6 +10,7 @@ import type {
   ISSUE_SORTS,
   ISSUE_STATUS_FILTERS,
   ISSUE_STATUSES,
+  OVERVIEW_RANGES,
   whiskersEventDetailSchema,
   whiskersFindingSchema,
   whiskersHotspotSchema,
@@ -31,6 +32,13 @@ import type {
 } from './schemas'
 
 export type WhiskersOverview = z.infer<typeof whiskersOverviewSchema>
+export type OverviewRange = (typeof OVERVIEW_RANGES)[number]
+/** `repository` scopes reviews; project ids scope everything else. */
+export type OverviewParams = {
+  range: OverviewRange
+  projectIds?: ProjectScope
+  repository?: string | null
+}
 export type WhiskersIssue = z.infer<typeof whiskersIssueSchema>
 export type WhiskersIssuePage = z.infer<typeof whiskersIssuePageSchema>
 export type WhiskersIssueDetail = z.infer<typeof whiskersIssueDetailSchema>

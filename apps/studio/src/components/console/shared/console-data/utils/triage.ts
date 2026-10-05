@@ -29,7 +29,10 @@ const UNDECIDED: TriageStatus = {
   done: false,
 }
 
-/** Issue state is whiskers' mirror; studio's record still owns the assignee and the rest. */
+/**
+ * Issue state is whiskers' mirror; studio's record still owns the assignee and the rest. A done
+ * decision on a review, log pattern or alert is older news once the item moves again after it.
+ */
 export function statusFor(
   item: ConsoleItem,
   records: Map<string, TriageRecord>,
@@ -37,11 +40,22 @@ export function statusFor(
 ): TriageStatus {
   const record = item.triage ? records.get(triageKey(item.triage)) : undefined
   const resolved = item.issue?.status === 'resolved'
-  const archived = item.issue?.status === 'archived'
+  const isIssueArchived = item.issue?.status === 'archived'
   const regressed = !!item.issue?.badges.includes('regressed')
-  if (!record) return { ...UNDECIDED, resolved, archived, regressed, done: resolved || archived }
-  const approved = record.status === 'approved'
-  const tracked = record.status === 'tracked'
+  if (!record) {
+    return {
+      ...UNDECIDED,
+      resolved,
+      archived: isIssueArchived,
+      regressed,
+      done: resolved || isIssueArchived,
+    }
+  }
+  const isCurrent = !!item.issue || !item.at || record.updatedAt >= item.at
+  const decided = isCurrent ? record.status : 'open'
+  const archived = item.issue ? isIssueArchived : decided === 'archived'
+  const approved = decided === 'approved'
+  const tracked = decided === 'tracked'
   const isSnoozing =
     record.status === 'snoozed' && record.snoozedUntil !== null && record.snoozedUntil > now
   return {
@@ -57,16 +71,26 @@ export function statusFor(
   }
 }
 
-/** Inbox drops running snoozes and issues that are no longer unresolved; Snoozed is the rest. */
+/**
+ * What earns a place in the inbox: a new, regressed or spiking issue, a review that blocks or
+ * failed, a log pattern active this hour, a firing alert. Everything else waits in its own page.
+ */
+export function needsAttention(item: ConsoleItem): boolean {
+  if (item.issue) return item.issue.badges.length > 0
+  return item.severity === 'critical'
+}
+
+/** Done items leave every bucket; the inbox also drops running snoozes and what needs no one. */
 export function inBucket(
+  item: ConsoleItem,
   status: TriageStatus,
   bucket: TriageBucket,
   viewerId: string | undefined,
 ): boolean {
-  if (status.resolved || status.archived) return false
+  if (status.done) return false
   if (bucket === 'assigned') return !!viewerId && status.assigneeUserId === viewerId
   if (bucket === 'snoozed') return status.snoozedUntil !== null
-  return status.snoozedUntil === null
+  return status.snoozedUntil === null && needsAttention(item)
 }
 
 export function readTriage(queryClient: QueryClient, ref: TriageItemRef): TriageRecord | undefined {

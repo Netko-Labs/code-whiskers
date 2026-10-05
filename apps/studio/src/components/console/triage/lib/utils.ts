@@ -1,12 +1,23 @@
 import { formatAge } from '@/shared/format-date'
 import type { ConsoleItem, TriageFilter } from '../../shared/console-model'
-import type { TriageBanner, TriageStatus } from './types'
-import { SNOOZE_MS } from './values'
+import type {
+  LeavingRow,
+  RecencyGroup,
+  SelectionAnchor,
+  TriageBanner,
+  TriageGroup,
+  TriageRowEntry,
+  TriageStatus,
+} from './types'
+import { RECENCY_LABELS, RECENCY_ORDER, SNOOZE_MS } from './values'
+
+const DAY_MS = 24 * 60 * 60 * 1000
 
 const FILTER_KIND: Record<Exclude<TriageFilter, 'all'>, ConsoleItem['kind']> = {
   errors: 'error',
   reviews: 'review',
   logs: 'log',
+  alerts: 'alert',
 }
 
 export function matchesFilter(item: ConsoleItem, filter: TriageFilter) {
@@ -20,23 +31,16 @@ export function matchesQuery(item: ConsoleItem, query: string): boolean {
     .includes(needle)
 }
 
-/** Reviews and log patterns only; issues carry their own lifecycle actions. */
-export function primaryLabel(item: ConsoleItem, status: TriageStatus) {
-  if (item.kind === 'review') return status.approved ? 'Withdraw approval' : 'Approve'
-  return status.tracked ? 'Untrack' : 'Track'
+export function primaryLabel(status: TriageStatus) {
+  return status.archived ? 'Move to inbox' : 'Done'
 }
 
-export function secondaryLabel(item: ConsoleItem, status: TriageStatus) {
-  if (item.kind === 'review') return 'Open on GitHub'
+export function secondaryLabel(status: TriageStatus) {
   return status.snoozedUntil ? 'Unsnooze' : 'Snooze 1 day'
 }
 
 export function formatUntil(date: Date): string {
-  return date.toLocaleString(undefined, {
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return date.toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
 export function snoozeDeadline(now = new Date()): Date {
@@ -45,47 +49,74 @@ export function snoozeDeadline(now = new Date()): Date {
 
 export function bannerFor(item: ConsoleItem, status: TriageStatus): TriageBanner | null {
   const decided = status.decidedAt ? `saved ${formatAge(status.decidedAt)} ago` : ''
-  if (status.approved)
+  if (status.archived) {
     return {
-      message: `Approved ${item.handle} in CodeWhiskers — the pull request on GitHub is unchanged`,
+      message: 'Done — back in the inbox if it moves again',
       meta: decided,
-      tone: 'ok',
+      tone: 'resolved',
     }
-  if (status.tracked)
-    return { message: 'Tracked — the team is on this pattern', meta: decided, tone: 'info' }
-  if (status.snoozedUntil)
+  }
+  if (status.approved) {
+    return { message: `Approved ${item.handle} in CodeWhiskers`, meta: decided, tone: 'resolved' }
+  }
+  if (status.tracked) return { message: 'Tracked', meta: decided, tone: 'info' }
+  if (status.snoozedUntil) {
     return {
       message: `Snoozed until ${formatUntil(status.snoozedUntil)}`,
-      meta: 'returns to the inbox on its own',
-      tone: 'warn',
+      meta: 'returns on its own',
+      tone: 'warning',
     }
+  }
   return null
 }
 
-function statusWord(status: TriageStatus): string | null {
-  if (status.regressed) return 'Regressed'
-  if (status.resolved) return 'Resolved'
-  if (status.archived) return 'Archived'
-  if (status.approved) return 'Approved'
-  if (status.tracked) return 'Tracked'
-  if (status.snoozedUntil) return 'Snoozed'
-  return null
+export function recencyOf(at: Date | undefined, now: Date): RecencyGroup {
+  if (!at) return 'earlier'
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  if (at.getTime() >= startOfToday) return 'today'
+  return at.getTime() >= startOfToday - 6 * DAY_MS ? 'week' : 'earlier'
 }
 
-/** One quiet line under the title: where it lives, what it is, and the one fact worth knowing. */
-export function rowMeta(
-  item: ConsoleItem,
-  status: TriageStatus,
-  owner: string | undefined,
-): string {
-  const what =
-    item.kind === 'review' ? item.handle : item.kind === 'log' ? 'log pattern' : item.label
-  const fact = owner ? `→ ${owner}` : item.meta
-  return [statusWord(status), item.scopeLabel, what, fact].filter(Boolean).join(' · ')
+/** Linear's inbox bands. Order inside a band is the list's own; empty bands are dropped. */
+export function groupByRecency(rows: TriageRowEntry[], now = new Date()): TriageGroup[] {
+  const groups = new Map<RecencyGroup, TriageRowEntry[]>()
+  for (const row of rows) {
+    const key = recencyOf(row.item.at, now)
+    groups.set(key, [...(groups.get(key) ?? []), row])
+  }
+  return RECENCY_ORDER.flatMap((key) => {
+    const grouped = groups.get(key)
+    return grouped ? [{ key, label: RECENCY_LABELS[key], rows: grouped }] : []
+  })
 }
 
-/** The item's state in words, for the header: badges read as sentence case, not shouted. */
-export function stateLine(item: ConsoleItem): string {
-  const text = (item.badge2 || item.badge).toLowerCase()
-  return text.charAt(0).toUpperCase() + text.slice(1)
+export function goneRows(before: ConsoleItem[], after: ConsoleItem[]): LeavingRow[] {
+  const present = new Set(after.map((item) => item.id))
+  return before.flatMap((item, index) => (present.has(item.id) ? [] : [{ item, index }]))
+}
+
+/** Rows that just left go back where they were, flagged, so they can fold away in place. */
+export function mergeLeaving(items: ConsoleItem[], leaving: LeavingRow[]): TriageRowEntry[] {
+  const rows: TriageRowEntry[] = items.map((item) => ({ item, isLeaving: false }))
+  const present = new Set(items.map((item) => item.id))
+  const gone = leaving.filter((row) => !present.has(row.item.id)).sort((a, b) => a.index - b.index)
+  for (const row of gone) {
+    rows.splice(Math.min(row.index, rows.length), 0, { item: row.item, isLeaving: true })
+  }
+  return rows
+}
+
+/**
+ * The selection survives its row leaving: whatever took its place is selected, using where the
+ * requested row was last seen. Without a request (or an anchor for it) the first row is.
+ */
+export function nextSelection(
+  items: ConsoleItem[],
+  selectedId: string | undefined,
+  anchor: SelectionAnchor | null,
+): ConsoleItem | undefined {
+  const current = items.find((item) => item.id === selectedId)
+  if (current) return current
+  if (!selectedId || anchor?.id !== selectedId) return items[0]
+  return items[Math.min(anchor.index, items.length - 1)]
 }

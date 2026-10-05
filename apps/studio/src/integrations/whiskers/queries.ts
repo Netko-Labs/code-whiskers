@@ -6,6 +6,8 @@ import {
   type IssueListParams,
   type IssuePeriod,
   type LogQuery,
+  NO_PROJECT,
+  type OverviewParams,
   type ProjectScope,
   WHISKERS_QUERY_KEY,
   type WhiskersIssuePage,
@@ -26,10 +28,20 @@ import {
   whiskersTraceListSchema,
 } from './lib'
 
-export const whiskersOverviewQuery = () =>
+/** An empty project scope still reads the repository's reviews, so it asks for no project by name. */
+export const whiskersOverviewQuery = ({ range, projectIds, repository }: OverviewParams) =>
   queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'overview'],
-    queryFn: () => fetchWhiskers('/overview', whiskersOverviewSchema),
+    queryKey: [WHISKERS_QUERY_KEY, 'overview', range, scopeKey(projectIds), repository ?? null],
+    queryFn: () =>
+      fetchWhiskers(
+        `/overview${params({
+          range,
+          projectId: projectIds && (projectIds.join(',') || NO_PROJECT),
+          repository: repository ?? undefined,
+        })}`,
+        whiskersOverviewSchema,
+      ),
+    placeholderData: keepPreviousData,
   })
 
 function params(values: Record<string, string | undefined>): string {

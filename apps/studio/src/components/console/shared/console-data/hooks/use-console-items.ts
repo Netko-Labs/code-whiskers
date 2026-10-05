@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { alertRulesQuery } from '@/integrations/studio-api'
 import {
   whiskersIssuesQuery,
   whiskersLogPatternsQuery,
@@ -8,6 +9,7 @@ import {
 } from '@/integrations/whiskers'
 import type { ConsoleItem } from '../../console-model'
 import {
+  alertToConsoleItem,
   issueToConsoleItem,
   latestReviewPerPullRequest,
   logPatternToConsoleItem,
@@ -27,6 +29,7 @@ export function useConsoleItems(): ConsoleItemsResult {
   const reviews = useQuery({ ...whiskersReviewsQuery(), retry: false })
   const patterns = useQuery({ ...whiskersLogPatternsQuery(), retry: false })
   const projects = useQuery({ ...whiskersProjectsQuery(), retry: false })
+  const alerts = useQuery({ ...alertRulesQuery(), retry: false })
 
   return useMemo(() => {
     const projectById = new Map((projects.data ?? []).map((project) => [project.id, project]))
@@ -37,6 +40,7 @@ export function useConsoleItems(): ConsoleItemsResult {
       ...(patterns.data ?? []).map((pattern) =>
         logPatternToConsoleItem(pattern, projectById.get(pattern.projectId)),
       ),
+      ...(alerts.data ?? []).filter((rule) => rule.state === 'firing').map(alertToConsoleItem),
     ].sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))
     const unreachable = issues.isError || reviews.isError
 
@@ -54,5 +58,6 @@ export function useConsoleItems(): ConsoleItemsResult {
     reviews.isLoading,
     patterns.data,
     projects.data,
+    alerts.data,
   ])
 }

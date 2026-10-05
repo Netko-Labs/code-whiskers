@@ -1,4 +1,5 @@
-import type { Member } from '@/integrations/studio-api'
+import type { Tone } from '@/components/shared/status'
+import type { AlertRule, Member } from '@/integrations/studio-api'
 import type { WhiskersFinding } from '@/integrations/whiskers'
 import type {
   ConsoleItem,
@@ -10,19 +11,47 @@ import type {
 export type TriageBanner = {
   message: string
   meta: string
-  tone: 'ok' | 'info' | 'warn'
+  tone: Tone
 }
 
+/** e and s on a review or log pattern; issues and alerts bring their own actions. */
 export type DetailActions = {
-  onPrimary: () => void
-  onSecondary: () => void
-  onEvidence: () => void
+  done: () => void
+  snooze: () => void
   toggleFinding: (finding: WhiskersFinding, isDismissed: boolean) => void
-  openFix: () => void
-  closeFix: () => void
-  commitFix: () => void
   assignTo: (member: Member | null) => void
   postComment: () => void
+}
+
+export type RecencyGroup = 'today' | 'week' | 'earlier'
+
+export type TriageRowEntry = {
+  item: ConsoleItem
+  isLeaving: boolean
+}
+
+export type TriageGroup = {
+  key: RecencyGroup
+  label: string
+  rows: TriageRowEntry[]
+}
+
+export type LeavingRow = {
+  item: ConsoleItem
+  index: number
+}
+
+/** Where the requested row was last seen in the list. */
+export type SelectionAnchor = {
+  id: string
+  index: number
+}
+
+export type TriageItemsResult = {
+  items: ConsoleItem[]
+  selected: ConsoleItem | undefined
+  unreachable: boolean
+  isLoading: boolean
 }
 
 export type TriageViewProps = {
@@ -37,17 +66,33 @@ export type TriageListProps = {
   items: ConsoleItem[]
   selectedId: string
   isLoading: boolean
+  isUnreachable: boolean
+}
+
+export type TriageListEmptyProps = {
+  bucket: TriageBucket
+  isFiltered: boolean
+  isUnreachable: boolean
+}
+
+export type TriageListHeaderProps = {
+  bucket: TriageBucket
+  filter: TriageFilter
+  count: number
+  query: string
+  onQuery: (query: string) => void
+}
+
+export type TriageGroupListProps = {
+  bucket: TriageBucket
+  groups: TriageGroup[]
+  selectedId: string
 }
 
 export type TriageRowProps = {
   bucket: TriageBucket
-  item: ConsoleItem
-  active: boolean
-}
-
-export type TriageRowIssueProps = {
-  item: ConsoleItem
-  owner: string | undefined
+  entry: TriageRowEntry
+  isSelected: boolean
 }
 
 export type TriageDetailProps = {
@@ -67,6 +112,14 @@ export type DetailHeaderProps = DetailPaneProps & {
 export type ItemThreadProps = {
   item: ConsoleItem
   onPost: () => void
+}
+
+export type AlertDetailProps = {
+  rule: AlertRule
+}
+
+export type AlertActions = {
+  mute: () => void
 }
 
 export type { TriageStatus }

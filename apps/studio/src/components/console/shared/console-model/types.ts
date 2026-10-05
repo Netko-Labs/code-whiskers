@@ -1,22 +1,15 @@
-import type { TriageItemRef } from '@/integrations/studio-api'
+import type { AlertRule, TriageItemRef } from '@/integrations/studio-api'
 import type { WhiskersIssue } from '@/integrations/whiskers'
 
 export type ConsoleSeverity = 'critical' | 'warning' | 'info' | 'ok' | 'idle'
-export type ConsoleItemKind = 'error' | 'review' | 'log'
+export type ConsoleItemKind = 'error' | 'review' | 'log' | 'alert'
 export type ConsoleTone = 'default' | 'body' | 'muted' | 'faint' | 'bad' | 'warn' | 'ok' | 'info'
 export type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'OK'
-export type DiffSign = '' | '+' | '-'
 
 export type LogLine = {
   time: string
   level: LogLevel
   message: string
-}
-
-export type DiffLine = {
-  no: string
-  sign: DiffSign
-  text: string
 }
 
 export type ReviewFile = {
@@ -29,16 +22,6 @@ export type ReviewFile = {
 export type MetricBar = {
   percent: number
   hot: boolean
-}
-
-export type FixPlan = {
-  title: string
-  subtitle: string
-  note: string
-  file: string
-  cta: string
-  hunk: DiffLine[]
-  steps: string[]
 }
 
 export type ConsoleItem = {
@@ -63,11 +46,10 @@ export type ConsoleItem = {
   badge2: string
   confidence: string
   read: string
-  fixLabel: string
-  evidenceLabel: string
-  fix?: FixPlan
   /** Error items carry their whiskers row: status, badges and trend come from the server. */
   issue?: WhiskersIssue
+  /** Alert items are firing rules; there is nothing to snooze or assign on them. */
+  alert?: AlertRule
   diff?: string
   fileCount?: string
   checks?: string
@@ -75,7 +57,6 @@ export type ConsoleItem = {
   blockerFile?: string
   blockerKind?: string
   blockerNote?: string
-  hunk?: DiffLine[]
   files?: ReviewFile[]
   metricLabel?: string
   metricSub?: string
@@ -104,7 +85,7 @@ export type ConsoleOrg = {
 }
 
 export type TriageBucket = 'inbox' | 'assigned' | 'snoozed'
-export type TriageFilter = 'all' | 'errors' | 'reviews' | 'logs'
+export type TriageFilter = 'all' | 'errors' | 'reviews' | 'logs' | 'alerts'
 
 export type TriageStatus = {
   resolved: boolean

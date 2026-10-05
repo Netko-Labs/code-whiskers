@@ -25,7 +25,8 @@ export const TOPIC_QUERY_KEYS: Record<RealtimeTopic, string[]> = {
   traces: ['traces', 'services'],
 }
 
-/** Studio's own queries a topic makes stale: issue decisions and their activity log move with it. */
+/** Studio's own queries a topic makes stale: decisions, their activity, and alerts that fire on them. */
 export const TOPIC_STUDIO_QUERY_KEYS: Partial<Record<RealtimeTopic, string[]>> = {
-  issues: ['triage', 'triage-activity'],
+  issues: ['triage', 'triage-activity', 'alerts'],
+  reviews: ['alerts'],
 }
