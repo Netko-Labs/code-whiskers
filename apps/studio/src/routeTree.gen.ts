@@ -29,6 +29,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ConsoleIssuesIssueIdRouteImport } from './routes/console/issues.$issueId'
 import { Route as ConsoleProjectsProjectIdRouteImport } from './routes/console/projects.$projectId'
 import { Route as ConsoleProjectsNewRouteImport } from './routes/console/projects.new'
+import { Route as ConsoleReleasesVersionRouteImport } from './routes/console/releases.$version'
 import { Route as ConsoleReviewsReviewIdRouteImport } from './routes/console/reviews.$reviewId'
 import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
@@ -133,6 +134,11 @@ const ConsoleProjectsNewRoute = ConsoleProjectsNewRouteImport.update({
   path: '/projects/new',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleReleasesVersionRoute = ConsoleReleasesVersionRouteImport.update({
+  id: '/releases/$version',
+  path: '/releases/$version',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleReviewsReviewIdRoute = ConsoleReviewsReviewIdRouteImport.update({
   id: '/reviews/$reviewId',
   path: '/reviews/$reviewId',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/releases/$version': typeof ConsoleReleasesVersionRoute
   '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/releases/$version'
     | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   fileRoutesByTo: FileRoutesByTo
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/releases/$version'
     | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   id:
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/releases/$version'
     | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   fileRoutesById: FileRoutesById
@@ -445,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleProjectsNewRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/releases/$version': {
+      id: '/console/releases/$version'
+      path: '/releases/$version'
+      fullPath: '/console/releases/$version'
+      preLoaderRoute: typeof ConsoleReleasesVersionRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/reviews/$reviewId': {
       id: '/console/reviews/$reviewId'
       path: '/reviews/$reviewId'
@@ -473,6 +492,7 @@ interface ConsoleRouteChildren {
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
   ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
   ConsoleProjectsNewRoute: typeof ConsoleProjectsNewRoute
+  ConsoleReleasesVersionRoute: typeof ConsoleReleasesVersionRoute
   ConsoleReviewsReviewIdRoute: typeof ConsoleReviewsReviewIdRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
 }
@@ -488,6 +508,7 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
   ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,
   ConsoleProjectsNewRoute: ConsoleProjectsNewRoute,
+  ConsoleReleasesVersionRoute: ConsoleReleasesVersionRoute,
   ConsoleReviewsReviewIdRoute: ConsoleReviewsReviewIdRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
 }
