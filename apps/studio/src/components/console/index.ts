@@ -1,5 +1,6 @@
 export { ConsoleShell } from './console-shell'
 export { IssuePage } from './issue-detail'
+export { ProjectSettingsPage, ProjectSetupPage, parseSetupSearch } from './projects'
 export { SectionView } from './section'
 export { TriageView } from './triage'
 export { useConsoleStore } from './use-console-store'

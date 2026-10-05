@@ -122,3 +122,7 @@ export const IssueTransitionBodySchema = z.object({
   release: z.string().max(200).nullish(),
 })
 export type IssueTransitionBody = z.infer<typeof IssueTransitionBodySchema>
+
+/** Whiskers → studio: a project and everything it sent is gone; its triage rows can go too. */
+export const ProjectDeletedBodySchema = z.object({ projectId: z.string().min(1).max(200) })
+export type ProjectDeletedBody = z.infer<typeof ProjectDeletedBodySchema>

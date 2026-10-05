@@ -1,4 +1,10 @@
-import type { ISSUE_BADGES, Issue, IssueListQuery } from '@code-whiskers/whiskers-domain'
+import type {
+  ISSUE_BADGES,
+  Issue,
+  IssueListQuery,
+  Project,
+  ProjectKey,
+} from '@code-whiskers/whiskers-domain'
 
 export interface EventFrame {
   file: string
@@ -128,4 +134,10 @@ export interface IssueFilter {
   query: IssueListQuery
   projectIds?: string[]
   ids?: string[]
+}
+
+export type ProjectSummary = Pick<Project, 'id' | 'name' | 'repository' | 'createdAt'> & {
+  keys: ProjectKey[]
+  issues: number
+  lastEventAt: Date | null
 }

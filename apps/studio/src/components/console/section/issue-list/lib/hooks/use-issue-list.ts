@@ -1,22 +1,16 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { whiskersIssuesQuery, whiskersProjectsQuery } from '@/integrations/whiskers'
-import { sampleIssues, useTriageRecords, useViewer } from '../../../../shared/console-data'
+import { useTriageRecords, useViewer } from '../../../../shared/console-data'
 import type { SectionFilters } from '../../../../shared/console-model'
 import { useConsoleScope } from '../../../../shared/console-scope'
 import type { IssueSectionView } from '../../../lib'
 import type { IssueListState } from '../types'
-import {
-  assignedIssueIds,
-  issueListParams,
-  sampleRows,
-  statusForTab,
-  visibleIssues,
-} from '../utils'
+import { assignedIssueIds, issueListParams, statusForTab, visibleIssues } from '../utils'
 
 /**
- * Server-filtered cursor pages; the fixture stands in only when both reads succeeded and no
- * project has an issue at all, so an empty tab reads as empty and a failed read as unreachable.
+ * Server-filtered cursor pages. No project at all, or a scoped project that has sent nothing,
+ * turns the empty list into setup; a failed read says unreachable instead.
  */
 export function useIssueList(
   section: IssueSectionView,
@@ -35,25 +29,27 @@ export function useIssueList(
   const projects = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
-    const projectNames = new Map((projects.data ?? []).map((p) => [p.id, p.name]))
-    const ingested = (projects.data ?? []).reduce((sum, project) => sum + project.issues, 0)
-    const isSample =
-      pages.isSuccess && projects.isSuccess && ingested === 0 && !pages.data.pages[0]?.total
-    const loaded = isSample
-      ? sampleRows(sampleIssues(), params)
-      : (pages.data?.pages.flatMap((page) => page.issues) ?? [])
-    const rows = visibleIssues(loaded, status, section)
+    const known = projects.data ?? []
+    const projectNames = new Map(known.map((p) => [p.id, p.name]))
+    const scoped = scope.projectIds?.length === 1 ? scope.projectIds[0] : undefined
+    const silentProject = known.find((p) => p.id === scoped && !p.lastEventAt) ?? null
+    const rows = visibleIssues(
+      pages.data?.pages.flatMap((page) => page.issues) ?? [],
+      status,
+      section,
+    )
     return {
       rows,
       params,
       projectNames,
-      total: isSample ? rows.length : (pages.data?.pages[0]?.total ?? 0),
-      isSample,
+      total: pages.data?.pages[0]?.total ?? 0,
+      hasNoProjects: projects.isSuccess && known.length === 0,
+      silentProject,
       isLoading: pages.isLoading,
       isUnreachable: pages.isError || projects.isError,
-      hasMore: !isSample && pages.hasNextPage,
+      hasMore: pages.hasNextPage,
       isLoadingMore: pages.isFetchingNextPage,
       loadMore: () => void pages.fetchNextPage(),
     }
-  }, [projects.data, projects.isSuccess, projects.isError, pages, params, status, section])
+  }, [projects.data, projects.isSuccess, projects.isError, pages, params, status, section, scope])
 }

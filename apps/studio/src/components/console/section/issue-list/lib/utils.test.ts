@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import type { WhiskersIssue } from '@/integrations/whiskers'
-import { sampleIssues } from '../../../shared/console-data'
 import type { SelectionState } from './types'
-import { EMPTY_SELECTION, sampleRows, selectionReducer, statusForTab, visibleIssues } from './utils'
+import { EMPTY_SELECTION, selectionReducer, statusForTab, visibleIssues } from './utils'
 
 const ORDER = ['a', 'b', 'c', 'd', 'e']
 
@@ -93,29 +92,5 @@ describe('list views', () => {
     expect(visibleIssues(rows, 'unresolved', 'issues').map((r) => r.id)).toEqual(['open', 'back'])
     expect(visibleIssues(rows, 'all', 'issues')).toHaveLength(3)
     expect(visibleIssues(rows, 'unresolved', 'regressions').map((r) => r.id)).toEqual(['back'])
-  })
-})
-
-describe('sampleRows', () => {
-  const issues = sampleIssues(new Date('2026-10-04T12:00:00.000Z'))
-  const all = { status: 'all', sort: 'last_seen' } as const
-  const ids = (params: Parameters<typeof sampleRows>[1]) =>
-    sampleRows(issues, params).map((issue) => issue.id)
-
-  test('status, search and ids filter like the server', () => {
-    expect(ids({ ...all, status: 'resolved' })).toEqual(['sample-2036'])
-    expect(ids({ ...all, q: ' billing ' })).toEqual(['sample-2039'])
-    expect(ids({ ...all, ids: ['sample-2044', 'nope'] })).toEqual(['sample-2044'])
-    expect(ids({ ...all, ids: [] })).toEqual([])
-  })
-
-  test('environment and release match the fixture event', () => {
-    expect(ids({ ...all, release: 'v4.18.1' })).toEqual(['sample-2039', 'sample-2036'])
-    expect(ids({ ...all, environment: 'staging' })).toEqual([])
-    expect(ids({ ...all, environment: 'production' })).toHaveLength(issues.length)
-  })
-
-  test('regressed keeps only unresolved issues badged regressed', () => {
-    expect(ids({ ...all, isRegressed: true })).toEqual(['sample-2041'])
   })
 })

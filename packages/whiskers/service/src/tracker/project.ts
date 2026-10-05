@@ -1,12 +1,13 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { type Project, projectTable } from '@code-whiskers/whiskers-domain'
-import { db } from '@code-whiskers/whiskers-repository'
-import { getProject } from '../queries'
+import type { Project } from '@code-whiskers/whiskers-domain'
+import { insertProject } from '../mutations/tracker/create-project'
+import { getProject, getProjectKeys } from '../queries'
+import { touchKey } from './key-usage'
+import { enabledKeyMatching } from './keys'
 
 /**
- * DSN auth: the SDK's `sentry_key` must match the project's public key. In dev
- * an unknown project self-provisions with the presented key so SDKs can point
- * at a fresh instance without seeding.
+ * DSN auth: the SDK's `sentry_key` must be one of the project's enabled keys. In dev an unknown
+ * project self-provisions with the presented key so SDKs can point at a fresh instance.
  */
 export async function resolveProject(
   projectId: string,
@@ -14,13 +15,12 @@ export async function resolveProject(
 ): Promise<Project | undefined> {
   const existing = await getProject(projectId)
   if (existing) {
-    return sentryKey && existing.publicKey === sentryKey ? existing : undefined
+    const key = enabledKeyMatching(await getProjectKeys(projectId), sentryKey)
+    if (!key) return undefined
+    touchKey(key.id)
+    return existing
   }
   if (!whiskersEnvConfig.app.dev || !sentryKey) return undefined
-  return await db
-    .insert(projectTable)
-    .values({ id: projectId, name: `project-${projectId}`, publicKey: sentryKey })
-    .onConflictDoNothing()
-    .returning()
-    .then(([r]) => r ?? getProject(projectId))
+  await insertProject({ id: projectId, name: `project-${projectId}`, publicKey: sentryKey })
+  return getProject(projectId)
 }

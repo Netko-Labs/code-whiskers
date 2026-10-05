@@ -7,7 +7,7 @@ function project(id: string, repository: string | null): WhiskersProject {
     id,
     name: `app-${id}`,
     repository,
-    publicKey: 'key',
+    keys: [],
     createdAt: new Date(0),
     issues: 0,
     lastEventAt: null,

@@ -16,6 +16,7 @@ import {
   IconInbox,
   IconKey,
   IconPlug,
+  IconPlus,
   IconScale,
   IconScript,
   IconStack2,
@@ -112,6 +113,7 @@ export const NAV_GROUPS: ConsoleNavGroup[] = [
         to: SECTION_ROUTE,
         params: { section: 'alert-rules' },
       },
+      { label: 'New project', icon: IconPlus, to: '/console/projects/new' },
     ],
   },
   {

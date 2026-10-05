@@ -4,6 +4,7 @@ import type {
   IssueStatus,
   IssueStatusFilter,
   WhiskersIssue,
+  WhiskersProject,
 } from '@/integrations/whiskers'
 import type { SectionFilters } from '../../../shared/console-model'
 import type { IssueSectionView } from '../../lib'
@@ -24,7 +25,10 @@ export type IssueListState = {
   params: IssueListParams
   projectNames: Map<string, string>
   total: number
-  isSample: boolean
+  /** No project at all: the list is replaced by the way to create one. */
+  hasNoProjects: boolean
+  /** The scope is one project that has sent nothing yet: its install guide stands in. */
+  silentProject: WhiskersProject | null
   isLoading: boolean
   isUnreachable: boolean
   hasMore: boolean
@@ -58,7 +62,6 @@ export type IssueListToolbarProps = {
   tab: number
   filters: SectionFilters
   params: IssueListParams
-  isSample: boolean
 }
 
 export type IssueFilterBarProps = {

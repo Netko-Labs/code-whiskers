@@ -39,6 +39,8 @@ describe('what gets reported', () => {
     expect(isIgnoredPath('/api/7/envelope/')).toBe(true)
     expect(isIgnoredPath('/api/7/store')).toBe(true)
     expect(isIgnoredPath('/otlp/v1/logs')).toBe(true)
+    expect(isIgnoredPath('/v1/projects/7/test-event')).toBe(true)
+    expect(isIgnoredPath('/v1/projects/7')).toBe(false)
     expect(isIgnoredPath('/api/triage')).toBe(false)
     expect(isIgnoredPath('/webhooks/github', [/^\/webhooks\//])).toBe(true)
   })

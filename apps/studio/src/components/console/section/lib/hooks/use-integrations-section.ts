@@ -10,11 +10,12 @@ import {
   repositoriesQuery,
   testIntegration,
 } from '@/integrations/studio-api'
-import { createWhiskersProject, whiskersProjectsQuery } from '@/integrations/whiskers'
+import { whiskersProjectsQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionAction, SectionDefinition, SectionTable } from '../../../shared/console-model'
+import { consoleOrigin, projectDsn, repositoryOptionsOf } from '../../../shared/project-setup'
 import { useConsoleStore } from '../../../use-console-store'
-import { dsnFor, linkRepositoryForm, repositoryOptionsOf, textCell as text } from '../utils'
+import { linkRepositoryForm, textCell as text } from '../utils'
 
 const TABS = ['Webhooks', 'Error ingest', 'GitHub App'] as const
 const KIND_OPTIONS = [
@@ -40,7 +41,7 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
     const installations = orgs ?? []
     const webhooks = hooks ?? []
     const sources = projects ?? []
-    const origin = typeof window === 'undefined' ? 'https://example.com' : window.location.origin
+    const origin = consoleOrigin()
     const refreshHooks = () =>
       queryClient.invalidateQueries({ queryKey: integrationsQuery().queryKey })
     const refreshProjects = () =>
@@ -112,13 +113,14 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
         project.repository
           ? text(project.repository, { mono: true })
           : { kind: 'pill', text: 'not linked', tone: 'warn' },
-        text(dsnFor(origin, project), { mono: true, tone: 'muted' }),
+        text(projectDsn(origin, project) ?? 'every key disabled', { mono: true, tone: 'muted' }),
         text(String(project.issues), { mono: true }),
         text(project.lastEventAt ? `${formatAge(project.lastEventAt)} ago` : 'nothing yet', {
           tone: project.lastEventAt ? 'muted' : 'warn',
           align: 'end',
         }),
       ]),
+      rowLinks: sources.map((project) => ({ kind: 'project' as const, projectId: project.id })),
       rowActions: sources.map((project) => [
         {
           label: project.repository ? 'Change repository' : 'Link repository',
@@ -130,12 +132,14 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
         {
           label: 'Copy DSN',
           onSelect: () => {
-            void navigator.clipboard.writeText(dsnFor(origin, project))
+            const dsn = projectDsn(origin, project)
+            if (!dsn) return flash(`${project.name} has no enabled key`)
+            void navigator.clipboard.writeText(dsn)
             flash(`DSN for ${project.name} copied`)
           },
         },
       ]),
-      footer: 'Any Sentry SDK works — pass the DSN to Sentry.init and errors land in Issues',
+      footer: 'Any Sentry SDK works · open a project for its keys, snippets and a test event',
     }
 
     const repoCount = new Map<number, number>()
@@ -167,42 +171,7 @@ export function useIntegrationsSection(tab: number): SectionDefinition {
     }
 
     const actions: SectionAction[] = [
-      {
-        label: 'Create project',
-        variant: 'outline',
-        form: {
-          title: 'Create an error-ingest project',
-          description: 'One per app or service that sends errors. You get a Sentry-compatible DSN.',
-          submitLabel: 'Create project',
-          fields: [
-            {
-              name: 'name',
-              label: 'Name',
-              kind: 'text',
-              placeholder: 'web-frontend',
-              isRequired: true,
-            },
-            {
-              name: 'repository',
-              label: 'Repository',
-              kind: 'select',
-              options: repositoryOptions,
-              hint: 'Errors, logs and traces from this project show up under this repository.',
-            },
-          ],
-          onSubmit: async (values) => {
-            const project = await createWhiskersProject(
-              values.name ?? '',
-              values.repository || null,
-            )
-            await refreshProjects()
-            return {
-              message: 'Pass this to Sentry.init({ dsn }) in the app that should report errors.',
-              reveal: dsnFor(origin, project),
-            }
-          },
-        },
-      },
+      { label: 'Create project', variant: 'outline', href: '/console/projects/new' },
       {
         label: 'Add webhook',
         variant: 'solid',

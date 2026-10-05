@@ -8,9 +8,11 @@ network call. The code lives in `packages/shared/observability` (`.` pure config
 
 ## Turning it on
 
-1. In the console, Integrations → Error ingest → create a project (e.g. `code-whiskers`), then
-   **Copy DSN** (`https://<public_key>@whiskers.netko.dev/<projectId>`). One project for all three
-   is fine: each event carries a `service` tag (`studio`, `whiskers`); browser events have none.
+1. In the console, **New project** (`/console/projects/new`) → platform **Bun** → name it (e.g.
+   `code-whiskers`) → copy the DSN chip (`https://<client key>@whiskers.netko.dev/<projectId>`).
+   One project for all three is fine: each event carries a `service` tag (`studio`, `whiskers`);
+   browser events have none. A separate client key per app (project settings → Client keys) lets
+   you cut one off without touching the others.
 2. In Coolify:
 
    | App | Variable | Value | Build variable |
@@ -46,7 +48,11 @@ network call. The code lives in `packages/shared/observability` (`.` pure config
 whiskers is the sink, so a fault in the ingest must never report itself into the ingest.
 
 - `beforeSend` drops any event whose `path` tag is an ingest path (`/api/:id/envelope|store`,
-  `/otlp/*`); studio also drops its forwarded paths (`/webhooks/*`, `/v1/*`) and `/api/monitor`.
+  `/otlp/*`, `/v1/projects/:id/test-event`); studio also drops its forwarded paths (`/webhooks/*`,
+  `/v1/*`) and `/api/monitor`.
+- **Send test event** never goes through an SDK or the network: whiskers calls `ingestEvent`
+  in-process with a synthetic event (`release`/`environment` `test`), so no guard sees it and a
+  fault in it is not reported back into the ingest.
 - No tracing (zero sample rate, no performance integrations, no trace headers on outgoing
   requests), logs and metrics dropped, no session tracking, no client reports.
 - SDK capture and transport faults never throw into a request or loop; shutdown flush is bounded

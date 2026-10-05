@@ -162,17 +162,6 @@ export const whiskersInstanceSchema = z.object({
     .default(null),
 })
 
-export const whiskersProjectSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  repository: z.string().nullable().default(null),
-  publicKey: z.string(),
-  createdAt: z.coerce.date(),
-  issues: z.number().default(0),
-  lastEventAt: z.coerce.date().nullable().default(null),
-})
-export const whiskersProjectListSchema = z.array(whiskersProjectSchema)
-
 export const whiskersReleaseSchema = z.object({
   projectId: z.string(),
   release: z.string(),

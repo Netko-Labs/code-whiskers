@@ -45,13 +45,13 @@ export function useSetupSteps(): SetupStep[] {
       {
         step: 'Create an error-ingest project',
         isDone: rows('project') > 0,
-        how: 'Integrations → Create project, then pass the DSN to Sentry.init',
-        link: { kind: 'section', section: 'integrations', tab: 1 },
+        how: 'Pick a platform, get a DSN and a snippet with it filled in',
+        link: { kind: 'project-setup' },
       },
       {
         step: 'Receive a first error',
         isDone: rows('event') > 0,
-        how: 'Throw something in an app that has the DSN',
+        how: 'Throw something in an app that has the DSN, or send a test event',
         link: { kind: 'section', section: 'issues' },
       },
       {

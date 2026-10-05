@@ -1,12 +1,15 @@
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import type { z } from 'zod'
-import { eventTable, issueTable, projectTable } from '../db'
+import { eventTable, issueTable, projectKeyTable, projectTable } from '../db'
 
 export const ProjectInsertSchema = createInsertSchema(projectTable)
 export type ProjectInsert = z.infer<typeof ProjectInsertSchema>
 
 export const ProjectSchema = createSelectSchema(projectTable)
 export type Project = z.infer<typeof ProjectSchema>
+
+export const ProjectKeySchema = createSelectSchema(projectKeyTable)
+export type ProjectKey = z.infer<typeof ProjectKeySchema>
 
 export const IssueSchema = createSelectSchema(issueTable)
 export type Issue = z.infer<typeof IssueSchema>

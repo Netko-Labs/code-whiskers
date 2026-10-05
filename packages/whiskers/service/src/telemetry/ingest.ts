@@ -3,20 +3,32 @@ import {
   eventTable,
   logLineTable,
   type Project,
+  projectKeyTable,
   projectTable,
   spanTable,
 } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { eq, lt } from 'drizzle-orm'
+import { and, eq, lt } from 'drizzle-orm'
 import { announce } from '../realtime'
+import { touchKey } from '../tracker/key-usage'
 import { INSERT_BATCH } from './constants'
 import type { LogLineInput, SpanInput } from './types'
 
-/** OTLP exporters send a header, not a DSN: the project's public key identifies it. */
+export const enabledKeyLookup = (key: string) =>
+  db
+    .select({ project: projectTable, keyId: projectKeyTable.id })
+    .from(projectKeyTable)
+    .innerJoin(projectTable, eq(projectTable.id, projectKeyTable.projectId))
+    .where(and(eq(projectKeyTable.publicKey, key), eq(projectKeyTable.isEnabled, true)))
+    .limit(1)
+
+/** OTLP exporters send a header, not a DSN: one of the project's enabled keys identifies it. */
 export async function projectForKey(key: string | undefined): Promise<Project | undefined> {
   if (!key) return undefined
-  const [row] = await db.select().from(projectTable).where(eq(projectTable.publicKey, key)).limit(1)
-  return row
+  const [row] = await enabledKeyLookup(key)
+  if (!row) return undefined
+  touchKey(row.keyId)
+  return row.project
 }
 
 async function insertInBatches<T>(

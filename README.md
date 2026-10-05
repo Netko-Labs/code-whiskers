@@ -27,7 +27,7 @@ flowchart LR
 | | studio | whiskers |
 | --- | --- | --- |
 | Packages | `packages/studio/{domain,repository,service,api}`, `packages/configs/studio-config` | `packages/whiskers/{domain,repository,service,api}`, `packages/configs/whiskers-config` |
-| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/v1/{overview,issues,reviews}`, `/internal/*` (studio only), `/health` |
+| Routes | `/sign-in`, `/api/auth/*`, `/api/health`; forwards `/webhooks/*`, `/api/:projectId/envelope\|store`, `/v1/*` | `/webhooks/github`, `/api/:projectId/envelope`, `/api/:projectId/store`, `/v1/{overview,issues,reviews,projects}`, `/internal/*` (studio only), `/health` |
 | Database | auth tables | reviews, findings, projects, issues, events |
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
@@ -66,8 +66,8 @@ and a failing chunk gets three jittered attempts (a timeout splits it) before it
 
 ## Error tracking
 
-Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` with the project's
-DSN key. Events are grouped into issues by fingerprint (the SDK's, else the thrown exception plus
+Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` with one of the
+project's enabled client keys as `sentry_key` (the DSN does this). Events are grouped into issues by fingerprint (the SDK's, else the thrown exception plus
 its top in-app frame); `/v1/issues` and `/v1/overview` read them. Bodies may be gzip, deflate or br,
 up to 1 MiB on the wire and 20 MiB decoded (413 past that); a retried `event_id` is stored once.
 
@@ -132,11 +132,14 @@ A reply, a 👎 or a resolved thread counts as an answer: that finding is not ra
 
 ### Sending data in
 
-- **Errors** — create a project under Integrations → Error ingest and pass its DSN to any Sentry
-  SDK's `init`.
+- **Errors** — **New project** in the console (`/console/projects/new`): pick a platform, get the
+  install snippet with the DSN filled in, and watch the first event land (or press **Send test
+  event**, which ingests a synthetic error server-side, no SDK needed). A project has any number of
+  client keys (`/console/projects/<id>`: add, disable, delete — never the last enabled one); every
+  enabled key is a valid DSN.
 - **Logs and traces** — OTLP over HTTP with JSON bodies: point an exporter at
   `https://<host>/otlp` with `OTEL_EXPORTER_OTLP_PROTOCOL=http/json` and the header
-  `Authorization: Bearer <project public key>`. Protobuf is refused with a 415 that says so.
+  `Authorization: Bearer <an enabled client key>`. Protobuf is refused with a 415 that says so.
 - **Reading** — `/v1/*` answers a signed-in browser or `Authorization: Bearer cw_…` from an API key
   (read-only).
 

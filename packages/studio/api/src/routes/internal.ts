@@ -5,11 +5,13 @@ import {
   FindingDismissSchema,
   IdParamSchema,
   IssueTransitionBodySchema,
+  ProjectDeletedBodySchema,
   RealtimeEventsSchema,
 } from '@code-whiskers/studio-domain'
 import {
   dismissFinding,
   fireAlertRule,
+  forgetProject,
   getEvaluableRules,
   getRepositoryWatch,
   getRulesForRepository,
@@ -51,6 +53,17 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     async ({ headers, body, status }) => {
       if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
       await recordIssueTransition(body)
+      realtimeBus.publish(['issues'])
+      return { ok: true }
+    },
+  )
+  // (︶︹︺) a project was deleted in whiskers; its triage rows follow it
+  .post(
+    '/projects/deleted',
+    { body: ProjectDeletedBodySchema },
+    async ({ headers, body, status }) => {
+      if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+      await forgetProject(body.projectId)
       realtimeBus.publish(['issues'])
       return { ok: true }
     },

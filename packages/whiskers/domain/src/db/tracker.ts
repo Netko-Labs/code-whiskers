@@ -1,7 +1,9 @@
 import {
+  boolean,
   index,
   integer,
   jsonb,
+  pgSequence,
   pgTable,
   text,
   timestamp,
@@ -10,19 +12,44 @@ import {
 } from 'drizzle-orm/pg-core'
 import { ISSUE_STATUSES } from '../values'
 
-/**
- * Sentry DSN shape is `http://<publicKey>@host/<projectId>` — the id is the
- * DSN path segment and the key is what SDKs send as `sentry_key`.
- */
+/** Sentry SDKs want a numeric project id; a sequence never hands a deleted project's id out again. */
+export const projectIdSequence = pgSequence('project_id_seq')
+
+/** Sentry DSN shape is `http://<publicKey>@host/<projectId>`: the id is the DSN path segment. */
 export const projectTable = pgTable('project', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   repository: text('repository'),
-  publicKey: text('public_key').notNull(),
+  /** Pre-0007 single key, copied into `project_key`; read by nothing, kept for a rollback. */
+  legacyPublicKey: text('public_key'),
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())
     .notNull(),
 })
+
+/** What SDKs send as `sentry_key` (or OTLP as a bearer); any enabled key of a project ingests. */
+export const projectKeyTable = pgTable(
+  'project_key',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projectTable.id, { onDelete: 'cascade' }),
+    publicKey: text('public_key').notNull(),
+    label: text('label').notNull(),
+    isEnabled: boolean('is_enabled').notNull().default(true),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => new Date())
+      .notNull(),
+    lastUsedAt: timestamp('last_used_at'),
+  },
+  (t) => [
+    uniqueIndex('project_key_public_key').on(t.publicKey),
+    index('project_key_project').on(t.projectId),
+  ],
+)
 
 export const issueTable = pgTable(
   'issue',

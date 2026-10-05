@@ -1,4 +1,7 @@
 export * from './create-project'
+export * from './delete-project'
 export * from './ingest-event'
+export * from './project-keys'
+export * from './send-test-event'
 export * from './set-issue-lifecycle'
 export type * from './types'

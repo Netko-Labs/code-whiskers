@@ -1,4 +1,8 @@
 export const DEFAULT_RELEASE = 'dev'
 
-/** code-whiskers' own ingest surface: an event about it would be posted back into it. */
-export const INGEST_PATHS: readonly RegExp[] = [/^\/api\/[^/]+\/(envelope|store)\/?$/, /^\/otlp\//]
+/** code-whiskers' own ingest surface, test event included: an event about it would loop back in. */
+export const INGEST_PATHS: readonly RegExp[] = [
+  /^\/api\/[^/]+\/(envelope|store)\/?$/,
+  /^\/otlp\//,
+  /^\/v1\/projects\/[^/]+\/test-event\/?$/,
+]
