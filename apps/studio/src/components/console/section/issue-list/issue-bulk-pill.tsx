@@ -5,7 +5,7 @@ import { type LifecycleAction, plural, useIssueLifecycle } from '../../shared/is
 import { IssueArchiveMenu, IssueResolveMenu } from '../../shared/issue-ui'
 import type { IssueBulkPillProps } from './lib'
 
-const PILL_BUTTON = 'text-zinc-100 hover:bg-zinc-800 hover:text-zinc-50'
+const PILL_BUTTON = 'text-body hover:bg-surface-selected hover:text-foreground'
 
 /** Floats over the list while rows are selected; every action clears the selection after. */
 export function IssueBulkPill({ issues, onDone }: IssueBulkPillProps) {
@@ -17,7 +17,7 @@ export function IssueBulkPill({ issues, onDone }: IssueBulkPillProps) {
   }
 
   return (
-    <div className="dark -translate-x-1/2 absolute bottom-[22px] left-1/2 z-10 flex animate-in items-center gap-1 rounded-xl bg-zinc-950 py-1.5 pr-1.5 pl-3.5 text-zinc-50 shadow-2xl duration-200 fade-in slide-in-from-bottom-2">
+    <div className="dark -translate-x-1/2 absolute bottom-[22px] left-1/2 z-10 flex animate-enter-up items-center gap-1 rounded-xl border border-border bg-popover py-1.5 pr-1.5 pl-3.5 text-foreground shadow-overlay">
       <span className="mr-1.5 font-medium text-[13px] tabular-nums">
         {plural(issues.length, 'issue')}
       </span>
@@ -50,11 +50,11 @@ export function IssueBulkPill({ issues, onDone }: IssueBulkPillProps) {
         }}
         trigger={<Button variant="ghost" size="sm" className={PILL_BUTTON} />}
       />
-      <span className="mx-1 h-4 w-px bg-zinc-800" />
+      <span className="mx-1 h-4 w-px bg-border" />
       <Button
         variant="ghost"
         size="sm"
-        className="text-zinc-400 hover:bg-zinc-800"
+        className="text-muted-foreground hover:bg-surface-selected hover:text-foreground"
         onClick={onDone}
       >
         <IconX data-icon="inline-start" />
