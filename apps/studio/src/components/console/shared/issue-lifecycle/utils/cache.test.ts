@@ -81,4 +81,20 @@ describe('partial lifecycle failure', () => {
       detail: 'unresolved',
     })
   })
+
+  test('each cached copy keeps its own counts; only the lifecycle goes back', () => {
+    const queryClient = seeded()
+    queryClient.setQueryData<Partial<WhiskersIssueDetail>>(DETAIL_KEY, {
+      issue: { ...issue('b'), eventCount: 99 },
+    })
+    const snapshot = patchIssueCaches(queryClient, (row) => ({ ...row, status: 'resolved' }))
+    rollbackIssues(queryClient, snapshot, ['b'])
+    const detail = queryClient.getQueryData<WhiskersIssueDetail>(DETAIL_KEY)?.issue
+    const listed = queryClient
+      .getQueryData<InfiniteData<WhiskersIssuePage>>(LIST_KEY)
+      ?.pages[0]?.issues.find((row) => row.id === 'b')
+    expect(detail?.status).toBe('unresolved')
+    expect(detail?.eventCount).toBe(99)
+    expect(listed?.eventCount).toBe(issue('b').eventCount)
+  })
 })

@@ -64,14 +64,41 @@ export function snapshotRows(
   return rows
 }
 
-/** Puts only these issues back as they were; the rest of the cache keeps what landed. */
+/**
+ * Puts only these issues' lifecycle back as it was. Each cached copy keeps its own counts and
+ * trend — a list page and the detail can hold the same issue read at different times.
+ */
 export function rollbackIssues(
   queryClient: QueryClient,
   snapshot: IssueCacheSnapshot,
   ids: string[],
 ): void {
   const rows = snapshotRows(snapshot, ids)
-  patchIssueCaches(queryClient, (issue) => rows.get(issue.id))
+  patchIssueCaches(queryClient, (issue) => {
+    const before = rows.get(issue.id)
+    return before ? { ...issue, ...lifecycleOf(before) } : undefined
+  })
+}
+
+function lifecycleOf(issue: WhiskersIssue): Partial<WhiskersIssue> {
+  const {
+    status,
+    resolvedInRelease,
+    resolvedAt,
+    archivedUntil,
+    archiveUntilEvents,
+    archiveUntilUsers,
+    regressedAt,
+  } = issue
+  return {
+    status,
+    resolvedInRelease,
+    resolvedAt,
+    archivedUntil,
+    archiveUntilEvents,
+    archiveUntilUsers,
+    regressedAt,
+  }
 }
 
 /** Whiskers' answer is the truth for the fields it computes, like the release a resolve waits on. */
