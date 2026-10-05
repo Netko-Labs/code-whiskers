@@ -31,6 +31,12 @@ export type OtlpLogs = {
   }[]
 }
 
+export type OtlpSpanEvent = {
+  timeUnixNano?: string
+  name?: string
+  attributes?: OtlpAttribute[]
+}
+
 export type OtlpSpan = {
   traceId?: string
   spanId?: string
@@ -39,8 +45,9 @@ export type OtlpSpan = {
   kind?: number | string
   startTimeUnixNano?: string
   endTimeUnixNano?: string
-  status?: { code?: number | string }
+  status?: { code?: number | string; message?: string }
   attributes?: OtlpAttribute[]
+  events?: OtlpSpanEvent[]
 }
 
 export type OtlpTraces = {

@@ -56,6 +56,7 @@ export const spanTable = pgTable(
     startTime: timestamp('start_time').notNull(),
     durationMs: doublePrecision('duration_ms').notNull(),
     attributes: jsonb('attributes').$type<Record<string, unknown>>().notNull().default({}),
+    events: jsonb('events').$type<SpanEvent[]>().notNull().default([]),
   },
   (t) => [
     index('span_start_time_brin').using('brin', t.startTime),
@@ -63,6 +64,12 @@ export const spanTable = pgTable(
     index('span_service').on(t.service),
   ],
 )
+
+export type SpanEvent = {
+  name: string
+  timestamp: string
+  attributes: Record<string, unknown>
+}
 
 export type LogLine = typeof logLineTable.$inferSelect
 export type Span = typeof spanTable.$inferSelect

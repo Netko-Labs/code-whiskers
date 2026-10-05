@@ -42,35 +42,6 @@ export interface InstanceStats {
   }
 }
 
-export interface LogFilter {
-  projectIds?: string[]
-  service?: string
-  level?: 'error' | 'warn'
-  query?: string
-  before?: number
-}
-
-export interface TraceSummary {
-  traceId: string
-  rootName: string
-  rootService: string
-  startedAt: Date
-  durationMs: number
-  spans: number
-  errors: number
-}
-
-export interface ServiceSummary {
-  service: string
-  logs: number
-  logErrors: number
-  spans: number
-  spanErrors: number
-  p50Ms: number | null
-  p95Ms: number | null
-  lastSeen: Date | null
-}
-
 export interface LogPattern {
   hash: string
   projectId: string

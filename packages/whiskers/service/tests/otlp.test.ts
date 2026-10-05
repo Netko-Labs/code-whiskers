@@ -87,6 +87,44 @@ describe('parseTraces', () => {
       service: 'checkout',
     })
   })
+
+  test('span events and the status message are kept for the span panel', () => {
+    const [row] = parseTraces({
+      resourceSpans: [
+        {
+          resource,
+          scopeSpans: [
+            {
+              spans: [
+                {
+                  traceId: 't1',
+                  spanId: 's1',
+                  startTimeUnixNano: '1790000000000000000',
+                  endTimeUnixNano: '1790000000100000000',
+                  status: { code: 2, message: 'card declined' },
+                  events: [
+                    {
+                      name: 'exception',
+                      timeUnixNano: '1790000000050000000',
+                      attributes: [{ key: 'exception.type', value: { stringValue: 'Declined' } }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    expect(row?.attributes).toEqual({ 'otel.status_description': 'card declined' })
+    expect(row?.events).toEqual([
+      {
+        name: 'exception',
+        timestamp: new Date(1_790_000_000_050).toISOString(),
+        attributes: { 'exception.type': 'Declined' },
+      },
+    ])
+  })
 })
 
 describe('small parsers', () => {

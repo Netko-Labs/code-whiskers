@@ -1,3 +1,6 @@
+import type { LogFilterQuery } from '@code-whiskers/whiskers-domain'
+import type { LogFilter } from '@code-whiskers/whiskers-service'
+
 const MAX_PROJECTS = 20
 
 export function projectIdsOf(value: string | undefined): string[] | undefined {
@@ -21,4 +24,17 @@ export function clientKeyFrom(
   const dsn = request.headers.get('authorization')?.match(/^DSN\s+(\S+)$/i)?.[1]
   if (dsn) return dsn
   return request.headers.get('x-sentry-auth')?.match(/sentry_key=([^,\s]+)/)?.[1]
+}
+
+export function logFilterOf(query: LogFilterQuery): LogFilter {
+  return {
+    projectIds: projectIdsOf(query.projectId),
+    service: query.service,
+    levels: query.levels,
+    query: query.q,
+    traceId: query.traceId,
+    attrs: query.attrs,
+    from: query.from,
+    to: query.to,
+  }
 }

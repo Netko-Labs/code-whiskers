@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto'
 import { logLineTable } from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { and, desc, gt, inArray } from 'drizzle-orm'
+import { and, desc } from 'drizzle-orm'
+import { logConditions } from '../telemetry/conditions'
+import type { LogFilter } from '../telemetry/types'
+import { windowOf } from '../telemetry/utils'
 import {
   LOG_PATTERN_LIMIT,
   LOG_PATTERN_SAMPLES,
@@ -12,15 +15,23 @@ import type { LogPattern } from './types'
 import { logPattern } from './utils'
 
 const HOUR_MS = 3_600_000
+const DEFAULT_LEVELS: LogFilter['levels'] = ['error', 'fatal']
 
 /**
- * Error and fatal lines from the last day, grouped by service and message shape — the log side
- * of the triage inbox. Grouped in memory over the newest few thousand lines; a flood is sampled.
+ * Lines grouped by service and message shape — error and fatal over the last day unless the
+ * filter says otherwise. Grouped in memory over the newest few thousand lines; a flood is
+ * sampled. `hourly` is 24 equal buckets across the window: hours for the default day.
  */
 export const getLogPatterns = async (
-  projectIds?: string[],
+  filter: LogFilter = {},
   now = new Date(),
 ): Promise<LogPattern[]> => {
+  const window = windowOf(filter.from, filter.to, LOG_PATTERN_WINDOW_HOURS * HOUR_MS, now)
+  const bucketMs = Math.max(
+    1,
+    (window.to.getTime() - window.from.getTime()) / LOG_PATTERN_WINDOW_HOURS,
+  )
+  const levels = filter.levels?.length ? filter.levels : DEFAULT_LEVELS
   const lines = await db
     .select({
       projectId: logLineTable.projectId,
@@ -30,13 +41,7 @@ export const getLogPatterns = async (
       timestamp: logLineTable.timestamp,
     })
     .from(logLineTable)
-    .where(
-      and(
-        inArray(logLineTable.level, ['ERROR', 'FATAL']),
-        projectIds ? inArray(logLineTable.projectId, projectIds) : undefined,
-        gt(logLineTable.timestamp, new Date(now.getTime() - LOG_PATTERN_WINDOW_HOURS * HOUR_MS)),
-      ),
-    )
+    .where(and(...logConditions({ ...filter, levels }, window)))
     .orderBy(desc(logLineTable.timestamp))
     .limit(LOG_PATTERN_SCAN_LIMIT)
 
@@ -58,8 +63,8 @@ export const getLogPatterns = async (
     group.count += 1
     if (line.timestamp < group.firstSeen) group.firstSeen = line.timestamp
     if (line.timestamp > group.lastSeen) group.lastSeen = line.timestamp
-    const hoursAgo = Math.floor((now.getTime() - line.timestamp.getTime()) / HOUR_MS)
-    const bucket = LOG_PATTERN_WINDOW_HOURS - 1 - hoursAgo
+    const bucketsAgo = Math.floor((window.to.getTime() - line.timestamp.getTime()) / bucketMs)
+    const bucket = LOG_PATTERN_WINDOW_HOURS - 1 - bucketsAgo
     if (bucket >= 0 && bucket < LOG_PATTERN_WINDOW_HOURS)
       group.hourly[bucket] = (group.hourly[bucket] ?? 0) + 1
     if (group.samples.length < LOG_PATTERN_SAMPLES) {

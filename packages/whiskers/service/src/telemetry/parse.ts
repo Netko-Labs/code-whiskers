@@ -1,3 +1,4 @@
+import { MAX_SPAN_EVENTS, type SpanEvent } from '@code-whiskers/whiskers-domain'
 import {
   MAX_MESSAGE_CHARS,
   MAX_RECORDS_PER_REQUEST,
@@ -8,6 +9,7 @@ import type {
   LogLineInput,
   OtlpAttribute,
   OtlpLogs,
+  OtlpSpan,
   OtlpTraces,
   OtlpValue,
   SpanInput,
@@ -92,6 +94,21 @@ export function parseLogs(payload: OtlpLogs, now = new Date()): LogLineInput[] {
   return rows
 }
 
+function spanEventsOf(span: OtlpSpan, fallback: Date): SpanEvent[] {
+  return (span.events ?? []).slice(0, MAX_SPAN_EVENTS).map((event) => ({
+    name: event.name || '(unnamed)',
+    timestamp: fromNanos(event.timeUnixNano, fallback).toISOString(),
+    attributes: attributesOf(event.attributes),
+  }))
+}
+
+/** The status message is the one human sentence an exporter attaches to a failed span. */
+function spanAttributesOf(span: OtlpSpan): Record<string, unknown> {
+  const attributes = attributesOf(span.attributes)
+  const message = span.status?.message?.trim()
+  return message ? { ...attributes, 'otel.status_description': message } : attributes
+}
+
 export function parseTraces(payload: OtlpTraces, now = new Date()): SpanInput[] {
   const rows: SpanInput[] = []
   for (const resourceSpans of payload.resourceSpans ?? []) {
@@ -112,7 +129,8 @@ export function parseTraces(payload: OtlpTraces, now = new Date()): SpanInput[] 
           status: statusOf(span.status?.code),
           startTime: start,
           durationMs: Math.max(0, end.getTime() - start.getTime()),
-          attributes: attributesOf(span.attributes),
+          attributes: spanAttributesOf(span),
+          events: spanEventsOf(span, start),
         })
       }
     }
