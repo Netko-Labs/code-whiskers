@@ -1,0 +1,2 @@
+export const MIRROR_FIRST_SWEEP_MS = 15_000
+export const MIRROR_SWEEP_INTERVAL_MS = 5 * 60_000
