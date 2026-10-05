@@ -4,10 +4,10 @@ import { studioStorageQuery } from '@/integrations/studio-api'
 import { whiskersInstanceQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
+import { useSetupSteps } from '../../../shared/setup-checklist'
 import type { StoreRow } from '../types'
 import { formatBytes, formatSeconds, textCell as text } from '../utils'
 import { INSTANCE_SECTION } from '../values'
-import { useSetupSteps } from './use-setup-steps'
 
 const TABS = ['Storage', 'Activity', 'Setup', 'Reviewer'] as const
 const STORAGE_GRID = '1fr 110px 1fr 120px 110px'

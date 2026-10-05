@@ -6,7 +6,6 @@ import type {
   WhiskersIssue,
   WhiskersRelease,
 } from '@/integrations/whiskers'
-import { sampleIssueEvent } from '../../../shared/console-data'
 import type { SectionFilters } from '../../../shared/console-model'
 import type { IssueSectionView } from '../../lib'
 import type { FilterOptions, SelectionAction, SelectionState } from './types'
@@ -89,25 +88,6 @@ export function visibleIssues(
       (status === 'all' || issue.status === status) &&
       (section !== 'regressions' || issue.badges.includes('regressed')),
   )
-}
-
-/**
- * The fixture answers the same filters the server would, so the sample list behaves. A sample
- * issue's events are its one fixture event, so environment and release match that.
- */
-export function sampleRows(issues: WhiskersIssue[], params: IssueListParams): WhiskersIssue[] {
-  const needle = params.q?.trim().toLowerCase()
-  return issues.filter((issue) => {
-    const event = sampleIssueEvent(issue)
-    return (
-      (params.status === 'all' || issue.status === params.status) &&
-      (!params.environment || event.environment === params.environment) &&
-      (!params.release || event.release === params.release) &&
-      (!needle || issue.title.toLowerCase().includes(needle)) &&
-      (!params.ids || params.ids.includes(issue.id)) &&
-      (!params.isRegressed || (issue.status === 'unresolved' && issue.badges.includes('regressed')))
-    )
-  })
 }
 
 export function filterOptions(releases: WhiskersRelease[]): FilterOptions {

@@ -1,9 +1,20 @@
-export { fetchWhiskers, postWhiskers } from './client'
+export { fetchWhiskers, postWhiskers, sendWhiskers } from './client'
 export * from './lib'
 export {
   createWhiskersProject,
-  rerunReview,
+  createWhiskersProjectKey,
+  deleteWhiskersProject,
+  deleteWhiskersProjectKey,
+  sendWhiskersTestEvent,
   setWhiskersProjectRepository,
+  updateWhiskersProject,
+  updateWhiskersProjectKey,
+  whiskersLatestIssueQuery,
+  whiskersProjectQuery,
+  whiskersProjectsQuery,
+} from './projects'
+export {
+  rerunReview,
   whiskersHotspotsQuery,
   whiskersInstanceQuery,
   whiskersIssueEventQuery,
@@ -14,7 +25,6 @@ export {
   whiskersLogPatternsQuery,
   whiskersLogsQuery,
   whiskersOverviewQuery,
-  whiskersProjectsQuery,
   whiskersReleasesQuery,
   whiskersReviewQuery,
   whiskersReviewsQuery,

@@ -72,6 +72,26 @@ export function SectionTable({ table, minWidth }: SectionTableProps) {
             </Link>
           )
         }
+        if (link?.kind === 'project') {
+          return (
+            <Link
+              key={key}
+              to="/console/projects/$projectId"
+              params={{ projectId: link.projectId }}
+              className={className}
+              style={style}
+            >
+              {cells}
+            </Link>
+          )
+        }
+        if (link?.kind === 'project-setup') {
+          return (
+            <Link key={key} to="/console/projects/new" className={className} style={style}>
+              {cells}
+            </Link>
+          )
+        }
         if (link?.kind === 'external') {
           return (
             <a

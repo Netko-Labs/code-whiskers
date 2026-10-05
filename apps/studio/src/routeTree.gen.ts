@@ -22,6 +22,8 @@ import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ConsoleIssuesIssueIdRouteImport } from './routes/console/issues.$issueId'
+import { Route as ConsoleProjectsProjectIdRouteImport } from './routes/console/projects.$projectId'
+import { Route as ConsoleProjectsNewRouteImport } from './routes/console/projects.new'
 import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +91,17 @@ const ConsoleIssuesIssueIdRoute = ConsoleIssuesIssueIdRouteImport.update({
   path: '/issues/$issueId',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleProjectsProjectIdRoute =
+  ConsoleProjectsProjectIdRouteImport.update({
+    id: '/projects/$projectId',
+    path: '/projects/$projectId',
+    getParentRoute: () => ConsoleRoute,
+  } as any)
+const ConsoleProjectsNewRoute = ConsoleProjectsNewRouteImport.update({
+  id: '/projects/new',
+  path: '/projects/new',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleTriageBucketRoute = ConsoleTriageBucketRouteImport.update({
   id: '/triage/$bucket',
   path: '/triage/$bucket',
@@ -109,6 +122,8 @@ export interface FileRoutesByFullPath {
   '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
+  '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
+  '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesByTo {
@@ -124,6 +139,8 @@ export interface FileRoutesByTo {
   '/console': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
+  '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
+  '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesById {
@@ -141,6 +158,8 @@ export interface FileRoutesById {
   '/console/': typeof ConsoleIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
+  '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
+  '/console/projects/new': typeof ConsoleProjectsNewRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRouteTypes {
@@ -159,6 +178,8 @@ export interface FileRouteTypes {
     | '/console/'
     | '/api/auth/$'
     | '/console/issues/$issueId'
+    | '/console/projects/$projectId'
+    | '/console/projects/new'
     | '/console/triage/$bucket'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -174,6 +195,8 @@ export interface FileRouteTypes {
     | '/console'
     | '/api/auth/$'
     | '/console/issues/$issueId'
+    | '/console/projects/$projectId'
+    | '/console/projects/new'
     | '/console/triage/$bucket'
   id:
     | '__root__'
@@ -190,6 +213,8 @@ export interface FileRouteTypes {
     | '/console/'
     | '/api/auth/$'
     | '/console/issues/$issueId'
+    | '/console/projects/$projectId'
+    | '/console/projects/new'
     | '/console/triage/$bucket'
   fileRoutesById: FileRoutesById
 }
@@ -299,6 +324,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleIssuesIssueIdRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/projects/$projectId': {
+      id: '/console/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/console/projects/$projectId'
+      preLoaderRoute: typeof ConsoleProjectsProjectIdRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/projects/new': {
+      id: '/console/projects/new'
+      path: '/projects/new'
+      fullPath: '/console/projects/new'
+      preLoaderRoute: typeof ConsoleProjectsNewRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/triage/$bucket': {
       id: '/console/triage/$bucket'
       path: '/triage/$bucket'
@@ -313,6 +352,8 @@ interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
   ConsoleIndexRoute: typeof ConsoleIndexRoute
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
+  ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
+  ConsoleProjectsNewRoute: typeof ConsoleProjectsNewRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
 }
 
@@ -320,6 +361,8 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
   ConsoleIndexRoute: ConsoleIndexRoute,
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
+  ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,
+  ConsoleProjectsNewRoute: ConsoleProjectsNewRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
 }
 

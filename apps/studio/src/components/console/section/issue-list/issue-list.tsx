@@ -1,11 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { savedQueriesQuery } from '@/integrations/studio-api'
+import { ProjectInstallPanel } from '../../shared/project-setup'
 import { saveViewAction } from '../lib'
 import { SectionHeader } from '../section-header'
 import { IssueBulkPill } from './issue-bulk-pill'
 import { IssueListFooter } from './issue-list-footer'
 import { IssueListHead } from './issue-list-head'
 import { IssueListRow } from './issue-list-row'
+import { IssueListSetup } from './issue-list-setup'
 import { IssueListToolbar } from './issue-list-toolbar'
 import {
   EMPTY_WORDS,
@@ -37,7 +39,6 @@ export function IssueList({ section, tab, filters }: IssueListProps) {
           title: isRegressions ? REGRESSIONS_TITLE : ISSUES_TITLE,
           subtitle: isRegressions ? REGRESSIONS_SUBTITLE : ISSUES_SUBTITLE,
           stats: [],
-          sample: list.isSample,
           note: list.isUnreachable ? UNREACHABLE_NOTE : null,
           actions: isRegressions
             ? []
@@ -48,13 +49,7 @@ export function IssueList({ section, tab, filters }: IssueListProps) {
               ],
         }}
       />
-      <IssueListToolbar
-        section={section}
-        tab={tab}
-        filters={filters}
-        params={list.params}
-        isSample={list.isSample}
-      />
+      <IssueListToolbar section={section} tab={tab} filters={filters} params={list.params} />
       <div className="flex min-h-0 flex-1 flex-col overflow-auto">
         <div style={{ minWidth: `${ISSUE_LIST_MIN_WIDTH}px` }}>
           <IssueListHead
@@ -66,21 +61,30 @@ export function IssueList({ section, tab, filters }: IssueListProps) {
             <IssueListRow
               key={issue.id}
               issue={issue}
-              project={list.projectNames.get(issue.projectId) ?? 'Sample project'}
+              project={list.projectNames.get(issue.projectId) ?? issue.projectId}
               hasStatus={status === 'all'}
               isSelected={selection.ids.has(issue.id)}
               onToggle={selection.toggle}
             />
           ))}
-          {list.rows.length === 0 && !list.isLoading && (
-            <p className="m-0 px-8 py-16 text-center text-[13px] text-muted-foreground">
-              {list.isUnreachable
-                ? UNREACHABLE_EMPTY
-                : isRegressions
-                  ? REGRESSIONS_EMPTY
-                  : EMPTY_WORDS[status]}
-            </p>
+          {list.hasNoProjects && <IssueListSetup />}
+          {list.silentProject && list.rows.length === 0 && (
+            <div className="max-w-[920px] px-8 py-7">
+              <ProjectInstallPanel project={list.silentProject} />
+            </div>
           )}
+          {list.rows.length === 0 &&
+            !list.isLoading &&
+            !list.hasNoProjects &&
+            !list.silentProject && (
+              <p className="m-0 px-8 py-16 text-center text-[13px] text-muted-foreground">
+                {list.isUnreachable
+                  ? UNREACHABLE_EMPTY
+                  : isRegressions
+                    ? REGRESSIONS_EMPTY
+                    : EMPTY_WORDS[status]}
+              </p>
+            )}
           <IssueListFooter
             shown={list.rows.length}
             total={list.total}

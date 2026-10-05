@@ -101,6 +101,8 @@ export type SectionRowLink =
   | { kind: 'triage'; itemId: string }
   | { kind: 'external'; href: string }
   | { kind: 'section'; section: SectionView; tab?: number; filters?: SectionFilters }
+  | { kind: 'project-setup' }
+  | { kind: 'project'; projectId: string }
 
 export type SectionTable = {
   grid: string

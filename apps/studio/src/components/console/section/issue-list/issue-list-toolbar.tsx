@@ -5,14 +5,8 @@ import { SectionSearchBox } from '../section-search-box'
 import { IssueFilterBar } from './issue-filter-bar'
 import { ISSUE_TABS, type IssueListToolbarProps, useIssueCounts } from './lib'
 
-export function IssueListToolbar({
-  section,
-  tab,
-  filters,
-  params,
-  isSample,
-}: IssueListToolbarProps) {
-  const counts = useIssueCounts(params, isSample)
+export function IssueListToolbar({ section, tab, filters, params }: IssueListToolbarProps) {
+  const counts = useIssueCounts(params)
 
   return (
     <div className="flex shrink-0 flex-col border-border border-b px-8">

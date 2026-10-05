@@ -18,8 +18,6 @@ import {
   whiskersLogListSchema,
   whiskersLogPatternListSchema,
   whiskersOverviewSchema,
-  whiskersProjectListSchema,
-  whiskersProjectSchema,
   whiskersReleaseListSchema,
   whiskersReviewDetailSchema,
   whiskersReviewListSchema,
@@ -144,22 +142,6 @@ export const whiskersInstanceQuery = () =>
     queryKey: [WHISKERS_QUERY_KEY, 'instance'],
     queryFn: () => fetchWhiskers('/instance', whiskersInstanceSchema),
   })
-
-export const whiskersProjectsQuery = () =>
-  queryOptions({
-    queryKey: [WHISKERS_QUERY_KEY, 'projects'],
-    queryFn: () => fetchWhiskers('/projects', whiskersProjectListSchema),
-  })
-
-export const createWhiskersProject = (name: string, repository: string | null) =>
-  postWhiskers('/projects', { name, repository }, whiskersProjectSchema)
-
-export const setWhiskersProjectRepository = (projectId: string, repository: string | null) =>
-  postWhiskers(
-    `/projects/${encodeURIComponent(projectId)}/repository`,
-    { repository },
-    whiskersProjectSchema,
-  )
 
 export const whiskersReleasesQuery = (projectIds?: ProjectScope) =>
   queryOptions({

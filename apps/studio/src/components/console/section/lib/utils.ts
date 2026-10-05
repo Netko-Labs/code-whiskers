@@ -96,12 +96,6 @@ export function textCell(
   return { kind: 'text', text: value, ...extra }
 }
 
-/** Sentry's DSN shape: the public key as the username, the project id as the path. */
-export function dsnFor(origin: string, project: { id: string; publicKey: string }): string {
-  const url = new URL(origin)
-  return `${url.protocol}//${project.publicKey}@${url.host}/${project.id}`
-}
-
 /** "Save view" for any filterable section: the tab and filters as they are right now. */
 export function saveViewAction(
   section: 'live-logs' | 'traces' | 'issues',
@@ -147,18 +141,6 @@ export function unlinkedScopeNote(scope: ConsoleScope): string | null {
 }
 
 const NO_REPOSITORY = ''
-
-export function repositoryOptionsOf(
-  repos: { owner: string; name: string }[],
-): SectionFieldOption[] {
-  return [
-    { value: NO_REPOSITORY, label: 'No repository' },
-    ...repos
-      .map((repo) => `${repo.owner}/${repo.name}`)
-      .sort((a, b) => a.localeCompare(b))
-      .map((slug) => ({ value: slug, label: slug })),
-  ]
-}
 
 export function linkRepositoryForm(
   project: WhiskersProject,

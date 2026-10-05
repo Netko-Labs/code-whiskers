@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ScopePicker } from '../../scope-picker'
 import { TRIAGE_TITLES } from '../../shared/console-data'
+import { SetupChecklistCard } from '../../shared/setup-checklist'
 import { matchesQuery, TRIAGE_FILTERS, type TriageListProps, useTriageKeys } from '../lib'
 import { TriageRow } from './triage-row'
 
@@ -51,6 +52,8 @@ export function TriageList({ bucket, filter, items, selectedId, sampleNote }: Tr
           ))}
         </div>
       </div>
+
+      {bucket === 'inbox' && <SetupChecklistCard className="mx-4 mt-3" />}
 
       {sampleNote && (
         <p className="m-0 flex items-center gap-2 border-rule-soft border-b px-5 py-2.5 text-[12px] text-muted-foreground">

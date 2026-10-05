@@ -97,14 +97,33 @@ which installation; written by the sync on login.
 | `installation_id` | bigint | |
 | `name` | text | |
 | `repository` | text null | `owner/name`; its errors, logs and spans show under that repository |
-| `public_key` | text | what SDKs send as `sentry_key` |
+| `public_key` | text null | legacy single key, copied into `project_key` by whiskers 0007; read by nothing |
 | `created_at` | timestamp | |
 
-Today the table lives in whiskers (ingest checks the key on every event). The console's
+**`project_key`** — a project's client keys; each enabled one is a DSN.
+
+| column | type | note |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `project_id` | text FK → project, cascade | |
+| `public_key` | text unique | what SDKs send as `sentry_key`, OTLP as a bearer |
+| `label` | text | `Default` for the migrated key |
+| `is_enabled` | boolean | any enabled key ingests; a disabled one 401s |
+| `created_at` `last_used_at` | timestamp | `last_used_at` written at most once a minute per key |
+
+The last enabled key cannot be deleted (disabling it is allowed: that pauses ingest). Project ids
+come from `project_id_seq` — Sentry SDKs need a numeric id, and a sequence never hands out a deleted
+project's id again. Deleting a project cascades its keys, issues, events, logs and spans in
+whiskers, then whiskers posts `POST /api/internal/projects/deleted` and studio drops the
+`triage_state` / `triage_comment` / `triage_activity` rows under `project:<id>` (best effort: if
+studio is down they stay orphaned, harmless since the id is never reused). Project-scoped alert
+rules are left for a human to remove.
+
+Today the tables live in whiskers (ingest checks the key on every event). The console's
 `?scope=owner/name` reads reviews by repository and telemetry by every project linked to it;
 `?scope=project:<id>` covers a project with no repository.
 
-Whiskers caches `(id, public_key)` — ingest cannot round-trip per event.
+Ingest reads the project's keys from its own database on each envelope; no studio round trip.
 
 ### Rules
 
