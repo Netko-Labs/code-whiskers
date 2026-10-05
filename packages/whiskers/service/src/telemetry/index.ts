@@ -1,4 +1,10 @@
-export { expireTelemetry, ingestLogs, ingestSpans, projectForKey } from './ingest'
+export {
+  enabledKeyLookup,
+  expireTelemetry,
+  ingestLogs,
+  ingestSpans,
+  projectForKey,
+} from './ingest'
 export {
   anyValue,
   attributesOf,

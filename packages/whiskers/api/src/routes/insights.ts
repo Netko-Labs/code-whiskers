@@ -1,19 +1,15 @@
 import {
   LogQuerySchema,
-  ProjectCreateSchema,
-  ProjectRepositorySchema,
   ProjectScopeSchema,
   ReviewRerunSchema,
   TraceQuerySchema,
 } from '@code-whiskers/whiskers-domain'
 import {
-  createProject,
   getHotspots,
   getInstanceStats,
   getLogPatterns,
   getLogs,
   getOverview,
-  getProjects,
   getReleases,
   getReview,
   getReviews,
@@ -21,7 +17,6 @@ import {
   getTrace,
   getTraces,
   runReview,
-  setProjectRepository,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 import { projectIdsOf } from '../shared'
@@ -30,23 +25,6 @@ import { projectIdsOf } from '../shared'
 export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   // (◕‿◕) the 10,000-foot view
   .get('/overview', () => getOverview())
-  // (ノ°▽°)ノ where error events come from, and the DSN each one uses
-  .get('/projects', () => getProjects())
-  .post('/projects', { body: ProjectCreateSchema }, ({ body }) =>
-    createProject(body.name, body.repository ?? null),
-  )
-  .post(
-    '/projects/:projectId/repository',
-    { body: ProjectRepositorySchema },
-    async ({ params, body, set }) => {
-      const project = await setProjectRepository(params.projectId, body.repository)
-      if (!project) {
-        set.status = 404
-        return { error: 'no such project' }
-      }
-      return project
-    },
-  )
   // (￣ー￣) what the worker holds and whether it keeps up
   .get('/instance', () => getInstanceStats())
   // (｀-´)> log lines, newest first; `before` pages back by id

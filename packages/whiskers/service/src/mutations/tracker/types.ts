@@ -26,3 +26,18 @@ export type IssueLifecycle = Pick<
   | 'userCount'
   | 'lastRelease'
 >
+
+/** No `id` draws the next one from `project_id_seq`. */
+export interface ProjectSeed {
+  id?: string
+  name: string
+  repository?: string | null
+  publicKey: string
+}
+
+export type KeyRemoval = 'deleted' | 'missing' | 'last-enabled'
+
+export interface TestEventResult {
+  issueId: string
+  eventId: string
+}

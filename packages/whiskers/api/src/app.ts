@@ -9,6 +9,7 @@ import { insightRoutes } from './routes/insights'
 import { internalRoutes } from './routes/internal'
 import { issueRoutes } from './routes/issues'
 import { otlpRoutes } from './routes/otlp'
+import { projectRoutes } from './routes/projects'
 import { webhookRoutes } from './routes/webhooks'
 
 const logger = createLogger('whiskers-api')
@@ -59,6 +60,7 @@ export const app = new Elysia()
   .use(webhookRoutes)
   .use(ingestRoutes)
   .use(insightRoutes)
+  .use(projectRoutes)
   .use(issueRoutes)
   .use(otlpRoutes)
   .use(internalRoutes)

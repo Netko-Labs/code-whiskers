@@ -1,6 +1,7 @@
 export * from './add-triage-comment'
 export * from './assign-triage-item'
 export * from './dismiss-finding'
+export * from './forget-project'
 export * from './reconcile-issue-mirror'
 export * from './record-issue-transition'
 export * from './record-triage-decision'

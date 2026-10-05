@@ -1,29 +1,73 @@
-import { randomBytes } from 'node:crypto'
-import { projectTable } from '@code-whiskers/whiskers-domain'
+import {
+  DEFAULT_KEY_LABEL,
+  type ProjectUpdate,
+  projectKeyTable,
+  projectTable,
+} from '@code-whiskers/whiskers-domain'
 import { db } from '@code-whiskers/whiskers-repository'
-import { eq, sql } from 'drizzle-orm'
+import { eq, sql, TransactionRollbackError } from 'drizzle-orm'
+import type { ProjectSummary } from '../../queries/tracker/types'
+import { newPublicKey } from '../../tracker/keys'
+import type { ProjectSeed } from './types'
 
-/**
- * Sentry SDKs parse the DSN path as a numeric project id, so the id is the next integer rather
- * than a uuid. The public key is what SDKs send as `sentry_key`.
- */
-export const createProject = async (name: string, repository: string | null = null) => {
-  const [next] = await db
-    .select({ id: sql<number>`coalesce(max(${projectTable.id}::bigint), 0) + 1` })
-    .from(projectTable)
-    .where(sql`${projectTable.id} ~ '^[0-9]+$'`)
-  const [row] = await db
-    .insert(projectTable)
-    .values({
-      id: String(next?.id ?? 1),
-      name,
-      repository,
-      publicKey: randomBytes(16).toString('hex'),
-    })
-    .returning()
-  if (!row) throw new Error('project was not stored')
-  return row
+// Dev self-provisioning takes whatever id an SDK presents, so the sequence can land on a taken one.
+const ID_ATTEMPTS = 5
+
+/** A project and its first key, or nothing when the id or the key is already taken. */
+export async function insertProject(seed: ProjectSeed) {
+  try {
+    return await insertProjectOnce(seed)
+  } catch (error) {
+    if (error instanceof TransactionRollbackError) return undefined
+    throw error
+  }
 }
 
-export const setProjectRepository = async (id: string, repository: string | null) =>
-  (await db.update(projectTable).set({ repository }).where(eq(projectTable.id, id)).returning())[0]
+function insertProjectOnce(seed: ProjectSeed) {
+  return db.transaction(async (tx) => {
+    const [project] = await tx
+      .insert(projectTable)
+      .values({
+        id: seed.id ?? sql`nextval('project_id_seq')::text`,
+        name: seed.name,
+        repository: seed.repository ?? null,
+      })
+      .onConflictDoNothing()
+      .returning()
+    if (!project) return undefined
+    const [key] = await tx
+      .insert(projectKeyTable)
+      .values({ projectId: project.id, publicKey: seed.publicKey, label: DEFAULT_KEY_LABEL })
+      .onConflictDoNothing()
+      .returning()
+    if (!key) return tx.rollback()
+    return { project, key }
+  })
+}
+
+export const createProject = async (
+  name: string,
+  repository: string | null = null,
+): Promise<ProjectSummary> => {
+  for (let attempt = 0; attempt < ID_ATTEMPTS; attempt += 1) {
+    const created = await insertProject({ name, repository, publicKey: newPublicKey() })
+    if (!created) continue
+    const { project, key } = created
+    return {
+      id: project.id,
+      name: project.name,
+      repository: project.repository,
+      createdAt: project.createdAt,
+      keys: [key],
+      issues: 0,
+      lastEventAt: null,
+    }
+  }
+  throw new Error('project was not stored')
+}
+
+export const updateProject = async (id: string, patch: ProjectUpdate) =>
+  (await db.update(projectTable).set(patch).where(eq(projectTable.id, id)).returning())[0]
+
+export const setProjectRepository = (id: string, repository: string | null) =>
+  updateProject(id, { repository })

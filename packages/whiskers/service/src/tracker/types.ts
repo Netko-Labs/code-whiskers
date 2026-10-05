@@ -1,4 +1,4 @@
-import type { Issue } from '@code-whiskers/whiskers-domain'
+import type { Issue, ProjectKey } from '@code-whiskers/whiskers-domain'
 
 export type IngestBody =
   | { ok: true; bytes: Uint8Array }
@@ -22,3 +22,7 @@ export interface IngestedEventContext {
   releaseFirstSeenAt: Date | null
   now: Date
 }
+
+export type KeyCheck = Pick<ProjectKey, 'id' | 'publicKey' | 'isEnabled'>
+
+export type KeyDeletion = 'allowed' | 'missing' | 'last-enabled'
