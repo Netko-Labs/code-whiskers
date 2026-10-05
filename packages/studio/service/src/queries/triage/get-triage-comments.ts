@@ -1,12 +1,13 @@
 import { type TriageItem, triageComment, user } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import type { TriageCommentRecord } from './types'
 
 const COMMENT_READ_LIMIT = 200
 
+/** The newest comments, oldest first. */
 export const getTriageComments = async (item: TriageItem): Promise<TriageCommentRecord[]> => {
-  return await db
+  const newest = await db
     .select({
       id: triageComment.id,
       body: triageComment.body,
@@ -24,6 +25,7 @@ export const getTriageComments = async (item: TriageItem): Promise<TriageComment
         eq(triageComment.itemRef, item.itemRef),
       ),
     )
-    .orderBy(asc(triageComment.createdAt))
+    .orderBy(desc(triageComment.createdAt))
     .limit(COMMENT_READ_LIMIT)
+  return newest.reverse()
 }

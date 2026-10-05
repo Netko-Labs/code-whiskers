@@ -1,14 +1,16 @@
 import { type TriageItem, triageActivity, user } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { and, asc, eq, ne } from 'drizzle-orm'
+import { and, desc, eq, ne } from 'drizzle-orm'
 import { getTriageComments } from './get-triage-comments'
 import type { TriageActivityEntry } from './types'
+import { latestTimeline } from './utils'
 
 const ACTIVITY_READ_LIMIT = 200
 
 /**
- * One item's timeline, oldest first: what humans and whiskers did, with each comment in place.
- * A `commented` activity is the comment row itself, so it is read from the comments.
+ * One item's newest timeline entries, oldest first: what humans and whiskers did, with each
+ * comment in place. A `commented` activity is the comment row itself, so it is read from the
+ * comments.
  */
 export const getTriageActivity = async (item: TriageItem): Promise<TriageActivityEntry[]> => {
   const [activity, comments] = await Promise.all([
@@ -32,21 +34,24 @@ export const getTriageActivity = async (item: TriageItem): Promise<TriageActivit
           ne(triageActivity.kind, 'commented'),
         ),
       )
-      .orderBy(asc(triageActivity.createdAt))
+      .orderBy(desc(triageActivity.createdAt))
       .limit(ACTIVITY_READ_LIMIT),
     getTriageComments(item),
   ])
-  return [
-    ...activity.map((entry) => ({ ...entry, body: null })),
-    ...comments.map((comment) => ({
-      id: comment.id,
-      kind: 'commented',
-      actorUserId: comment.authorUserId,
-      actorName: comment.authorName,
-      actorImage: comment.authorImage,
-      data: null,
-      body: comment.body,
-      createdAt: comment.createdAt,
-    })),
-  ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+  return latestTimeline(
+    [
+      ...activity.map((entry) => ({ ...entry, body: null })),
+      ...comments.map((comment) => ({
+        id: comment.id,
+        kind: 'commented',
+        actorUserId: comment.authorUserId,
+        actorName: comment.authorName,
+        actorImage: comment.authorImage,
+        data: null,
+        body: comment.body,
+        createdAt: comment.createdAt,
+      })),
+    ],
+    ACTIVITY_READ_LIMIT,
+  )
 }
