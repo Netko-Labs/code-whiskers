@@ -13,6 +13,8 @@ export const getRouter = () => {
     routeTree,
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Search-only changes (filters, selection) must not blink the page; only path changes animate.
+    defaultViewTransition: { types: ({ pathChanged }) => (pathChanged ? ['route'] : false) },
     // Loader and render errors land in route boundaries; a server response is the server's to report.
     defaultOnCatch: reportQueryError,
     context: {

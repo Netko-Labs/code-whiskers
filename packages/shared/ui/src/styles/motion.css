@@ -1,0 +1,216 @@
+/* Motion explains a state change, then gets out of the way: 120–240ms, ease-out, no bounce. */
+
+@theme {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --animate-enter: enter 180ms var(--ease-out-quart) both;
+  --animate-enter-up: enter-up 220ms var(--ease-out-expo) both;
+  --animate-enter-down: enter-down 180ms var(--ease-out-expo) both;
+  --animate-enter-scale: enter-scale 180ms var(--ease-out-expo) both;
+  --animate-enter-right: enter-right 240ms var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-live: live-ring 2s var(--ease-out-quart) infinite;
+  --animate-highlight: highlight 1.6s var(--ease-out-quart) both;
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes enter-up {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  @keyframes enter-down {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @keyframes enter-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @keyframes enter-right {
+    from {
+      opacity: 0;
+      transform: translateX(12px);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
+  @keyframes live-ring {
+    0% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(2.6);
+    }
+  }
+  @keyframes highlight {
+    from {
+      background-color: color-mix(in oklab, var(--severity-info) 12%, transparent);
+    }
+  }
+}
+
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --stagger-step: 24ms;
+}
+
+@utility duration-fast {
+  --tw-duration: var(--motion-fast);
+  transition-duration: var(--motion-fast);
+}
+
+@utility duration-base {
+  --tw-duration: var(--motion-base);
+  transition-duration: var(--motion-base);
+}
+
+@utility duration-slow {
+  --tw-duration: var(--motion-slow);
+  transition-duration: var(--motion-slow);
+}
+
+/* Children enter one after another; past the 12th they arrive together so long lists never crawl. */
+@utility stagger {
+  & > * {
+    animation: var(--animate-enter-up);
+    animation-delay: calc(12 * var(--stagger-step));
+  }
+  & > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  & > *:nth-child(2) {
+    animation-delay: calc(1 * var(--stagger-step));
+  }
+  & > *:nth-child(3) {
+    animation-delay: calc(2 * var(--stagger-step));
+  }
+  & > *:nth-child(4) {
+    animation-delay: calc(3 * var(--stagger-step));
+  }
+  & > *:nth-child(5) {
+    animation-delay: calc(4 * var(--stagger-step));
+  }
+  & > *:nth-child(6) {
+    animation-delay: calc(5 * var(--stagger-step));
+  }
+  & > *:nth-child(7) {
+    animation-delay: calc(6 * var(--stagger-step));
+  }
+  & > *:nth-child(8) {
+    animation-delay: calc(7 * var(--stagger-step));
+  }
+  & > *:nth-child(9) {
+    animation-delay: calc(8 * var(--stagger-step));
+  }
+  & > *:nth-child(10) {
+    animation-delay: calc(9 * var(--stagger-step));
+  }
+  & > *:nth-child(11) {
+    animation-delay: calc(10 * var(--stagger-step));
+  }
+  & > *:nth-child(12) {
+    animation-delay: calc(11 * var(--stagger-step));
+  }
+}
+
+@utility shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    color-mix(in oklab, var(--muted), var(--foreground) 5%) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@utility hover-lift {
+  transition-property: transform, box-shadow, border-color, background-color;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-out-quart);
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--elevation-raised);
+  }
+}
+
+@utility focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility focus-ring-inset {
+  outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+}
+
+/* Route changes: only the page panel moves; the shell holds still. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: view-transition names are author idents */
+::view-transition-old(page) {
+  animation: enter var(--motion-fast) var(--ease-out-quart) reverse both;
+}
+
+/* biome-ignore lint/correctness/noUnknownTypeSelector: view-transition names are author idents */
+::view-transition-new(page) {
+  animation: enter-up var(--motion-slow) var(--ease-out-expo) both;
+}
+
+/* Reduced motion zeroes the tokens instead of fighting the cascade; opacity fades stay. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+    --stagger-step: 0ms;
+    --default-transition-duration: 0ms;
+    --animate-enter: none;
+    --animate-enter-up: none;
+    --animate-enter-down: none;
+    --animate-enter-scale: none;
+    --animate-enter-right: none;
+    --animate-shimmer: none;
+    --animate-live: none;
+    --animate-highlight: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
