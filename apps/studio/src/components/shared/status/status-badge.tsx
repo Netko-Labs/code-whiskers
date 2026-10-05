@@ -3,7 +3,7 @@ import type { StatusBadgeProps } from './lib'
 import { SeverityDot } from './severity-dot'
 
 /** Brand rule: the color sits in the dot, the text stays ink. */
-export function StatusBadge({ tone, children, className }: StatusBadgeProps) {
+export function StatusBadge({ tone, isPulsing, children, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
@@ -11,7 +11,7 @@ export function StatusBadge({ tone, children, className }: StatusBadgeProps) {
         className,
       )}
     >
-      <SeverityDot tone={tone} size="sm" />
+      <SeverityDot tone={tone} size="sm" isPulsing={isPulsing} />
       {children}
     </span>
   )

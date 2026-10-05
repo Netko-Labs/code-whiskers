@@ -27,6 +27,7 @@ const REVIEW: WhiskersReview = {
   repo: 'web',
   prNumber: 1,
   headSha: 'abcdef0',
+  headRef: null,
   title: null,
   author: null,
   additions: 1,
@@ -35,12 +36,15 @@ const REVIEW: WhiskersReview = {
   verdict: 'comment',
   summary: null,
   model: null,
+  diffScope: null,
+  deltaFrom: null,
   inputTokens: null,
   outputTokens: null,
   reasoningTokens: null,
   createdAt: new Date(0),
   completedAt: new Date(1000),
   findingCount: 0,
+  findingsBySeverity: { critical: 0, high: 0, medium: 0, low: 0 },
 }
 
 describe('groupByFile', () => {

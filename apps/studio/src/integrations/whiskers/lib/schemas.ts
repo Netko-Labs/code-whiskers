@@ -78,6 +78,7 @@ export const whiskersReviewSchema = z.object({
   repo: z.string(),
   prNumber: z.number(),
   headSha: z.string(),
+  headRef: z.string().nullable().default(null),
   title: z.string().nullable().default(null),
   author: z.string().nullable().default(null),
   additions: z.number().nullable().default(null),
@@ -86,12 +87,17 @@ export const whiskersReviewSchema = z.object({
   verdict: z.enum(['approve', 'request_changes', 'comment']).nullable(),
   summary: z.string().nullable(),
   model: z.string().nullable(),
+  diffScope: z.enum(['full', 'delta']).nullable().default(null),
+  deltaFrom: z.string().nullable().default(null),
   inputTokens: z.number().nullable().default(null),
   outputTokens: z.number().nullable().default(null),
   reasoningTokens: z.number().nullable().default(null),
   createdAt: z.coerce.date(),
   completedAt: z.coerce.date().nullable(),
   findingCount: z.number().default(0),
+  findingsBySeverity: z
+    .object({ critical: z.number(), high: z.number(), medium: z.number(), low: z.number() })
+    .default({ critical: 0, high: 0, medium: 0, low: 0 }),
 })
 
 export const whiskersFindingSchema = z.object({
@@ -113,6 +119,11 @@ export const whiskersReviewDetailSchema = z.object({
 })
 
 export const whiskersReviewListSchema = z.array(whiskersReviewSchema)
+
+export const whiskersPullRequestReviewsSchema = z.object({
+  pushes: z.array(whiskersReviewSchema),
+  findings: z.array(whiskersFindingSchema),
+})
 
 export const whiskersHotspotSchema = z.object({
   repository: z.string(),

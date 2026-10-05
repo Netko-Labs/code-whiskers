@@ -22,6 +22,7 @@ import type {
   whiskersLogPatternSchema,
   whiskersLogSchema,
   whiskersOverviewSchema,
+  whiskersPullRequestReviewsSchema,
   whiskersReleaseSchema,
   whiskersReviewDetailSchema,
   whiskersReviewSchema,
@@ -44,6 +45,7 @@ export type IssuePeriod = (typeof ISSUE_PERIODS)[number]
 export type WhiskersReview = z.infer<typeof whiskersReviewSchema>
 export type WhiskersFinding = z.infer<typeof whiskersFindingSchema>
 export type WhiskersReviewDetail = z.infer<typeof whiskersReviewDetailSchema>
+export type WhiskersPullRequestReviews = z.infer<typeof whiskersPullRequestReviewsSchema>
 export type WhiskersHotspot = z.infer<typeof whiskersHotspotSchema>
 export type WhiskersInstance = z.infer<typeof whiskersInstanceSchema>
 export type WhiskersProject = z.infer<typeof whiskersProjectSchema>

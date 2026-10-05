@@ -18,6 +18,7 @@ import {
   whiskersLogListSchema,
   whiskersLogPatternListSchema,
   whiskersOverviewSchema,
+  whiskersPullRequestReviewsSchema,
   whiskersReleaseListSchema,
   whiskersReviewDetailSchema,
   whiskersReviewListSchema,
@@ -129,6 +130,21 @@ export const whiskersReviewQuery = (reviewId: string) =>
   queryOptions({
     queryKey: [WHISKERS_QUERY_KEY, 'reviews', reviewId],
     queryFn: () => fetchWhiskers(`/reviews/${reviewId}`, whiskersReviewDetailSchema),
+  })
+
+/**
+ * Under `reviews`, so the realtime `reviews` topic refreshes the open page with the list. Moving
+ * between pushes of one pull request keeps the thread on screen while the next id loads.
+ */
+export const whiskersPullRequestReviewsQuery = (reviewId: string) =>
+  queryOptions({
+    queryKey: [WHISKERS_QUERY_KEY, 'reviews', reviewId, 'pull-request'],
+    queryFn: () =>
+      fetchWhiskers(
+        `/reviews/${encodeURIComponent(reviewId)}/pull-request`,
+        whiskersPullRequestReviewsSchema,
+      ),
+    placeholderData: keepPreviousData,
   })
 
 export const whiskersHotspotsQuery = () =>

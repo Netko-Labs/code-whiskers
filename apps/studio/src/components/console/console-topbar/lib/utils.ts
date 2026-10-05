@@ -32,6 +32,13 @@ export function crumbsFor(pathname: string, projectName: ProjectNameLookup): Cru
       { label: id.slice(0, SHORT_ID), isMono: true },
     ]
   }
+  if (area === 'reviews' && id) {
+    return [
+      { label: 'Code review' },
+      { label: 'Pull requests', section: 'pull-requests' },
+      { label: id.slice(0, SHORT_ID), isMono: true },
+    ]
+  }
   if (area === 'projects') {
     if (!id || id === 'new') return [{ label: 'Projects' }, { label: 'New project' }]
     const name = projectName(id)

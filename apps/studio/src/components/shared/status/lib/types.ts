@@ -14,6 +14,8 @@ export type SeverityDotProps = {
 
 export type StatusBadgeProps = {
   tone: Tone
+  /** A state still in progress, e.g. a review running; the dot pulses. */
+  isPulsing?: boolean
   children: ReactNode
   className?: string
 }

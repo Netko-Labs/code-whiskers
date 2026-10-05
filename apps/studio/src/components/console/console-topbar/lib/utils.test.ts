@@ -21,6 +21,12 @@ describe('crumbsFor', () => {
     expect(crumbs[2]).toEqual({ label: '01234567', isMono: true })
   })
 
+  test('a review links back to pull requests', () => {
+    const crumbs = crumbsFor('/console/reviews/0123456789abcdef', names)
+    expect(crumbs[1]).toEqual({ label: 'Pull requests', section: 'pull-requests' })
+    expect(crumbs[2]).toEqual({ label: '01234567', isMono: true })
+  })
+
   test('projects use the name when known, the id otherwise', () => {
     expect(crumbsFor('/console/projects/p1', names).at(-1)).toEqual({ label: 'web', isMono: false })
     expect(crumbsFor('/console/projects/zzzzzzzzzz', names).at(-1)?.isMono).toBe(true)

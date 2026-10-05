@@ -1,5 +1,6 @@
-import { Button } from '@code-whiskers/ui/components/button'
+import { Button, buttonVariants } from '@code-whiskers/ui/components/button'
 import { cn } from '@code-whiskers/ui/lib/utils'
+import { Link } from '@tanstack/react-router'
 import { formatAge } from '@/shared/format-date'
 import { compactCount, type ReviewSidebarProps, reviewDuration, type SidebarRow } from './lib'
 import { ReviewOutcome } from './review-outcome'
@@ -97,9 +98,18 @@ export function ReviewSidebar({ item, detail, open }: ReviewSidebarProps) {
       <ReviewPushes pushes={detail.pushes} currentId={review?.id} />
 
       {review && (
-        <Button variant="outline" size="sm" onClick={detail.rerun} className="w-full">
-          Run the review again
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Link
+            to="/console/reviews/$reviewId"
+            params={{ reviewId: review.id }}
+            className={buttonVariants({ size: 'sm', className: 'w-full' })}
+          >
+            Open the full review
+          </Link>
+          <Button variant="outline" size="sm" onClick={detail.rerun} className="w-full">
+            Run the review again
+          </Button>
+        </div>
       )}
     </aside>
   )

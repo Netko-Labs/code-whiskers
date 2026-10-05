@@ -25,6 +25,7 @@ export {
   whiskersLogPatternsQuery,
   whiskersLogsQuery,
   whiskersOverviewQuery,
+  whiskersPullRequestReviewsQuery,
   whiskersReleasesQuery,
   whiskersReviewQuery,
   whiskersReviewsQuery,
