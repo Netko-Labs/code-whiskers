@@ -191,7 +191,9 @@ installation starts muted; the first destination added arms every rule still unt
 
 **`saved_query`** — `id`, `installation_id`, `name`, `surface`
 (`logs` \| `traces` \| `issues`), `query`, `shared_with` jsonb, `created_by`,
-`last_run_at`. An alert rule may reference one.
+`last_run_at`. An alert rule may reference one. As built: `user_id`, `name`, `section`
+(`live-logs` \| `traces` \| `issues`), `tab`, `query`, `service`, and `params` jsonb — the
+whole explorer search (levels, attributes, range), restored verbatim when opened.
 
 ### Access
 
@@ -345,7 +347,8 @@ its in-app frames.
 `trace_id`, `attributes` jsonb.
 
 **`span`** — partitioned daily. `trace_id`, `span_id`, `parent_span_id`, `project_id`,
-`service`, `name`, `duration_ms`, `status`, `ts`, `attributes` jsonb.
+`service`, `name`, `duration_ms`, `status`, `ts`, `attributes` jsonb, `events` jsonb (OTLP
+span events, capped at 32; the status message lands in `otel.status_description`).
 
 **`service`** — rollup. `(project_id, name)` PK, `p95_ms`, `throughput_per_day`,
 `error_rate`, `version`, `owner_team`, `last_seen`.
@@ -436,3 +439,9 @@ Timescale is the natural first move because nothing above the driver changes.
    BRIN on time, deleted by age after `TELEMETRY_RETENTION_DAYS` (default 7) by an hourly
    pass. Ingest is OTLP/HTTP JSON at `/otlp/v1/logs|traces`, authenticated by the project's
    public key. No partitioning or rollups yet; that is the next step if volume asks for it.
+   Reads live in `routes/telemetry.ts`: `/v1/logs` (window, levels, text, trace id,
+   `attrs` key:value), `/v1/logs/volume` (lines per bucket and level band),
+   `/v1/log-patterns`, `/v1/traces` (+ `/:traceId`, `/:traceId/context` for its log count
+   and error events), `/v1/services` and `/v1/services/stats` (request rate, errors,
+   p50/p95 per bucket; a request is a server span or a trace root). All aggregate raw rows
+   inside the asked window; they are the queries a rollup would replace.
