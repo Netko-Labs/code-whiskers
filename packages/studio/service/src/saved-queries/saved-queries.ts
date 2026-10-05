@@ -1,4 +1,8 @@
-import { type SavedQueryCreate, savedQuery } from '@code-whiskers/studio-domain'
+import {
+  type SavedQueryCreate,
+  type SavedQueryRename,
+  savedQuery,
+} from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
 import { and, desc, eq } from 'drizzle-orm'
 
@@ -22,6 +26,19 @@ export const createSavedQuery = async (userId: string, input: SavedQueryCreate) 
 export const deleteSavedQuery = async (userId: string, id: string): Promise<boolean> => {
   const rows = await db
     .delete(savedQuery)
+    .where(and(eq(savedQuery.id, id), eq(savedQuery.userId, userId)))
+    .returning({ id: savedQuery.id })
+  return rows.length > 0
+}
+
+export const renameSavedQuery = async (
+  userId: string,
+  id: string,
+  input: SavedQueryRename,
+): Promise<boolean> => {
+  const rows = await db
+    .update(savedQuery)
+    .set({ name: input.name })
     .where(and(eq(savedQuery.id, id), eq(savedQuery.userId, userId)))
     .returning({ id: savedQuery.id })
   return rows.length > 0

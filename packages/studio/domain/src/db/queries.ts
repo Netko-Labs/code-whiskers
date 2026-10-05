@@ -1,7 +1,10 @@
-import { index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { user } from './auth'
 
-/** A telemetry view someone wants back: which section, which tab, what was typed. */
+/**
+ * A view someone wants back: which section and what was typed. `params` is the whole search of
+ * the logs and traces explorers; `tab`, `query` and `service` stay for issue views.
+ */
 export const savedQuery = pgTable(
   'saved_query',
   {
@@ -16,6 +19,7 @@ export const savedQuery = pgTable(
     tab: integer('tab').notNull().default(0),
     query: text('query'),
     service: text('service'),
+    params: jsonb('params').$type<Record<string, unknown>>().notNull().default({}),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [index('saved_query_user').on(t.userId)],
