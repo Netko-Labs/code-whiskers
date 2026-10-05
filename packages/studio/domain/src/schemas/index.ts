@@ -1,6 +1,7 @@
 export * from './alerts'
 export * from './auth'
 export * from './context'
+export * from './instance'
 export * from './integrations'
 export * from './keys'
 export * from './queries'

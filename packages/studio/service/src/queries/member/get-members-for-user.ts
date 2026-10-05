@@ -1,7 +1,8 @@
-import { organization, organizationMember, user } from '@code-whiskers/studio-domain'
+import { organization, organizationMember, session, user } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, max } from 'drizzle-orm'
 import type { Member } from './types'
+import { membersFromRows } from './utils'
 
 /** Everyone who shares at least one installation with this user, with the ones they share. */
 export const getMembersForUser = async (userId: string): Promise<Member[]> => {
@@ -15,7 +16,9 @@ export const getMembersForUser = async (userId: string): Promise<Member[]> => {
       id: user.id,
       name: user.name,
       image: user.image,
+      githubLogin: user.githubLogin,
       login: organization.login,
+      accountType: organization.accountType,
       syncedAt: organizationMember.syncedAt,
     })
     .from(organizationMember)
@@ -23,18 +26,16 @@ export const getMembersForUser = async (userId: string): Promise<Member[]> => {
     .innerJoin(organization, eq(organization.installationId, organizationMember.installationId))
     .where(inArray(organizationMember.installationId, mine))
 
-  const byUser = new Map<string, Member>()
-  for (const row of rows) {
-    const member = byUser.get(row.id) ?? {
-      id: row.id,
-      name: row.name,
-      image: row.image,
-      organizations: [],
-      lastSyncedAt: row.syncedAt,
-    }
-    member.organizations.push(row.login)
-    if (row.syncedAt > member.lastSyncedAt) member.lastSyncedAt = row.syncedAt
-    byUser.set(row.id, member)
-  }
-  return [...byUser.values()].sort((a, b) => a.name.localeCompare(b.name))
+  const ids = [...new Set(rows.map((row) => row.id))]
+  const sessions = ids.length
+    ? await db
+        .select({ userId: session.userId, lastActiveAt: max(session.updatedAt) })
+        .from(session)
+        .where(inArray(session.userId, ids))
+        .groupBy(session.userId)
+    : []
+  const lastActive = new Map(
+    sessions.flatMap((row) => (row.lastActiveAt ? [[row.userId, row.lastActiveAt] as const] : [])),
+  )
+  return membersFromRows(rows, lastActive)
 }

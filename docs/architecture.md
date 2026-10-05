@@ -59,7 +59,8 @@ their own GitHub installations. That is a design constraint, not a footnote:
 
 ### Identity — exists
 
-`user` `session` `account` `verification` `jwks` — better-auth owns these.
+`user` `session` `account` `verification` `jwks` — better-auth owns these. `user.github_login`
+is ours: the GitHub sync writes it so Members can show handles; better-auth never reads it.
 
 ### GitHub connection
 
@@ -233,6 +234,8 @@ No billing tables. A self-hosted instance has an operator, not a customer.
 **`setting`** — `key` PK, `value` jsonb, `updated_by`, `updated_at`. One row per knob:
 raw log retention days, rollup retention days, ingest rate cap, review concurrency,
 default review model. These are the things a plan tier would have decided for you.
+Exists since migration 0012 with one knob, `instance.name` (Settings → General; a missing
+row reads as "CodeWhiskers"); env-driven values (base URL, release) stay read-only.
 
 **`usage_rollup`** — `(meter, period_start)` PK, `meter`
 (`events` \| `log_lines` \| `spans` \| `reviews`), `count`, `bytes`, `updated_at`.

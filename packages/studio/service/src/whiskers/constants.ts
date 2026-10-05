@@ -1,1 +1,2 @@
 export const WHISKERS_TIMEOUT_MS = 10_000
+export const WHISKERS_HEALTH_TIMEOUT_MS = 3_000

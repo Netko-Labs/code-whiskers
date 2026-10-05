@@ -6,3 +6,6 @@ export const STUDIO_STORES = [
   { table: 'triage_state', oldest: 'updated_at' },
   { table: 'triage_comment', oldest: 'created_at' },
 ] as const
+
+export const INSTANCE_NAME_KEY = 'instance.name'
+export const DEFAULT_INSTANCE_NAME = 'CodeWhiskers'
