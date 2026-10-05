@@ -61,3 +61,5 @@ export const ReviewRerunSchema = z.object({
   repo: z.string().min(1).max(100),
   prNumber: z.coerce.number().int().positive(),
 })
+
+export const ReviewIdParamSchema = z.object({ reviewId: z.string().uuid() })

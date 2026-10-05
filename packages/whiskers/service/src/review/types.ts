@@ -51,9 +51,11 @@ export type ConventionFile = {
   content: string
 }
 
+/** `deltaFrom` is the last reviewed commit when only what changed since it was read. */
 export type PipelineResult = {
   report: ReviewReport
   merged: LlmReview
+  deltaFrom: string | null
 }
 
 export type ReviewUsage = Pick<Review, 'model'> &

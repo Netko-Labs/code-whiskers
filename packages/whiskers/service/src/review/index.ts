@@ -87,6 +87,7 @@ async function reviewHead(
     repo: ref.repo,
     prNumber: ref.prNumber,
     headSha,
+    headRef: head.branch,
     title: head.title,
     author: head.author,
     additions: head.additions,
@@ -109,7 +110,14 @@ async function reviewHead(
   const progress: PipelineAttempt = { isPosted: false }
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const { report, merged } = await runPipeline(ref, head, review, tokens, progress, options)
+      const { report, merged, deltaFrom } = await runPipeline(
+        ref,
+        head,
+        review,
+        tokens,
+        progress,
+        options,
+      )
       await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
         logger.warn({ err: messageOf(error) }, 'check run update failed')
       })
@@ -117,6 +125,8 @@ async function reviewHead(
         status: 'completed',
         verdict: merged.verdict,
         summary: merged.summary,
+        diffScope: deltaFrom ? 'delta' : 'full',
+        deltaFrom,
         ...usage(),
       })
     } catch (error) {

@@ -243,11 +243,13 @@ raw counts locally and pushes on a schedule.
 
 ### Code review
 
-**`review`** — `id`, `installation_id`, `repository_id`, `pr_number`, `head_sha`,
-`title`, `author`, `additions`, `deletions`, `status`
+**`review`** — one per reviewed push. `id`, `installation_id`, `repository_id`, `pr_number`,
+`head_sha`, `head_ref` (the PR branch), `title`, `author`, `additions`, `deletions`, `status`
 (`pending` \| `running` \| `completed` \| `failed`), `verdict`
-(`approve` \| `request_changes` \| `comment`), `summary`, `model`, `created_at`,
-`completed_at`.
+(`approve` \| `request_changes` \| `comment`), `summary` (starts `Partial review` when sections
+were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before whiskers 0008),
+`delta_from` (the last reviewed sha a delta read from), token counts, `created_at`,
+`completed_at`. `GET /v1/reviews/:id/pull-request` returns every push of that PR with its findings.
 
 **`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
 `title`, `body`, `suggestion`, `created_at`.

@@ -228,5 +228,5 @@ export async function runPipeline(
     },
     'review completed',
   )
-  return { report, merged }
+  return { report, merged, deltaFrom: delta ? deltaFrom : null }
 }

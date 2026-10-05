@@ -1,6 +1,7 @@
 import {
   LogQuerySchema,
   ProjectScopeSchema,
+  ReviewIdParamSchema,
   ReviewRerunSchema,
   TraceQuerySchema,
 } from '@code-whiskers/whiskers-domain'
@@ -10,6 +11,7 @@ import {
   getLogPatterns,
   getLogs,
   getOverview,
+  getPullRequestReviews,
   getReleases,
   getReview,
   getReviews,
@@ -72,3 +74,16 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
     }
     return result
   })
+  // (=^･ω･^=)ﾉ every reviewed push of that review's pull request, with all their findings
+  .get(
+    '/reviews/:reviewId/pull-request',
+    { params: ReviewIdParamSchema },
+    async ({ params, set }) => {
+      const result = await getPullRequestReviews(params.reviewId)
+      if (!result) {
+        set.status = 404
+        return { error: 'not found' }
+      }
+      return result
+    },
+  )

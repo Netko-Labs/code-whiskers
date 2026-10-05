@@ -6,7 +6,9 @@ import { announce } from '../../realtime'
 export const completeReview = async (
   id: string,
   data: Pick<Review, 'status' | 'verdict' | 'summary' | 'model'> &
-    Partial<Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens'>>,
+    Partial<
+      Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens' | 'diffScope' | 'deltaFrom'>
+    >,
 ): Promise<Review | undefined> => {
   const review = await db
     .update(reviewTable)
