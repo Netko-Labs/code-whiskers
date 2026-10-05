@@ -52,6 +52,5 @@ export const STATUS_BADGES: Record<'resolved' | 'archived', IssueBadgeView> = {
 }
 
 export const LIFECYCLE_FAILED_NOTE = 'Could not save that — nothing changed'
-export const LIFECYCLE_PARTIAL_NOTE = 'Only part of that saved — the list shows what landed'
 export const LIFECYCLE_UNMIRRORED_NOTE = 'Saved — the issue list catches up on the next event'
 export const ASSIGN_FAILED_NOTE = 'Could not change the assignee — nothing changed'

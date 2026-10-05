@@ -44,6 +44,36 @@ export function restoreIssueCaches(queryClient: QueryClient, snapshot: IssueCach
   for (const [key, data] of snapshot) queryClient.setQueryData(key, data)
 }
 
+/** The rows the snapshot held for these ids, from whichever cache saw each first. */
+export function snapshotRows(
+  snapshot: IssueCacheSnapshot,
+  ids: string[],
+): Map<string, WhiskersIssue> {
+  const wanted = new Set(ids)
+  const rows = new Map<string, WhiskersIssue>()
+  for (const [, data] of snapshot) {
+    const issues = !data
+      ? []
+      : 'pages' in data
+        ? data.pages.flatMap((page) => page.issues)
+        : [data.issue]
+    for (const issue of issues) {
+      if (wanted.has(issue.id) && !rows.has(issue.id)) rows.set(issue.id, issue)
+    }
+  }
+  return rows
+}
+
+/** Puts only these issues back as they were; the rest of the cache keeps what landed. */
+export function rollbackIssues(
+  queryClient: QueryClient,
+  snapshot: IssueCacheSnapshot,
+  ids: string[],
+): void {
+  const rows = snapshotRows(snapshot, ids)
+  patchIssueCaches(queryClient, (issue) => rows.get(issue.id))
+}
+
 /** Whiskers' answer is the truth for the fields it computes, like the release a resolve waits on. */
 export function mergeLifecycleRows(queryClient: QueryClient, rows: IssueLifecycle[]): void {
   if (rows.length === 0) return

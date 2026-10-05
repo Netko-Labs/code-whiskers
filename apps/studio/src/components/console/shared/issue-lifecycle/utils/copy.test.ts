@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { WhiskersIssue } from '@/integrations/whiskers'
-import { issueBadges, lifecycleMessage, shortRelease, statusBanner } from './copy'
+import {
+  issueBadges,
+  lifecycleMessage,
+  partialFailureMessage,
+  shortRelease,
+  statusBanner,
+} from './copy'
 
 const NOW = new Date(2026, 9, 4, 9, 0)
 
@@ -105,5 +111,12 @@ describe('lifecycle copy', () => {
 
   test('a named release stays as it is', () => {
     expect(shortRelease('api@4.18.2')).toBe('api@4.18.2')
+  })
+})
+
+describe('partialFailureMessage', () => {
+  test('says how many did not save', () => {
+    expect(partialFailureMessage(1)).toBe('Could not save 1 issue — it is back as before')
+    expect(partialFailureMessage(3)).toBe('Could not save 3 issues — they are back as before')
   })
 })

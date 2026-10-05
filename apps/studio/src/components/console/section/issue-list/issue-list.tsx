@@ -13,8 +13,10 @@ import {
   ISSUES_SUBTITLE,
   ISSUES_TITLE,
   type IssueListProps,
+  REGRESSIONS_EMPTY,
   REGRESSIONS_SUBTITLE,
   REGRESSIONS_TITLE,
+  UNREACHABLE_EMPTY,
   UNREACHABLE_NOTE,
   useIssueList,
   useIssueSelection,
@@ -72,7 +74,11 @@ export function IssueList({ section, tab, filters }: IssueListProps) {
           ))}
           {list.rows.length === 0 && !list.isLoading && (
             <p className="m-0 px-8 py-16 text-center text-[13px] text-muted-foreground">
-              {isRegressions ? 'Nothing you resolved has come back.' : EMPTY_WORDS[status]}
+              {list.isUnreachable
+                ? UNREACHABLE_EMPTY
+                : isRegressions
+                  ? REGRESSIONS_EMPTY
+                  : EMPTY_WORDS[status]}
             </p>
           )}
           <IssueListFooter

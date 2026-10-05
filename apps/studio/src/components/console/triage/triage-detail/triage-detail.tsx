@@ -3,6 +3,7 @@ import { FixDrawerSlot } from '../fix-drawer'
 import { bannerFor, type TriageDetailProps, useDetailActions, useItemStatus } from '../lib'
 import { DetailAssistant } from './detail-assistant'
 import { DetailHeader } from './detail-header'
+import { ErrorDetail } from './error-detail'
 import { ItemThread } from './item-thread'
 import { LogDetail } from './log-detail'
 import { ReviewDetail } from './review-detail'
@@ -36,6 +37,7 @@ export function TriageDetail({ item }: TriageDetailProps) {
           <>
             <DetailAssistant item={item} actions={actions} />
             {item.kind === 'log' && <LogDetail item={item} />}
+            {item.kind === 'error' && <ErrorDetail item={item} />}
             <ItemThread item={item} onPost={actions.postComment} />
           </>
         )}

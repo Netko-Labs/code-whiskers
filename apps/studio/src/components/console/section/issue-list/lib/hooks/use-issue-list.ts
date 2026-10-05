@@ -15,8 +15,8 @@ import {
 } from '../utils'
 
 /**
- * Server-filtered cursor pages; the fixture stands in only while no project has an issue at all,
- * so an empty tab of a live project reads as empty, not as sample data.
+ * Server-filtered cursor pages; the fixture stands in only when both reads succeeded and no
+ * project has an issue at all, so an empty tab reads as empty and a failed read as unreachable.
  */
 export function useIssueList(
   section: IssueSectionView,
@@ -37,7 +37,8 @@ export function useIssueList(
   return useMemo(() => {
     const projectNames = new Map((projects.data ?? []).map((p) => [p.id, p.name]))
     const ingested = (projects.data ?? []).reduce((sum, project) => sum + project.issues, 0)
-    const isSample = !projects.isLoading && ingested === 0 && !pages.data?.pages[0]?.total
+    const isSample =
+      pages.isSuccess && projects.isSuccess && ingested === 0 && !pages.data.pages[0]?.total
     const loaded = isSample
       ? sampleRows(sampleIssues(), params)
       : (pages.data?.pages.flatMap((page) => page.issues) ?? [])
@@ -49,10 +50,10 @@ export function useIssueList(
       total: isSample ? rows.length : (pages.data?.pages[0]?.total ?? 0),
       isSample,
       isLoading: pages.isLoading,
-      isUnreachable: pages.isError,
+      isUnreachable: pages.isError || projects.isError,
       hasMore: !isSample && pages.hasNextPage,
       isLoadingMore: pages.isFetchingNextPage,
       loadMore: () => void pages.fetchNextPage(),
     }
-  }, [projects.data, projects.isLoading, pages, params, status, section])
+  }, [projects.data, projects.isSuccess, projects.isError, pages, params, status, section])
 }

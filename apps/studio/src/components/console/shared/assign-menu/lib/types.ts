@@ -7,6 +7,6 @@ export type AssignMenuProps = {
   onAssign: (member: Member | null) => void
   isOpen?: boolean
   onOpenChange?: (isOpen: boolean) => void
-  /** A childless element; the label stays "Assign" whatever renders it. */
+  /** A childless element; the menu fills it with the assignee, or "Assign". */
   trigger?: ReactElement
 }

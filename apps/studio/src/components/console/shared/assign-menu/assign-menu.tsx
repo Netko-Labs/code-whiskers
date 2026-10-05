@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { Member } from '@/integrations/studio-api'
 import { useMembers } from '../console-data'
 import { PersonAvatar } from '../console-ui'
-import type { AssignMenuProps } from './lib'
+import { type AssignMenuProps, assigneeAriaLabel, assigneeText } from './lib'
 
 const ROW = 'flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft'
 
@@ -21,6 +21,7 @@ export function AssignMenu({
   const members = useMembers()
   const open = isOpen ?? isLocalOpen
   const setOpen = onOpenChange ?? setLocalOpen
+  const assignee = members.find((member) => member.id === assigneeUserId)
 
   function pick(member: Member | null) {
     setOpen(false)
@@ -31,8 +32,12 @@ export function AssignMenu({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={trigger ?? <Button variant="outline" size="sm" disabled={isDisabled} />}
+        aria-label={assigneeAriaLabel(assignee, assigneeUserId)}
       >
-        Assign
+        {assignee && (
+          <PersonAvatar name={assignee.name} image={assignee.image} className="size-4" />
+        )}
+        <span className="max-w-[120px] truncate">{assigneeText(assignee, assigneeUserId)}</span>
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="w-[246px] gap-0 p-1.5">
         <span className="px-2.5 pt-[7px] pb-[5px] text-[11px] text-muted-foreground">

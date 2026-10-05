@@ -7,6 +7,11 @@ export function plural(count: number, noun: string): string {
   return `${count.toLocaleString('en-US')} ${noun}${count === 1 ? '' : 's'}`
 }
 
+export function partialFailureMessage(failed: number): string {
+  const them = failed === 1 ? 'it is' : 'they are'
+  return `Could not save ${plural(failed, 'issue')} — ${them} back as before`
+}
+
 /** Releases named by commit read like git does: seven characters. */
 export function shortRelease(release: string): string {
   const isSha = release.length >= SHA_LENGTH && /^[0-9a-f]+$/i.test(release)

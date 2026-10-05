@@ -22,27 +22,25 @@ import {
 import type { IssueCacheSnapshot, IssueLifecycleApi, LifecycleAction } from '../types'
 import {
   applyAction,
+  failedIssueIds,
   invalidateIssueQueries,
   lifecycleMessage,
   lifecycleRequests,
   mergeLifecycleRows,
+  partialFailureMessage,
   patchIssueCaches,
   plural,
   restoreIssueCaches,
   restoreRequests,
+  rollbackIssues,
 } from '../utils'
-import {
-  ASSIGN_FAILED_NOTE,
-  LIFECYCLE_FAILED_NOTE,
-  LIFECYCLE_PARTIAL_NOTE,
-  LIFECYCLE_UNMIRRORED_NOTE,
-} from '../values'
+import { ASSIGN_FAILED_NOTE, LIFECYCLE_FAILED_NOTE, LIFECYCLE_UNMIRRORED_NOTE } from '../values'
 
 function flash(message: string, onUndo?: () => void) {
   useConsoleStore.getState().flash(message, onUndo)
 }
 
-/** Sends each scope's request; all failing rolls the cache back, a partial failure refetches. */
+/** Sends each scope's request; whatever failed goes back as it was at once, the rest stands. */
 async function send(
   queryClient: QueryClient,
   requests: IssueLifecycleInput[],
@@ -59,8 +57,11 @@ async function send(
     queryClient,
     landed.flatMap((result) => result.issues),
   )
-  if (landed.length < results.length) flash(LIFECYCLE_PARTIAL_NOTE)
-  else if (landed.some((result) => !result.mirrored)) flash(LIFECYCLE_UNMIRRORED_NOTE)
+  const failed = failedIssueIds(requests, results)
+  if (failed.length > 0) {
+    rollbackIssues(queryClient, snapshot, failed)
+    flash(partialFailureMessage(failed.length))
+  } else if (landed.some((result) => !result.mirrored)) flash(LIFECYCLE_UNMIRRORED_NOTE)
   if (landed.every((result) => result.mirrored)) invalidateIssueQueries(queryClient)
 }
 

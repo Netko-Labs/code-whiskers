@@ -112,3 +112,13 @@ export function applyAction(
     archiveUntilUsers: choice.kind === 'users' ? issue.userCount + choice.count : null,
   }
 }
+
+/** Every issue whose scope's request failed. */
+export function failedIssueIds(
+  requests: IssueLifecycleInput[],
+  results: PromiseSettledResult<unknown>[],
+): string[] {
+  return requests.flatMap((request, index) =>
+    results[index]?.status === 'rejected' ? request.issueIds : [],
+  )
+}

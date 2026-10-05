@@ -42,3 +42,5 @@ export const REGRESSIONS_TITLE = 'Regressions'
 export const REGRESSIONS_SUBTITLE =
   'Resolved, then seen again — CodeWhiskers reopened them on the next event'
 export const UNREACHABLE_NOTE = 'Whiskers is unreachable — showing what was loaded last'
+export const UNREACHABLE_EMPTY = 'Could not load issues — whiskers is unreachable.'
+export const REGRESSIONS_EMPTY = 'Nothing you resolved has come back.'
