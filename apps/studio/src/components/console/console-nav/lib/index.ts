@@ -1,5 +1,6 @@
 export { useCollapsedGroups } from './hooks/use-collapsed-groups'
 export { countFor, useNavCounts } from './hooks/use-nav-counts'
+export { useNavProjects } from './hooks/use-nav-projects'
 export { useNotifications } from './hooks/use-notifications'
 export { useOrgChoices } from './hooks/use-org-choices'
 export type * from './types'

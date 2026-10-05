@@ -1,8 +1,8 @@
-import { CatExpression } from '@code-whiskers/ui/brand'
 import { useEffect } from 'react'
 import { TOAST_DURATION_MS } from '../lib'
 import { useConsoleStore } from '../use-console-store'
 
+/** Toasts sit on a dark pane in both themes; they arrive, they never bounce. */
 export function ConsoleToast() {
   const toast = useConsoleStore((s) => s.toast)
 
@@ -17,9 +17,13 @@ export function ConsoleToast() {
   const undo = toast.onUndo
 
   return (
-    <div className="dark -translate-x-1/2 absolute bottom-[22px] left-1/2 z-20 flex max-w-[560px] animate-in items-center gap-3 rounded-xl bg-zinc-950 px-4 py-3 text-zinc-50 shadow-2xl duration-200 fade-in slide-in-from-bottom-2">
-      <CatExpression expression="approved" tone="dark" crop size={30} />
-      <span className="font-medium text-[13px]">{toast.message}</span>
+    <div
+      role="status"
+      key={toast.message}
+      className="dark -translate-x-1/2 absolute bottom-5 left-1/2 z-20 flex max-w-[560px] animate-enter-up items-center gap-3 rounded-lg bg-popover px-3.5 py-2.5 text-popover-foreground shadow-overlay"
+    >
+      <span className="size-1.5 shrink-0 rounded-full bg-severity-resolved" />
+      <span className="font-medium text-ui">{toast.message}</span>
       {undo && (
         <button
           type="button"
@@ -27,7 +31,7 @@ export function ConsoleToast() {
             undo()
             useConsoleStore.getState().clearToast()
           }}
-          className="text-xs text-zinc-400 underline"
+          className="focus-ring rounded-sm font-medium text-muted-foreground text-ui underline-offset-2 hover:text-foreground hover:underline"
         >
           Undo
         </button>

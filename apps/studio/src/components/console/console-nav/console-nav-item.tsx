@@ -1,6 +1,6 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
-import { type ConsoleNavItemProps, NAV_ROW, NAV_ROW_ACTIVE, NAV_ROW_IDLE } from './lib'
+import { type ConsoleNavItemProps, NAV_ICON, NAV_ROW, NAV_ROW_ACTIVE, NAV_ROW_IDLE } from './lib'
 
 export function ConsoleNavItem({ item, count }: ConsoleNavItemProps) {
   const Icon = item.icon
@@ -12,9 +12,13 @@ export function ConsoleNavItem({ item, count }: ConsoleNavItemProps) {
       className={cn(NAV_ROW, NAV_ROW_IDLE)}
       activeProps={{ className: cn(NAV_ROW, NAV_ROW_ACTIVE) }}
     >
-      <Icon className="size-[15px] shrink-0" stroke={1.75} />
+      <Icon className={NAV_ICON} stroke={1.75} />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      <span className="font-mono text-[11px] text-zinc-400">{count}</span>
+      {count && (
+        <span className="animate-enter font-mono text-2xs text-muted-foreground tabular-nums">
+          {count}
+        </span>
+      )}
     </Link>
   )
 }

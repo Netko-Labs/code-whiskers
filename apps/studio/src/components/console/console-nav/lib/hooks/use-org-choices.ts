@@ -8,14 +8,13 @@ import { ALL_ORGANIZATIONS } from '../values'
 /** "All" only earns a row when there is more than one installation to choose between. */
 export function useOrgChoices(): OrgChoices {
   const orgLogin = useConsoleStore((s) => s.orgLogin)
-  const { orgs, sample } = useOrganizations()
+  const { orgs } = useOrganizations()
   const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
   const selected = orgs.find((org) => org.login === orgLogin) ?? ALL_ORGANIZATIONS
   return {
     choices: orgs.length > 1 ? [ALL_ORGANIZATIONS, ...orgs] : orgs,
     selected,
-    shown: orgs.length === 1 ? orgs[0] : selected,
-    sample,
+    shown: orgs.length === 0 ? undefined : orgs.length === 1 ? orgs[0] : selected,
     installUrl: instance?.githubApp.installUrl ?? null,
   }
 }

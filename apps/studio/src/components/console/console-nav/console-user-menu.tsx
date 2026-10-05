@@ -1,82 +1,84 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@code-whiskers/ui/components/popover'
 import { cn } from '@code-whiskers/ui/lib/utils'
+import { IconKeyboard, IconLogout } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { Shortcut } from '@/components/shared/kbd'
 import { signOut } from '@/integrations/auth'
-import { initialsOf, useViewer } from '../shared/console-data'
-import { USER_MENU, type UserMenuEntry } from './lib'
+import { useViewer } from '../shared/console-data'
+import { PersonAvatar } from '../shared/console-ui'
+import { useConsoleStore } from '../use-console-store'
+import { MENU_ROW, USER_MENU, type UserMenuProps } from './lib'
 import { ThemePicker } from './theme-picker'
 
-export function ConsoleUserMenu() {
+export function ConsoleUserMenu({ isCompact = false }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const viewer = useViewer()
-  const initials = viewer ? initialsOf(viewer.name) : ''
-
-  function activate(entry: UserMenuEntry) {
-    setOpen(false)
-    if (entry.section) {
-      navigate({ to: '/console/$section', params: { section: entry.section } })
-      return
-    }
-    void signOut().then(() => navigate({ to: '/sign-in' }))
-  }
+  const name = viewer?.name ?? ''
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex items-center gap-2.5 rounded-[9px] px-2 py-1.5 transition-colors hover:bg-zinc-800 aria-expanded:bg-zinc-800">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-50 font-semibold text-[10px] text-zinc-950">
-          {initials}
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col text-left">
-          <span className="truncate font-medium text-xs text-zinc-50">{viewer?.name}</span>
-          <span className="truncate text-[11px] text-zinc-500">{viewer?.email}</span>
-        </div>
-        <span className="shrink-0 text-[10px] text-zinc-500">⌄</span>
+      <PopoverTrigger
+        aria-label="Account"
+        className={cn(
+          'focus-ring flex min-w-0 items-center gap-2 rounded-md transition-colors hover:bg-sidebar-accent aria-expanded:bg-sidebar-accent',
+          isCompact ? 'size-9 justify-center' : 'h-9 w-full px-1.5',
+        )}
+      >
+        <PersonAvatar name={name} image={viewer?.image} isSelf className="size-6 text-[9px]" />
+        {!isCompact && (
+          <span className="min-w-0 flex-1 truncate text-left font-medium text-ui">{name}</span>
+        )}
       </PopoverTrigger>
 
-      <PopoverContent align="start" side="top" sideOffset={8} className="w-[272px] gap-0 p-1.5">
-        <div className="flex items-center gap-2.5 px-2.5 pt-2.5 pb-3">
-          <span className="flex size-[34px] shrink-0 items-center justify-center rounded-full bg-foreground font-semibold text-primary-foreground text-xs">
-            {initials}
-          </span>
-          <div className="flex min-w-0 flex-col gap-px">
-            <span className="font-semibold text-[13px]">{viewer?.name}</span>
-            <span className="truncate text-[11px] text-muted-foreground">{viewer?.email}</span>
-          </div>
+      <PopoverContent
+        align="start"
+        side={isCompact ? 'right' : 'top'}
+        sideOffset={8}
+        className="w-[260px] gap-0 p-1"
+      >
+        <div className="flex flex-col px-2 pt-1.5 pb-2">
+          <span className="truncate font-semibold text-ui">{name}</span>
+          <span className="truncate text-2xs text-muted-foreground">{viewer?.email}</span>
         </div>
-
         <ThemePicker />
-
-        <div className="mt-1 mb-1 h-px bg-rule-soft" />
-
-        {USER_MENU.map((entry) => {
-          const Icon = entry.icon
-          return (
-            <button
-              type="button"
-              key={entry.label}
-              onClick={() => activate(entry)}
-              className="flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-left hover:bg-rule-soft"
-            >
-              <Icon
-                className={cn(
-                  'size-[15px] shrink-0',
-                  entry.danger ? 'text-severity-error' : 'text-body',
-                )}
-                stroke={1.75}
-              />
-              <span
-                className={cn(
-                  'flex-1 text-[13px]',
-                  entry.danger ? 'text-severity-error' : 'text-body',
-                )}
-              >
-                {entry.label}
-              </span>
-            </button>
-          )
-        })}
+        <div className="my-1 h-px bg-border" />
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false)
+            useConsoleStore.getState().setShortcutsOpen(true)
+          }}
+          className={MENU_ROW}
+        >
+          <IconKeyboard className="size-4 text-muted-foreground" stroke={1.75} />
+          <span className="flex-1">Keyboard shortcuts</span>
+          <Shortcut keys={['?']} />
+        </button>
+        {USER_MENU.map((entry) => (
+          <button
+            type="button"
+            key={entry.label}
+            onClick={() => {
+              setOpen(false)
+              navigate({ to: '/console/$section', params: { section: entry.section } })
+            }}
+            className={MENU_ROW}
+          >
+            <entry.icon className="size-4 text-muted-foreground" stroke={1.75} />
+            {entry.label}
+          </button>
+        ))}
+        <div className="my-1 h-px bg-border" />
+        <button
+          type="button"
+          onClick={() => void signOut().then(() => navigate({ to: '/sign-in' }))}
+          className={MENU_ROW}
+        >
+          <IconLogout className="size-4 text-muted-foreground" stroke={1.75} />
+          Sign out
+        </button>
       </PopoverContent>
     </Popover>
   )

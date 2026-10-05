@@ -5,9 +5,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { SeverityDot } from '../shared/console-ui'
 import { useConsoleStore } from '../use-console-store'
-import { useNotifications } from './lib'
+import { type ClassNameProps, NAV_ICON_BUTTON, useNotifications } from './lib'
 
-export function ConsoleNotifications({ className }: { className?: string }) {
+export function ConsoleNotifications({ className }: ClassNameProps) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const { notes, unreadIds } = useNotifications()
@@ -24,60 +24,62 @@ export function ConsoleNotifications({ className }: { className?: string }) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className={cn('relative', className)} aria-label="Notifications">
-        <IconBell className="size-[15px]" stroke={1.75} />
+      <PopoverTrigger
+        className={cn(NAV_ICON_BUTTON, 'relative', className)}
+        aria-label="Notifications"
+      >
+        <IconBell className="size-4" stroke={1.75} />
         {unreadIds.size > 0 && (
-          <span className="absolute top-1 right-1 size-1.5 rounded-full border-[1.5px] border-zinc-950 bg-severity-error" />
+          <span className="absolute top-1 right-1 size-2 animate-enter-scale rounded-full border-2 border-background bg-severity-error" />
         )}
       </PopoverTrigger>
 
-      <PopoverContent align="start" sideOffset={8} className="w-[286px] gap-0 p-1.5">
-        <div className="flex items-center justify-between px-2.5 pt-[7px] pb-1.5">
-          <span className="text-[11px] text-muted-foreground">Notifications</span>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false)
-              useConsoleStore.getState().markAllRead(notes.map((note) => note.itemId))
-            }}
-            className="text-[11px] text-body underline"
-          >
-            Mark all as read
-          </button>
-        </div>
-        {notes.length === 0 && (
-          <span className="px-2.5 py-2 text-[13px] text-muted-foreground">
-            Nothing needs you from the last week.
-          </span>
-        )}
-        {notes.map((note) => {
-          const isUnread = unreadIds.has(note.itemId)
-          return (
+      <PopoverContent align="end" sideOffset={8} className="w-[320px] gap-0 p-1">
+        <div className="flex items-center justify-between px-2 pt-1.5 pb-1">
+          <span className="font-medium text-2xs text-muted-foreground">Notifications</span>
+          {notes.length > 0 && (
             <button
               type="button"
-              key={note.itemId}
-              onClick={() => openItem(note.itemId)}
-              className="flex items-start gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-rule-soft"
+              onClick={() => {
+                setOpen(false)
+                useConsoleStore.getState().markAllRead(notes.map((note) => note.itemId))
+              }}
+              className="focus-ring rounded-sm text-2xs text-muted-foreground hover:text-foreground"
             >
-              <SeverityDot
-                severity={isUnread ? note.severity : 'idle'}
-                size="sm"
-                className="mt-1.5"
-              />
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span
-                  className={cn(
-                    'text-[13px] leading-[18px] text-pretty',
-                    isUnread ? 'font-semibold' : 'font-normal',
-                  )}
-                >
-                  {note.title}
-                </span>
-                <span className="text-[11px] text-muted-foreground">{note.when}</span>
-              </div>
+              Mark all as read
             </button>
-          )
-        })}
+          )}
+        </div>
+        {notes.length === 0 && (
+          <p className="m-0 px-2 py-6 text-center text-muted-foreground text-ui">
+            Nothing needs you from the last week.
+          </p>
+        )}
+        <div className="stagger flex flex-col">
+          {notes.map((note) => {
+            const isUnread = unreadIds.has(note.itemId)
+            return (
+              <button
+                type="button"
+                key={note.itemId}
+                onClick={() => openItem(note.itemId)}
+                className="focus-ring flex items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-surface-hover"
+              >
+                <SeverityDot
+                  severity={isUnread ? note.severity : 'idle'}
+                  size="sm"
+                  className="mt-[7px]"
+                />
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className={cn('text-pretty text-ui', isUnread && 'font-medium')}>
+                    {note.title}
+                  </span>
+                  <span className="text-2xs text-muted-foreground">{note.when}</span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </PopoverContent>
     </Popover>
   )

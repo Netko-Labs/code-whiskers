@@ -6,7 +6,7 @@ export type ConsoleNavItem = {
   label: string
   icon: Icon
   to: string
-  params?: { bucket: TriageBucket } | { section: SectionView }
+  params?: { bucket: TriageBucket } | { section: SectionView } | { projectId: string }
 }
 
 export type ConsoleNavGroup = {

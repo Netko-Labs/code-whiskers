@@ -1,17 +1,26 @@
 import type { ConsoleOrg } from '../../shared/console-model'
 
 export const NAV_ROW =
-  'flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] transition-colors'
-export const NAV_ROW_IDLE = 'text-zinc-400 hover:bg-zinc-900'
-export const NAV_ROW_ACTIVE = 'bg-zinc-800 font-medium text-zinc-50'
-export const NAV_COLLAPSED_KEY = 'codewhiskers.nav.collapsed'
+  'focus-ring group/nav flex h-7 min-w-0 items-center gap-2 rounded-md px-2 text-ui transition-colors duration-fast'
+export const NAV_ROW_IDLE =
+  'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+export const NAV_ROW_ACTIVE = 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+export const NAV_ICON =
+  'size-4 shrink-0 text-muted-foreground transition-colors group-hover/nav:text-foreground group-data-[status=active]/nav:text-foreground'
 export const NAV_GROUP_HEADER =
-  'group/header flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-[6px] text-left font-medium text-[12px] text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200'
+  'focus-ring group/header flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-left font-medium text-2xs text-muted-foreground transition-colors hover:text-foreground'
 export const NAV_ICON_BUTTON =
-  'flex size-[26px] shrink-0 items-center justify-center rounded-[7px] text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-50'
-export const NAV_SEARCH_HINT = 'Search  ⌘K'
+  'focus-ring flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground'
+export const RAIL_BUTTON =
+  'focus-ring relative flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground data-[status=active]:bg-sidebar-accent data-[status=active]:text-foreground'
+export const MENU_ROW =
+  'focus-ring flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-ui transition-colors hover:bg-surface-hover'
+
+export const NAV_COLLAPSED_KEY = 'codewhiskers.nav.collapsed'
 export const NOTIFICATION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 export const MAX_NOTIFICATIONS = 10
+export const MAX_NAV_PROJECTS = 6
+export const PROJECTS_GROUP = 'Projects'
 
 export const ALL_ORGANIZATIONS: ConsoleOrg = {
   login: '',

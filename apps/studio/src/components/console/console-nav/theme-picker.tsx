@@ -6,19 +6,21 @@ export function ThemePicker() {
   const { theme, setTheme } = useTheme()
 
   return (
-    <div className="flex flex-col gap-1.5 border-rule-soft border-t p-2.5">
-      <span className="text-[11px] text-muted-foreground">Appearance</span>
-      <div className="flex gap-[3px] rounded-[9px] bg-muted p-[3px]">
+    <div className="flex items-center justify-between gap-3 px-2 py-1.5">
+      <span className="text-muted-foreground text-ui">Theme</span>
+      <div role="radiogroup" aria-label="Theme" className="flex gap-0.5 rounded-md bg-muted p-0.5">
         {THEME_OPTIONS.map((option) => (
           <button
             type="button"
+            role="radio"
+            aria-checked={theme === option.value}
             key={option.value}
             onClick={() => setTheme(option.value)}
             className={cn(
-              'flex-1 rounded-[7px] py-[5px] text-center font-medium text-xs transition-colors',
+              'focus-ring rounded-[5px] px-2 py-0.5 font-medium text-2xs transition-colors duration-fast',
               theme === option.value
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground',
+                ? 'bg-background text-foreground shadow-raised'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {option.label}
