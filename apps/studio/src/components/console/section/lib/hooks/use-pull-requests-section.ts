@@ -24,17 +24,17 @@ const COLUMNS = [
   { label: 'Reviewed', align: 'end' as const },
 ]
 
-/** Live Pull requests section; falls back to the sample table until whiskers has reviewed anything. */
+/** One row per pull request; empty until whiskers has reviewed a push. */
 export function usePullRequestsSection(
   tab: number,
   filters: SectionFilters,
   scope: ConsoleScope,
 ): SectionDefinition {
-  const { data } = useQuery({ ...whiskersReviewsQuery(), retry: false })
+  const { data, isLoading } = useQuery({ ...whiskersReviewsQuery(), retry: false })
 
   return useMemo(() => {
     const reviews = data ?? []
-    if (reviews.length === 0) return { ...PULL_REQUESTS_SECTION, sample: true }
+    if (reviews.length === 0) return { ...PULL_REQUESTS_SECTION, isLoading }
 
     const needle = filters.q?.toLowerCase()
     const rows = latestPerPullRequest(reviews).filter(
@@ -108,5 +108,5 @@ export function usePullRequestsSection(
       searchPlaceholder: 'Repository, title or author…',
       table,
     }
-  }, [data, tab, filters.q, scope])
+  }, [data, isLoading, tab, filters.q, scope])
 }

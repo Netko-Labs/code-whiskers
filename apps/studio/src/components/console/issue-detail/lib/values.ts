@@ -35,8 +35,6 @@ export const DEFAULT_CRUMB_KIND: Pick<CrumbView, 'icon' | 'label'> = {
 
 export const SYSTEM_ACTOR = 'CodeWhiskers'
 export const FORMER_MEMBER = 'Former member'
-export const SAMPLE_ACTIVITY_NOTE =
-  'Activity is saved once this is a real issue — sample data stays read-only.'
 export const MISSING_ISSUE = 'That issue is gone — it may have been deleted or moved.'
 export const EMPTY_STACK = 'This event carried no stack trace.'
 export const EMPTY_CRUMBS = 'No breadcrumbs on this event.'

@@ -13,11 +13,11 @@ export function useReleasesSection(
   _filters: SectionFilters,
   scope: ConsoleScope,
 ): SectionDefinition {
-  const { data } = useQuery({ ...whiskersReleasesQuery(), retry: false })
+  const { data, isLoading } = useQuery({ ...whiskersReleasesQuery(), retry: false })
   const { data: projects } = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
-    if (!data?.length) return { ...RELEASES_SECTION, sample: true }
+    if (!data?.length) return { ...RELEASES_SECTION, isLoading }
     const releases = data.filter((release) => isInScope(scope, { projectId: release.projectId }))
 
     const projectName = new Map((projects ?? []).map((p) => [p.id, p.name]))
@@ -80,5 +80,5 @@ export function useReleasesSection(
       tabs: ['All', 'Introduced issues'],
       table,
     }
-  }, [data, projects, tab, scope])
+  }, [data, isLoading, projects, tab, scope])
 }

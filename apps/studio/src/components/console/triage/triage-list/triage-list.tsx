@@ -1,13 +1,14 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { DataListSkeleton } from '@/components/shared/data-list'
 import { ScopePicker } from '../../scope-picker'
 import { TRIAGE_TITLES } from '../../shared/console-data'
 import { SetupChecklistCard } from '../../shared/setup-checklist'
 import { matchesQuery, TRIAGE_FILTERS, type TriageListProps, useTriageKeys } from '../lib'
 import { TriageRow } from './triage-row'
 
-export function TriageList({ bucket, filter, items, selectedId, sampleNote }: TriageListProps) {
+export function TriageList({ bucket, filter, items, selectedId, isLoading }: TriageListProps) {
   const [query, setQuery] = useState('')
   const heading = TRIAGE_TITLES[bucket]
   const shown = query ? items.filter((item) => matchesQuery(item, query)) : items
@@ -55,19 +56,13 @@ export function TriageList({ bucket, filter, items, selectedId, sampleNote }: Tr
 
       {bucket === 'inbox' && <SetupChecklistCard className="mx-4 mt-3" />}
 
-      {sampleNote && (
-        <p className="m-0 flex items-center gap-2 border-rule-soft border-b px-5 py-2.5 text-[12px] text-muted-foreground">
-          <span className="size-1.5 shrink-0 rounded-full bg-severity-info" />
-          {sampleNote}
-        </p>
-      )}
-
       <div className="flex flex-1 flex-col overflow-auto">
         {shown.map((item) => (
           <TriageRow key={item.id} bucket={bucket} item={item} active={item.id === selectedId} />
         ))}
-        {shown.length === 0 && (
-          <p className="m-0 px-5 py-12 text-center text-[13px] text-muted-foreground">
+        {isLoading && shown.length === 0 && <DataListSkeleton rows={6} />}
+        {!isLoading && shown.length === 0 && (
+          <p className="m-0 px-5 py-12 text-center text-muted-foreground text-ui">
             {query ? 'Nothing matches that filter.' : 'Nothing waiting here.'}
           </p>
         )}

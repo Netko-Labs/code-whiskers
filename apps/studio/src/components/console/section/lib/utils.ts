@@ -10,12 +10,14 @@ import type {
   PillTone,
   SectionAction,
   SectionCell,
+  SectionDefinition,
   SectionFieldOption,
   SectionFilters,
   SectionForm,
   SectionTextCell,
 } from '../../shared/console-model'
 import type { ConsoleScope } from '../../shared/console-scope'
+import { MEMBERS_SECTION, REPOSITORIES_SECTION } from './values'
 
 export type PullRequestRow = {
   review: WhiskersReview
@@ -167,5 +169,32 @@ export function linkRepositoryForm(
       await onSaved(repository)
       return undefined
     },
+  }
+}
+
+/** The GitHub App install link is the next step for both, once the instance knows it. */
+export function emptyRepositories(
+  installUrl: string | undefined,
+  isLoading: boolean,
+): SectionDefinition {
+  const empty = REPOSITORIES_SECTION.empty
+  return {
+    ...REPOSITORIES_SECTION,
+    isLoading,
+    empty:
+      empty && installUrl
+        ? { ...empty, action: { label: 'Install the GitHub App', href: installUrl } }
+        : empty,
+  }
+}
+
+export function emptyMembers(installUrl: string | undefined): SectionDefinition {
+  const empty = MEMBERS_SECTION.empty
+  return {
+    ...MEMBERS_SECTION,
+    empty:
+      empty && installUrl
+        ? { ...empty, action: { label: 'Install on another account', href: installUrl } }
+        : empty,
   }
 }

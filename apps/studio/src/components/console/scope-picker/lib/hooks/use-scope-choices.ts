@@ -19,21 +19,20 @@ export function useScopeChoices(): ScopeChoices {
   const navigate = useNavigate()
   const scope = useConsoleScope()
   const orgLogin = useConsoleStore((s) => s.orgLogin)
-  const { items, sample } = useConsoleItems()
+  const { items } = useConsoleItems()
   const { data: synced } = useQuery({ ...repositoriesQuery(), retry: false })
   const { data: projects } = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
-    const live = sample ? [] : items
-    const byRepository = tally(live.map((item) => item.repository?.toLowerCase()))
-    const byProject = tally(live.map((item) => item.projectId))
+    const byRepository = tally(items.map((item) => item.repository?.toLowerCase()))
+    const byProject = tally(items.map((item) => item.projectId))
     const inOrg = (slug: string) =>
       !orgLogin || slug.toLowerCase().startsWith(`${orgLogin.toLowerCase()}/`)
 
     const slugs = new Map<string, string>()
     for (const repo of synced ?? [])
       slugs.set(`${repo.owner}/${repo.name}`.toLowerCase(), `${repo.owner}/${repo.name}`)
-    for (const item of live)
+    for (const item of items)
       if (item.repository) slugs.set(item.repository.toLowerCase(), item.repository)
 
     const repositories: ScopeChoice[] = [...slugs.values()]
@@ -62,7 +61,7 @@ export function useScopeChoices(): ScopeChoices {
       kind: 'all',
       label: 'All repositories',
       detail: 'Everything this instance sees',
-      count: live.length,
+      count: items.length,
     }
     const current =
       [...repositories, ...unlinked].find(
@@ -77,5 +76,5 @@ export function useScopeChoices(): ScopeChoices {
       pick: (value) =>
         navigate({ to: '.', search: (prev) => ({ ...prev, scope: value ?? undefined }) }),
     }
-  }, [items, sample, synced, projects, orgLogin, scope, navigate])
+  }, [items, synced, projects, orgLogin, scope, navigate])
 }

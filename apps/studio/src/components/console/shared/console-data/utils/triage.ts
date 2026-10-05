@@ -2,7 +2,6 @@ import type { QueryClient } from '@tanstack/react-query'
 import { type TriageItemRef, type TriageRecord, triageQuery } from '@/integrations/studio-api'
 import type { WhiskersIssue } from '@/integrations/whiskers'
 import type { ConsoleItem, TriageBucket, TriageStatus } from '../../console-model'
-import { SAMPLE_ISSUE_PREFIX } from '../values'
 
 export function triageKey(ref: TriageItemRef): string {
   return `${ref.scope.toLowerCase()}|${ref.itemKind}|${ref.itemRef}`
@@ -13,15 +12,8 @@ export function findingRef(scope: string, finding: { file: string; title: string
   return { scope, itemKind: 'finding', itemRef: `${finding.file}:${finding.title}` }
 }
 
-export function isSampleIssue(issue: Pick<WhiskersIssue, 'id'>): boolean {
-  return issue.id.startsWith(SAMPLE_ISSUE_PREFIX)
-}
-
-/** Sample issues have nothing to decide on; a live one is triaged under its project. */
-export function issueTriageRef(
-  issue: Pick<WhiskersIssue, 'id' | 'projectId'>,
-): TriageItemRef | null {
-  if (isSampleIssue(issue)) return null
+/** An issue is triaged under its project. */
+export function issueTriageRef(issue: Pick<WhiskersIssue, 'id' | 'projectId'>): TriageItemRef {
   return { scope: `project:${issue.projectId}`, itemKind: 'issue', itemRef: issue.id }
 }
 

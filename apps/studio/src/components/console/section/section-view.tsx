@@ -32,7 +32,12 @@ function SectionScreen({ section, tab, filters, useDefinition }: SectionScreenPr
     <div className="flex min-h-0 flex-1 flex-col">
       <SectionHeader definition={definition} />
       <SectionToolbar section={section} tab={tab} filters={filters} definition={definition} />
-      <SectionTable table={table} minWidth={TABLE_MIN_WIDTH} />
+      <SectionTable
+        table={table}
+        minWidth={TABLE_MIN_WIDTH}
+        empty={definition.empty}
+        isLoading={definition.isLoading}
+      />
     </div>
   )
 }

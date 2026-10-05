@@ -46,12 +46,12 @@ function flash(message: string) {
 export function useAlertRulesSection(tab: number): SectionDefinition {
   const queryClient = useQueryClient()
   const { data: rules } = useQuery({ ...alertRulesQuery(), retry: false })
-  const { data: orgs } = useQuery({ ...organizationsQuery(), retry: false })
+  const { data: orgs, isLoading } = useQuery({ ...organizationsQuery(), retry: false })
   const { data: hooks } = useQuery({ ...integrationsQuery(), retry: false })
   const { data: projects } = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
   return useMemo(() => {
-    if (!orgs || orgs.length === 0) return { ...ALERT_RULES_SECTION, sample: true }
+    if (!orgs || orgs.length === 0) return { ...ALERT_RULES_SECTION, isLoading }
 
     const all = rules ?? []
     const refresh = () => queryClient.invalidateQueries({ queryKey: alertRulesQuery().queryKey })
@@ -195,5 +195,5 @@ export function useAlertRulesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Firing', 'Muted'],
       table,
     }
-  }, [rules, orgs, hooks, projects, tab, queryClient])
+  }, [rules, orgs, isLoading, hooks, projects, tab, queryClient])
 }

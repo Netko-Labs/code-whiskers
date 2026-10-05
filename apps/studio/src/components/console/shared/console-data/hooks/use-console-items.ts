@@ -12,14 +12,11 @@ import {
   latestReviewPerPullRequest,
   logPatternToConsoleItem,
   reviewToConsoleItem,
-  withSampleIssue,
 } from '../utils'
-import { INBOX_ISSUE_QUERY, SAMPLE_ITEMS } from '../values'
+import { INBOX_ISSUE_QUERY } from '../values'
 
 export type ConsoleItemsResult = {
   items: ConsoleItem[]
-  /** True when nothing has been ingested yet and the list falls back to the sample set. */
-  sample: boolean
   unreachable: boolean
   isLoading: boolean
 }
@@ -42,11 +39,9 @@ export function useConsoleItems(): ConsoleItemsResult {
       ),
     ].sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))
     const unreachable = issues.isError || reviews.isError
-    const now = new Date()
 
     return {
-      items: live.length > 0 ? live : SAMPLE_ITEMS.map((item) => withSampleIssue(item, now)),
-      sample: live.length === 0,
+      items: live,
       unreachable,
       isLoading: issues.isLoading || reviews.isLoading,
     }

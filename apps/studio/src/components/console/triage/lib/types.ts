@@ -36,7 +36,7 @@ export type TriageListProps = {
   filter: TriageFilter
   items: ConsoleItem[]
   selectedId: string
-  sampleNote: string
+  isLoading: boolean
 }
 
 export type TriageRowProps = {

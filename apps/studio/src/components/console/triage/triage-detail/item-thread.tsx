@@ -5,7 +5,7 @@ import { formatAge } from '@/shared/format-date'
 import { DRAFT_HINT, useViewer } from '../../shared/console-data'
 import { PersonAvatar } from '../../shared/console-ui'
 import { useConsoleStore } from '../../use-console-store'
-import type { ItemThreadProps } from '../lib'
+import { type ItemThreadProps, NO_COMMENTS_NOTE } from '../lib'
 
 export function ItemThread({ item, onPost }: ItemThreadProps) {
   const viewer = useViewer()
@@ -19,7 +19,7 @@ export function ItemThread({ item, onPost }: ItemThreadProps) {
   if (!item.triage) {
     return (
       <div className="border-rule-soft border-t pt-5 text-[13px] text-muted-foreground">
-        Comments are saved once this is a real item — sample data stays read-only.
+        {NO_COMMENTS_NOTE}
       </div>
     )
   }

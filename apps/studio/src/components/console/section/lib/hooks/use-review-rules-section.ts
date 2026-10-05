@@ -39,10 +39,10 @@ const EFFECT_OPTIONS = [
 export function useReviewRulesSection(tab: number): SectionDefinition {
   const queryClient = useQueryClient()
   const { data: rules } = useQuery({ ...rulesQuery(), retry: false })
-  const { data: orgs } = useQuery({ ...organizationsQuery(), retry: false })
+  const { data: orgs, isLoading } = useQuery({ ...organizationsQuery(), retry: false })
 
   return useMemo(() => {
-    if (!orgs || orgs.length === 0) return { ...REVIEW_RULES_SECTION, sample: true }
+    if (!orgs || orgs.length === 0) return { ...REVIEW_RULES_SECTION, isLoading }
 
     const all = rules ?? []
     const refresh = () => queryClient.invalidateQueries({ queryKey: rulesQuery().queryKey })
@@ -172,5 +172,5 @@ export function useReviewRulesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Active', 'Muted'],
       table,
     }
-  }, [rules, orgs, tab, queryClient])
+  }, [rules, orgs, isLoading, tab, queryClient])
 }

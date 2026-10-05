@@ -27,12 +27,12 @@ const ACTIVITY_COLUMNS = [
 
 /** Both databases, one picture: whiskers answers for its tables, studio for its own. */
 export function useInstanceSection(tab: number): SectionDefinition {
-  const { data: worker } = useQuery({ ...whiskersInstanceQuery(), retry: false })
+  const { data: worker, isLoading } = useQuery({ ...whiskersInstanceQuery(), retry: false })
   const { data: studio } = useQuery({ ...studioStorageQuery(), retry: false })
   const steps = useSetupSteps()
 
   return useMemo(() => {
-    if (!worker && !studio) return { ...INSTANCE_SECTION, sample: true }
+    if (!worker && !studio) return { ...INSTANCE_SECTION, isLoading }
 
     const stores: StoreRow[] = [
       ...(worker?.stores ?? []).map((s) => ({
@@ -172,5 +172,5 @@ export function useInstanceSection(tab: number): SectionDefinition {
       tabs: [...TABS],
       table: tab === 3 ? reviewer : tab === 2 ? setup : tab === 1 ? throughput : storage,
     }
-  }, [worker, studio, steps, tab])
+  }, [worker, isLoading, studio, steps, tab])
 }

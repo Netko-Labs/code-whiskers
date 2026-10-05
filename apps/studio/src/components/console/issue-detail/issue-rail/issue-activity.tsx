@@ -1,11 +1,6 @@
 import { Button } from '@code-whiskers/ui/components/button'
 import { DRAFT_HINT } from '../../shared/console-data'
-import {
-  activityView,
-  type IssueActivityProps,
-  SAMPLE_ACTIVITY_NOTE,
-  useIssueActivity,
-} from '../lib'
+import { activityView, type IssueActivityProps, useIssueActivity } from '../lib'
 import { IssueActivityEntry } from './issue-activity-entry'
 
 /** Decisions, transitions and comments in one timeline, oldest first, with the draft at the foot. */
@@ -15,8 +10,7 @@ export function IssueActivity({ issue }: IssueActivityProps) {
   return (
     <section className="flex flex-col gap-3">
       <h3 className="m-0 font-semibold text-[13px]">Activity</h3>
-      {!ref && <p className="m-0 text-[12px] text-muted-foreground">{SAMPLE_ACTIVITY_NOTE}</p>}
-      {ref && entries.length === 0 && (
+      {entries.length === 0 && (
         <p className="m-0 text-[12px] text-muted-foreground">No decisions yet.</p>
       )}
       <ol className="m-0 flex list-none flex-col gap-3 p-0">

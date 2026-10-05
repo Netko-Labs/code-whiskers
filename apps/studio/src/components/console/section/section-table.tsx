@@ -1,27 +1,37 @@
 import { cn } from '@code-whiskers/ui/lib/utils'
 import { Link } from '@tanstack/react-router'
-import type { SectionTableProps } from './lib'
+import { useRef } from 'react'
+import { DataListSkeleton, useRovingFocus } from '@/components/shared/data-list'
+import { SECTION_ROW, type SectionTableProps } from './lib'
 import { SectionCell } from './section-cell'
+import { SectionEmptyState } from './section-empty-state'
 import { SectionRowActions } from './section-row-actions'
 
-const ROW =
-  'group grid items-center gap-x-4 border-rule-soft border-b px-8 py-3 transition-colors hover:bg-surface-subtle'
-
-export function SectionTable({ table, minWidth }: SectionTableProps) {
+export function SectionTable({ table, minWidth, empty, isLoading }: SectionTableProps) {
+  const listRef = useRef<HTMLDivElement>(null)
+  const onKeyDown = useRovingFocus(listRef)
   const grid = table.rowActions ? `${table.grid} max-content` : table.grid
   const style = { gridTemplateColumns: grid, minWidth: `${minWidth}px` }
+
+  if (table.rows.length === 0) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+        {isLoading ? <DataListSkeleton rows={8} /> : <SectionEmptyState empty={empty} />}
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-auto">
       <div
-        className="sticky top-0 z-[1] grid gap-x-4 border-border border-b bg-background px-8 py-2.5"
+        className="sticky top-0 z-[1] grid h-8 items-center gap-x-4 border-border border-b bg-background px-gutter"
         style={style}
       >
         {table.columns.map((column) => (
           <span
             key={column.label}
             className={cn(
-              'flex whitespace-nowrap font-medium text-[12px] text-muted-foreground',
+              'flex whitespace-nowrap font-medium text-2xs text-muted-foreground',
               column.align === 'end' ? 'justify-end' : 'justify-start',
             )}
           >
@@ -31,95 +41,65 @@ export function SectionTable({ table, minWidth }: SectionTableProps) {
         {table.rowActions && <span />}
       </div>
 
-      {table.rows.map((row, index) => {
-        const key = `${index}-${row[0]?.kind === 'text' ? row[0].text : index}`
-        const className = ROW
-        const actions = table.rowActions?.[index]
-        const cells = [
-          ...row.map((cell, cellIndex) => (
-            <SectionCell key={`${cellIndex}-${cell.kind}`} cell={cell} />
-          )),
-          ...(table.rowActions
-            ? [<SectionRowActions key="actions" actions={actions ?? []} />]
-            : []),
-        ]
-        const link = table.rowLinks?.[index]
-        if (link?.kind === 'triage') {
+      <div ref={listRef} role="list" onKeyDown={onKeyDown} className="stagger flex flex-col">
+        {table.rows.map((row, index) => {
+          const key = `${index}-${row[0]?.kind === 'text' ? row[0].text : index}`
+          const actions = table.rowActions?.[index]
+          const cells = [
+            ...row.map((cell, cellIndex) => (
+              <SectionCell key={`${cellIndex}-${cell.kind}`} cell={cell} />
+            )),
+            ...(table.rowActions
+              ? [<SectionRowActions key="actions" actions={actions ?? []} />]
+              : []),
+          ]
+          const link = table.rowLinks?.[index]
+          const shared = { className: SECTION_ROW, style, 'data-slot': 'data-row' }
           return (
-            <Link
-              key={key}
-              to="/console/triage/$bucket"
-              params={{ bucket: 'inbox' }}
-              search={{ sel: link.itemId }}
-              className={className}
-              style={style}
-            >
-              {cells}
-            </Link>
+            <div key={key} role="listitem">
+              {link?.kind === 'triage' ? (
+                <Link
+                  {...shared}
+                  to="/console/triage/$bucket"
+                  params={{ bucket: 'inbox' }}
+                  search={{ sel: link.itemId }}
+                >
+                  {cells}
+                </Link>
+              ) : link?.kind === 'section' ? (
+                <Link
+                  {...shared}
+                  to="/console/$section"
+                  params={{ section: link.section }}
+                  search={{ tab: link.tab ?? 0, ...link.filters }}
+                >
+                  {cells}
+                </Link>
+              ) : link?.kind === 'project' ? (
+                <Link
+                  {...shared}
+                  to="/console/projects/$projectId"
+                  params={{ projectId: link.projectId }}
+                >
+                  {cells}
+                </Link>
+              ) : link?.kind === 'project-setup' ? (
+                <Link {...shared} to="/console/projects/new">
+                  {cells}
+                </Link>
+              ) : link?.kind === 'external' ? (
+                <a {...shared} href={link.href} target="_blank" rel="noreferrer">
+                  {cells}
+                </a>
+              ) : (
+                <div {...shared}>{cells}</div>
+              )}
+            </div>
           )
-        }
-        if (link?.kind === 'section') {
-          return (
-            <Link
-              key={key}
-              to="/console/$section"
-              params={{ section: link.section }}
-              search={{ tab: link.tab ?? 0, ...link.filters }}
-              className={className}
-              style={style}
-            >
-              {cells}
-            </Link>
-          )
-        }
-        if (link?.kind === 'project') {
-          return (
-            <Link
-              key={key}
-              to="/console/projects/$projectId"
-              params={{ projectId: link.projectId }}
-              className={className}
-              style={style}
-            >
-              {cells}
-            </Link>
-          )
-        }
-        if (link?.kind === 'project-setup') {
-          return (
-            <Link key={key} to="/console/projects/new" className={className} style={style}>
-              {cells}
-            </Link>
-          )
-        }
-        if (link?.kind === 'external') {
-          return (
-            <a
-              key={key}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-              className={className}
-              style={style}
-            >
-              {cells}
-            </a>
-          )
-        }
-        return (
-          <div key={key} className={className} style={style}>
-            {cells}
-          </div>
-        )
-      })}
+        })}
+      </div>
 
-      {table.rows.length === 0 ? (
-        <p className="m-0 px-8 py-16 text-center text-[13px] text-muted-foreground">
-          Nothing here yet.
-        </p>
-      ) : (
-        <p className="m-0 px-8 py-5 text-[12px] text-faint">{table.footer}</p>
-      )}
+      {table.footer && <p className="m-0 px-gutter py-4 text-2xs text-faint">{table.footer}</p>}
     </div>
   )
 }

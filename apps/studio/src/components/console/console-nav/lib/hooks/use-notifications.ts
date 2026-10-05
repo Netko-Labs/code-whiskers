@@ -32,13 +32,12 @@ function toNotification(item: ConsoleItem, isAssigned: boolean): ConsoleNotifica
  * not done yet. Read state is per browser session.
  */
 export function useNotifications(): NotificationsResult {
-  const { items, sample } = useConsoleItems()
+  const { items } = useConsoleItems()
   const records = useTriageRecords()
   const viewer = useViewer()
   const readIds = useConsoleStore((s) => s.readIds)
 
   return useMemo(() => {
-    if (sample) return { notes: [], unreadIds: new Set<string>() }
     const since = Date.now() - NOTIFICATION_WINDOW_MS
     const notes = items
       .map((item) => {
@@ -60,5 +59,5 @@ export function useNotifications(): NotificationsResult {
       notes,
       unreadIds: new Set(notes.filter((n) => !readIds[n.itemId]).map((n) => n.itemId)),
     }
-  }, [items, sample, records, viewer, readIds])
+  }, [items, records, viewer, readIds])
 }

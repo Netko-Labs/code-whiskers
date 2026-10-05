@@ -35,8 +35,7 @@ export function useTracesSection(
 
   return useMemo(() => {
     const traces = data ?? []
-    if (isFetched && traces.length === 0 && !filters.service && !scope.value)
-      return { ...TRACES_SECTION, sample: true }
+    if (isFetched && traces.length === 0 && !filters.service && !scope.value) return TRACES_SECTION
 
     const needle = filters.q?.toLowerCase() ?? ''
     const matching = needle

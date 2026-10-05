@@ -12,12 +12,9 @@ import {
 import type { ConsoleNavItem } from '../../../shared/console-model'
 import { navKey } from '../utils'
 
-/**
- * Counts only where a source answers; every other row stays blank rather than show a number that
- * means nothing. Sample data counts nothing.
- */
+/** Counts only where a source answers; every other row stays blank rather than show a zero that means nothing. */
 export function useNavCounts(): Record<string, number> {
-  const { items, sample } = useConsoleItems()
+  const { items } = useConsoleItems()
   const records = useTriageRecords()
   const viewer = useViewer()
   const members = useMembers()
@@ -27,7 +24,6 @@ export function useNavCounts(): Record<string, number> {
     const counts: Record<string, number> = {}
     if (repositories?.length) counts['section:repositories'] = repositories.length
     if (members.length) counts['section:members'] = members.length
-    if (sample) return counts
 
     const now = new Date()
     const statuses = items.map((item) => ({ item, status: statusFor(item, records, now) }))
@@ -44,7 +40,7 @@ export function useNavCounts(): Record<string, number> {
       ({ item, status }) => item.kind === 'error' && status.regressed,
     ).length
     return counts
-  }, [items, sample, records, viewer, members, repositories])
+  }, [items, records, viewer, members, repositories])
 }
 
 export function countFor(counts: Record<string, number>, item: ConsoleNavItem): string {

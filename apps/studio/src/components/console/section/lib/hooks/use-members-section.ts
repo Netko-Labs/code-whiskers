@@ -4,7 +4,7 @@ import { instanceQuery } from '@/integrations/studio-api'
 import { formatAge } from '@/shared/format-date'
 import { useMembers, useTriageRecords, useViewer } from '../../../shared/console-data'
 import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
-import { MEMBERS_SECTION } from '../values'
+import { emptyMembers } from '../utils'
 
 const GRID = '1fr 1fr 140px 120px'
 const COLUMNS = [
@@ -26,7 +26,7 @@ export function useMembersSection(): SectionDefinition {
   const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
 
   return useMemo(() => {
-    if (members.length === 0) return { ...MEMBERS_SECTION, sample: true }
+    if (members.length === 0) return emptyMembers(instance?.githubApp.installUrl)
 
     const open = new Map<string, number>()
     for (const record of records.values()) {

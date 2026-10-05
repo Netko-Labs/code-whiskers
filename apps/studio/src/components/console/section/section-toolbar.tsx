@@ -10,8 +10,8 @@ export function SectionToolbar({ section, tab, filters, definition }: SectionToo
   if (!definition.isScoped && !hasTabs && !hasSearch) return null
 
   return (
-    <div className="flex shrink-0 items-center gap-5 border-border border-b px-8">
-      {definition.isScoped && <ScopePicker className="my-2.5 max-w-[220px]" />}
+    <div className="flex min-h-11 shrink-0 items-center gap-5 border-border border-b px-gutter">
+      {definition.isScoped && <ScopePicker className="my-2 max-w-[220px]" />}
       {hasTabs && (
         <nav className="flex items-center gap-5 self-stretch">
           {definition.tabs.map((label, index) => (
@@ -21,7 +21,7 @@ export function SectionToolbar({ section, tab, filters, definition }: SectionToo
               params={{ section }}
               search={{ ...filters, tab: index }}
               className={cn(
-                '-mb-px flex items-center border-b-2 py-3 text-[13px] transition-colors',
+                'focus-ring -mb-px flex items-center border-b-2 py-3 text-ui transition-colors duration-fast',
                 index === tab
                   ? 'border-foreground font-medium text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground',

@@ -14,7 +14,7 @@ import { useServicesSection } from './hooks/use-services-section'
 import { useTracesSection } from './hooks/use-traces-section'
 import type { SectionHook, TableSectionView } from './types'
 
-/** One data hook per table section; each falls back to its labelled fixture while its source is empty. */
+/** One data hook per table section; each returns its empty definition while its source is empty. */
 export const SECTION_HOOKS: Record<TableSectionView, SectionHook> = {
   'pull-requests': usePullRequestsSection,
   repositories: useRepositoriesSection,
@@ -32,5 +32,5 @@ export const SECTION_HOOKS: Record<TableSectionView, SectionHook> = {
   instance: useInstanceSection,
 }
 
-export const SECTION_SAMPLE_NOTE =
-  'Sample data — this section fills in once its source has something to show'
+export const SECTION_ROW =
+  'group focus-ring-inset grid min-h-row items-center gap-x-4 border-rule-soft border-b px-gutter py-2 transition-colors duration-fast hover:bg-surface-hover'

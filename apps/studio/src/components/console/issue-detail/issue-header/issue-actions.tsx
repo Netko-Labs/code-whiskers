@@ -34,11 +34,11 @@ export function IssueActions({ issue, actions }: IssueActionsProps) {
       </ButtonGroup>
       <AssignMenu
         assigneeUserId={actions.assigneeUserId}
-        isDisabled={actions.isSample}
+        isDisabled={false}
         onAssign={actions.assign}
         isOpen={actions.isAssignOpen}
         onOpenChange={actions.setAssignOpen}
-        trigger={<Button variant="outline" size="sm" title="i" disabled={actions.isSample} />}
+        trigger={<Button variant="outline" size="sm" title="i" />}
       />
       <ButtonGroup>
         <Button

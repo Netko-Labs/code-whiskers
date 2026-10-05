@@ -1,3 +1,4 @@
+import type { CatExpressionName } from '@code-whiskers/ui/brand'
 import type { IssueSort } from '@/integrations/whiskers'
 import type { ConsoleSeverity, ConsoleTone } from './types'
 
@@ -113,14 +114,29 @@ export type SectionTable = {
   footer: string
 }
 
+/** `href` is a console path or an absolute URL (opened in a new tab). */
+export type SectionEmptyAction = {
+  label: string
+  href: string
+}
+
+export type SectionEmpty = {
+  title: string
+  description: string
+  expression?: CatExpressionName
+  action?: SectionEmptyAction
+}
+
 export type SectionDefinition = {
   title: string
   subtitle: string
   actions: SectionAction[]
   stats: SectionStat[]
   tabs: string[]
-  /** A fixture shown until the real source has rows; the view labels it. */
-  sample?: boolean
+  /** What the table says when it has no rows at all; filtered-to-nothing says "no matches". */
+  empty?: SectionEmpty
+  /** The primary source has not answered yet; the table shows a skeleton. */
+  isLoading?: boolean
   /** One line that changes what the reader should do, e.g. why a scoped table is empty. */
   note?: string | null
   /** Reads the console scope; shows the repository picker next to the tabs. */

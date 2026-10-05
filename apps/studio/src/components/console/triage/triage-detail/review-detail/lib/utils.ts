@@ -40,7 +40,8 @@ export function reviewOutcome(
   review: WhiskersReview | undefined,
   open: WhiskersFinding[],
 ): ReviewOutcome {
-  if (!review) return { tone: 'info', title: 'Sample review', note: 'Connect a repository' }
+  if (!review)
+    return { tone: 'info', title: 'Loading the review…', note: 'Reading the latest push' }
   if (review.status === 'failed')
     return { tone: 'bad', title: 'Review failed', note: 'Run it again, or read the worker logs' }
   if (review.status !== 'completed')

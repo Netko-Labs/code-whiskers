@@ -3,20 +3,20 @@ import { Link } from '@tanstack/react-router'
 import type { SectionActionsProps } from './lib'
 import { SectionFormAction } from './section-form-action'
 
-export function SectionActions({ actions, sample }: SectionActionsProps) {
+export function SectionActions({ actions }: SectionActionsProps) {
   return (
     <div className="flex shrink-0 gap-2">
       {actions.map((action) => {
         const variant = action.variant === 'outline' ? 'outline' : 'default'
-        if (action.form && !sample) return <SectionFormAction key={action.label} action={action} />
-        if (action.onSelect && !sample) {
+        if (action.form) return <SectionFormAction key={action.label} action={action} />
+        if (action.onSelect) {
           return (
             <Button key={action.label} size="sm" variant={variant} onClick={action.onSelect}>
               {action.label}
             </Button>
           )
         }
-        if (!action.href || sample) {
+        if (!action.href) {
           return (
             <Button
               key={action.label}

@@ -3,7 +3,6 @@ import { type ReviewDetailProps, useFindingDecisions, useReviewDetail } from './
 import { ReviewFindings } from './review-findings'
 import { ReviewOutcome } from './review-outcome'
 import { ReviewRead } from './review-read'
-import { ReviewSampleEvidence } from './review-sample-evidence'
 import { ReviewSidebar } from './review-sidebar'
 
 export function ReviewDetail({ item, actions }: ReviewDetailProps) {
@@ -20,7 +19,6 @@ export function ReviewDetail({ item, actions }: ReviewDetailProps) {
             className="flex @[720px]:hidden"
           />
           <ReviewRead item={item} />
-          <ReviewSampleEvidence item={item} actions={actions} />
           {item.sourceId && (
             <ReviewFindings item={item} detail={detail} decisions={decisions} actions={actions} />
           )}

@@ -2,6 +2,8 @@ import type {
   SectionAction,
   SectionCell,
   SectionDefinition,
+  SectionEmpty,
+  SectionEmptyAction,
   SectionFilters,
   SectionForm,
   SectionFormResult,
@@ -24,6 +26,17 @@ export type SectionViewProps = {
 export type SectionTableProps = {
   table: SectionTable
   minWidth: number
+  empty?: SectionEmpty
+  isLoading?: boolean
+}
+
+export type SectionEmptyStateProps = {
+  empty?: SectionEmpty
+}
+
+export type SectionLinkProps = {
+  action: SectionEmptyAction
+  className: string
 }
 
 export type SectionCellProps = {
@@ -37,10 +50,7 @@ export type SectionHook = (
 ) => SectionDefinition
 
 export type SectionHeaderProps = {
-  definition: Pick<
-    SectionDefinition,
-    'title' | 'subtitle' | 'stats' | 'note' | 'sample' | 'actions'
-  >
+  definition: Pick<SectionDefinition, 'title' | 'subtitle' | 'stats' | 'note' | 'actions'>
 }
 
 export type SectionToolbarProps = {
@@ -66,7 +76,6 @@ export type SectionSearchBoxProps = {
 
 export type SectionActionsProps = {
   actions: SectionAction[]
-  sample: boolean
 }
 
 export type StoreRow = {

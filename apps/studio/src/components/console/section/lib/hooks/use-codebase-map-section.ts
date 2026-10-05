@@ -38,10 +38,10 @@ export function useCodebaseMapSection(
   _filters: SectionFilters,
   scope: ConsoleScope,
 ): SectionDefinition {
-  const { data } = useQuery({ ...whiskersHotspotsQuery(), retry: false })
+  const { data, isLoading } = useQuery({ ...whiskersHotspotsQuery(), retry: false })
 
   return useMemo(() => {
-    if (!data?.length) return { ...CODEBASE_MAP_SECTION, sample: true }
+    if (!data?.length) return { ...CODEBASE_MAP_SECTION, isLoading }
     const spots = data.filter((spot) => isInScope(scope, { repository: spot.repository }))
 
     const visible = tab === 1 ? spots.filter((s) => blocking(s) > 0) : spots
@@ -112,5 +112,5 @@ export function useCodebaseMapSection(
       tabs: [...TABS],
       table,
     }
-  }, [data, tab, scope])
+  }, [data, isLoading, tab, scope])
 }

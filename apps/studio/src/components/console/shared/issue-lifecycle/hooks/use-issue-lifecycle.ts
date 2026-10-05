@@ -12,12 +12,10 @@ import {
 import type { WhiskersIssue } from '@/integrations/whiskers'
 import { useConsoleStore } from '../../../use-console-store'
 import {
-  isSampleIssue,
   issueTriageRef,
   patchTriageCache,
   readTriage,
   restoreTriageCache,
-  SAMPLE_ACTION_NOTE,
 } from '../../console-data'
 import type { IssueCacheSnapshot, IssueLifecycleApi, LifecycleAction } from '../types'
 import {
@@ -74,17 +72,13 @@ function applyLifecycle(
   issues: WhiskersIssue[],
   action: LifecycleAction,
 ) {
-  const live = issues.filter((issue) => !isSampleIssue(issue))
-  if (live.length === 0) {
-    flash(SAMPLE_ACTION_NOTE)
-    return
-  }
+  if (issues.length === 0) return
   const now = new Date()
-  const next = new Map(live.map((issue) => [issue.id, applyAction(issue, action, now)]))
-  const previous = new Map(live.map((issue) => [issue.id, issue]))
-  void send(queryClient, lifecycleRequests(live, action, now), rewrite(queryClient, next))
-  flash(lifecycleMessage(action, live), () => {
-    void send(queryClient, restoreRequests(live), rewrite(queryClient, previous))
+  const next = new Map(issues.map((issue) => [issue.id, applyAction(issue, action, now)]))
+  const previous = new Map(issues.map((issue) => [issue.id, issue]))
+  void send(queryClient, lifecycleRequests(issues, action, now), rewrite(queryClient, next))
+  flash(lifecycleMessage(action, issues), () => {
+    void send(queryClient, restoreRequests(issues), rewrite(queryClient, previous))
   })
 }
 
@@ -126,11 +120,8 @@ function assignIssues(
 }
 
 function assignLifecycle(queryClient: QueryClient, issues: WhiskersIssue[], member: Member | null) {
-  const refs = issues.flatMap((issue) => issueTriageRef(issue) ?? [])
-  if (refs.length === 0) {
-    flash(SAMPLE_ACTION_NOTE)
-    return
-  }
+  const refs = issues.map(issueTriageRef)
+  if (refs.length === 0) return
   const before = refs.map((ref) => readTriage(queryClient, ref)?.assigneeUserId ?? null)
   assignIssues(
     queryClient,

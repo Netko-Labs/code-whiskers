@@ -1,6 +1,7 @@
 import { IconX } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { ToolbarSearch } from '@/components/shared/toolbar'
 import type { SectionSearchBoxProps } from './lib'
 
 const DEBOUNCE_MS = 300
@@ -26,13 +27,7 @@ export function SectionSearchBox({ section, tab, filters, placeholder }: Section
 
   return (
     <div className="ml-auto flex items-center gap-1.5 py-2.5">
-      <input
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        className="h-8 w-[260px] rounded-lg border border-border bg-transparent px-3 text-[13px] outline-none transition-colors placeholder:text-faint focus-visible:border-ring"
-      />
+      <ToolbarSearch value={draft} onValueChange={setDraft} placeholder={placeholder} />
       {filters.service && (
         <button
           type="button"
@@ -43,7 +38,7 @@ export function SectionSearchBox({ section, tab, filters, placeholder }: Section
               search: { ...filters, tab, service: undefined },
             })
           }
-          className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 font-mono text-[11px]"
+          className="focus-ring flex h-7 animate-enter-scale items-center gap-1 rounded-md border border-border px-2 font-mono text-2xs transition-colors hover:bg-surface-hover"
         >
           service: {filters.service}
           <IconX className="size-3" stroke={2} />

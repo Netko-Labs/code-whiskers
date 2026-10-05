@@ -15,7 +15,7 @@ export type IssueDetailProps = {
   issueId: string
   /** The row the list already has, so the header paints before the detail arrives. */
   seed?: WhiskersIssue
-  /** Shown above the evidence, e.g. Whiskers' read on a sample issue. */
+  /** Shown above the evidence, e.g. Whiskers' read on the issue. */
   lead?: ReactNode
 }
 
@@ -41,7 +41,6 @@ export type IssueEventsState = {
 }
 
 export type IssueActionsState = {
-  isSample: boolean
   assigneeUserId: string | null
   isArchiveOpen: boolean
   setArchiveOpen: (isOpen: boolean) => void
@@ -54,7 +53,7 @@ export type IssueActionsState = {
 }
 
 export type IssueActivityState = {
-  ref: TriageItemRef | null
+  ref: TriageItemRef
   entries: TriageActivity[]
   draft: string
   setDraft: (draft: string) => void

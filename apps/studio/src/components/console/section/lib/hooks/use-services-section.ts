@@ -30,8 +30,7 @@ export function useServicesSection(
 
   return useMemo(() => {
     const services = data ?? []
-    if (isFetched && services.length === 0 && !scope.value)
-      return { ...SERVICES_SECTION, sample: true }
+    if (isFetched && services.length === 0 && !scope.value) return SERVICES_SECTION
     const erroring = services.filter((s) => s.logErrors + s.spanErrors > 0)
     const visible = tab === 1 ? erroring : services
     const slowest = [...services].sort((a, b) => (b.p95Ms ?? 0) - (a.p95Ms ?? 0))[0]

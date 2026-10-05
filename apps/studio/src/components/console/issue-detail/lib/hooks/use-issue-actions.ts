@@ -46,8 +46,7 @@ export function useIssueActions(issue: WhiskersIssue): IssueActionsState {
 
   return {
     ...actions,
-    isSample: ref === null,
-    assigneeUserId: ref ? (records.get(triageKey(ref))?.assigneeUserId ?? null) : null,
+    assigneeUserId: records.get(triageKey(ref))?.assigneeUserId ?? null,
     isArchiveOpen,
     setArchiveOpen,
     isAssignOpen,

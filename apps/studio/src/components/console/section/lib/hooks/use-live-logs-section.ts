@@ -53,7 +53,7 @@ export function useLiveLogsSection(
     const lines = data ?? []
     const isFiltered = !!(filters.q || filters.service || level || scope.value)
     if (isFetched && lines.length === 0 && !isFiltered) {
-      return { ...LIVE_LOGS_SECTION, sample: true }
+      return LIVE_LOGS_SECTION
     }
     const origin = typeof window === 'undefined' ? '' : window.location.origin
     const services = new Set(lines.map((l) => l.service))

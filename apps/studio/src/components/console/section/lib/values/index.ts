@@ -1,12 +1,21 @@
 import type { SectionDefinition, SectionView } from '../../../shared/console-model'
 import type { IssueSectionView, TableSectionView } from '../types'
-import { PULL_REQUESTS_SECTION, REPOSITORIES_SECTION, REVIEW_RULES_SECTION } from './code-sections'
-import { CODEBASE_MAP_SECTION } from './codebase-map-section'
-import { INSTANCE_SECTION } from './instance-section'
-import { API_KEYS_SECTION, INTEGRATIONS_SECTION, MEMBERS_SECTION } from './org-sections'
-import { ALERT_RULES_SECTION, RELEASES_SECTION } from './release-sections'
-import { SAVED_QUERIES_SECTION, SERVICES_SECTION } from './service-sections'
-import { LIVE_LOGS_SECTION, TRACES_SECTION } from './telemetry-sections'
+import {
+  ALERT_RULES_SECTION,
+  API_KEYS_SECTION,
+  CODEBASE_MAP_SECTION,
+  INSTANCE_SECTION,
+  INTEGRATIONS_SECTION,
+  LIVE_LOGS_SECTION,
+  MEMBERS_SECTION,
+  PULL_REQUESTS_SECTION,
+  RELEASES_SECTION,
+  REPOSITORIES_SECTION,
+  REVIEW_RULES_SECTION,
+  SAVED_QUERIES_SECTION,
+  SERVICES_SECTION,
+  TRACES_SECTION,
+} from './empty-sections'
 
 export {
   ALERT_RULES_SECTION,

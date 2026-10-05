@@ -13,13 +13,12 @@ import {
   patchTriageCache,
   readTriage,
   restoreTriageCache,
-  SAMPLE_ACTION_NOTE,
 } from '../../../shared/console-data'
 import type { ConsoleItem } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
 import type { DetailActions } from '../types'
 import { formatUntil, snoozeDeadline } from '../utils'
-import { DISMISS_NOTE } from '../values'
+import { DISMISS_NOTE, FIX_UNAVAILABLE_NOTE, NO_EVIDENCE_NOTE, NOTHING_TO_DECIDE } from '../values'
 
 type DecisionExtra = Pick<TriageDecision, 'note' | 'snoozedUntil'>
 
@@ -71,7 +70,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
 
   return useMemo(() => {
     const live = (): TriageItemRef | null => {
-      if (!item.triage) flash(SAMPLE_ACTION_NOTE)
+      if (!item.triage) flash(NOTHING_TO_DECIDE)
       return item.triage
     }
 
@@ -124,7 +123,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
         )
       },
 
-      onEvidence: () => flash(SAMPLE_ACTION_NOTE),
+      onEvidence: () => flash(NO_EVIDENCE_NOTE),
 
       toggleFinding: (finding, isDismissed) => {
         const target = live()
@@ -147,7 +146,7 @@ export function useDetailActions(item: ConsoleItem): DetailActions {
       closeFix: () => useConsoleStore.getState().closeFix(),
       commitFix: () => {
         useConsoleStore.getState().closeFix()
-        flash(SAMPLE_ACTION_NOTE)
+        flash(FIX_UNAVAILABLE_NOTE)
       },
 
       assignTo: (member) => {

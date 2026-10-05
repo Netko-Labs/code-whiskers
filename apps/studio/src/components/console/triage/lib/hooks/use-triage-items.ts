@@ -14,8 +14,8 @@ import { matchesFilter } from '../utils'
 export type TriageItemsResult = {
   items: ConsoleItem[]
   selected: ConsoleItem | undefined
-  sample: boolean
   unreachable: boolean
+  isLoading: boolean
 }
 
 function inOrganization(item: ConsoleItem, orgLogin: string | null): boolean {
@@ -28,7 +28,7 @@ export function useTriageItems(
   filter: TriageFilter,
   selectedId: string | undefined,
 ): TriageItemsResult {
-  const { items, sample, unreachable } = useConsoleItems()
+  const { items, unreachable, isLoading } = useConsoleItems()
   const records = useTriageRecords()
   const viewer = useViewer()
   const orgLogin = useConsoleStore((s) => s.orgLogin)
@@ -46,6 +46,6 @@ export function useTriageItems(
     })
 
     const selected = visible.find((item) => item.id === selectedId) ?? visible[0]
-    return { items: visible, selected, sample, unreachable }
-  }, [items, records, viewer, orgLogin, scope, bucket, filter, selectedId, sample, unreachable])
+    return { items: visible, selected, unreachable, isLoading }
+  }, [items, records, viewer, orgLogin, scope, bucket, filter, selectedId, unreachable, isLoading])
 }

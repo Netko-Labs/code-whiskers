@@ -17,7 +17,7 @@ export function IssueHeader({ issue }: IssueHeaderProps) {
     <header className="flex shrink-0 flex-col gap-3 border-border border-b px-8 pt-5 pb-4">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex min-w-0 items-center gap-2 text-[12px] text-muted-foreground">
-          <span className="truncate">{project?.name ?? 'Sample project'}</span>
+          <span className="truncate">{project?.name ?? issue.projectId.slice(0, 8)}</span>
           <span className="text-faint">/</span>
           <span className="shrink-0 font-mono">{issue.id.slice(0, 8)}</span>
           <span className="text-faint">·</span>

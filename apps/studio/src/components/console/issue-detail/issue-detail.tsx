@@ -1,11 +1,6 @@
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from '@code-whiskers/ui/components/empty'
-import { Spinner } from '@code-whiskers/ui/components/spinner'
 import { useState } from 'react'
+import { EmptyState } from '@/components/shared/empty-state'
+import { PageHeaderSkeleton, PanelSkeleton } from '@/components/shared/page'
 import type { IssuePeriod } from '@/integrations/whiskers'
 import { IssueEvent } from './issue-event'
 import { IssueHeader } from './issue-header'
@@ -20,15 +15,11 @@ export function IssueDetail({ issueId, seed, lead }: IssueDetailProps) {
 
   if (!issue) {
     return isMissing ? (
-      <Empty className="flex-1">
-        <EmptyHeader>
-          <EmptyTitle>Issue not found</EmptyTitle>
-          <EmptyDescription>{MISSING_ISSUE}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <EmptyState expression="confused" title="Issue not found" description={MISSING_ISSUE} />
     ) : (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner className="size-5 text-muted-foreground" />
+      <div className="flex flex-1 flex-col gap-4">
+        <PageHeaderSkeleton />
+        <PanelSkeleton rows={4} className="mx-gutter" />
       </div>
     )
   }

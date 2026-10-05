@@ -11,7 +11,7 @@ import { whiskersReviewsQuery } from '@/integrations/whiskers'
 import { formatAge } from '@/shared/format-date'
 import type { SectionDefinition, SectionTable } from '../../../shared/console-model'
 import { useConsoleStore } from '../../../use-console-store'
-import { REPOSITORIES_SECTION } from '../values'
+import { emptyRepositories } from '../utils'
 
 const GRID = '1fr 130px 110px 130px 120px 100px'
 const COLUMNS = [
@@ -29,13 +29,13 @@ const COLUMNS = [
  */
 export function useRepositoriesSection(tab: number): SectionDefinition {
   const queryClient = useQueryClient()
-  const { data: repositories } = useQuery({ ...repositoriesQuery(), retry: false })
+  const { data: repositories, isLoading } = useQuery({ ...repositoriesQuery(), retry: false })
   const { data: reviews } = useQuery({ ...whiskersReviewsQuery(), retry: false })
   const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
 
   return useMemo(() => {
     const repos = repositories ?? []
-    if (repos.length === 0) return { ...REPOSITORIES_SECTION, sample: true }
+    if (repos.length === 0) return emptyRepositories(instance?.githubApp.installUrl, isLoading)
 
     const bySlug = new Map<string, { reviews: number; findings: number }>()
     for (const review of reviews ?? []) {
@@ -159,5 +159,5 @@ export function useRepositoriesSection(tab: number): SectionDefinition {
       tabs: ['All', 'Watched', 'Paused'],
       table,
     }
-  }, [repositories, reviews, instance, tab, queryClient])
+  }, [repositories, isLoading, reviews, instance, tab, queryClient])
 }

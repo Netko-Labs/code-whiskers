@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { EmptyState } from '@/components/shared/empty-state'
 import { savedQueriesQuery } from '@/integrations/studio-api'
 import { ProjectInstallPanel } from '../../shared/project-setup'
 import { saveViewAction } from '../lib'
@@ -77,13 +78,17 @@ export function IssueList({ section, tab, filters }: IssueListProps) {
             !list.isLoading &&
             !list.hasNoProjects &&
             !list.silentProject && (
-              <p className="m-0 px-8 py-16 text-center text-[13px] text-muted-foreground">
-                {list.isUnreachable
-                  ? UNREACHABLE_EMPTY
-                  : isRegressions
-                    ? REGRESSIONS_EMPTY
-                    : EMPTY_WORDS[status]}
-              </p>
+              <EmptyState
+                size="inline"
+                expression={list.isUnreachable ? 'confused' : 'sleeping'}
+                title={
+                  list.isUnreachable
+                    ? UNREACHABLE_EMPTY
+                    : isRegressions
+                      ? REGRESSIONS_EMPTY
+                      : EMPTY_WORDS[status]
+                }
+              />
             )}
           <IssueListFooter
             shown={list.rows.length}
