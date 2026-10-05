@@ -17,6 +17,10 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiMonitorRouteImport } from './routes/api/monitor'
 import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
+import { Route as ConsoleCodebaseMapRouteImport } from './routes/console/codebase-map'
+import { Route as ConsolePullRequestsRouteImport } from './routes/console/pull-requests'
+import { Route as ConsoleRepositoriesRouteImport } from './routes/console/repositories'
+import { Route as ConsoleReviewRulesRouteImport } from './routes/console/review-rules'
 import { Route as OtlpSplatRouteImport } from './routes/otlp/$'
 import { Route as V1SplatRouteImport } from './routes/v1/$'
 import { Route as WebhooksSplatRouteImport } from './routes/webhooks/$'
@@ -24,6 +28,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ConsoleIssuesIssueIdRouteImport } from './routes/console/issues.$issueId'
 import { Route as ConsoleProjectsProjectIdRouteImport } from './routes/console/projects.$projectId'
 import { Route as ConsoleProjectsNewRouteImport } from './routes/console/projects.new'
+import { Route as ConsoleReviewsReviewIdRouteImport } from './routes/console/reviews.$reviewId'
 import { Route as ConsoleTriageBucketRouteImport } from './routes/console/triage.$bucket'
 
 const IndexRoute = IndexRouteImport.update({
@@ -66,6 +71,26 @@ const ConsoleSectionRoute = ConsoleSectionRouteImport.update({
   path: '/$section',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleCodebaseMapRoute = ConsoleCodebaseMapRouteImport.update({
+  id: '/codebase-map',
+  path: '/codebase-map',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsolePullRequestsRoute = ConsolePullRequestsRouteImport.update({
+  id: '/pull-requests',
+  path: '/pull-requests',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleRepositoriesRoute = ConsoleRepositoriesRouteImport.update({
+  id: '/repositories',
+  path: '/repositories',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleReviewRulesRoute = ConsoleReviewRulesRouteImport.update({
+  id: '/review-rules',
+  path: '/review-rules',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const OtlpSplatRoute = OtlpSplatRouteImport.update({
   id: '/otlp/$',
   path: '/otlp/$',
@@ -102,6 +127,11 @@ const ConsoleProjectsNewRoute = ConsoleProjectsNewRouteImport.update({
   path: '/projects/new',
   getParentRoute: () => ConsoleRoute,
 } as any)
+const ConsoleReviewsReviewIdRoute = ConsoleReviewsReviewIdRouteImport.update({
+  id: '/reviews/$reviewId',
+  path: '/reviews/$reviewId',
+  getParentRoute: () => ConsoleRoute,
+} as any)
 const ConsoleTriageBucketRoute = ConsoleTriageBucketRouteImport.update({
   id: '/triage/$bucket',
   path: '/triage/$bucket',
@@ -116,6 +146,10 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/pull-requests': typeof ConsolePullRequestsRoute
+  '/console/repositories': typeof ConsoleRepositoriesRoute
+  '/console/review-rules': typeof ConsoleReviewRulesRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -124,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +168,10 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/pull-requests': typeof ConsolePullRequestsRoute
+  '/console/repositories': typeof ConsoleRepositoriesRoute
+  '/console/review-rules': typeof ConsoleReviewRulesRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -141,6 +180,7 @@ export interface FileRoutesByTo {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRoutesById {
@@ -152,6 +192,10 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/api/monitor': typeof ApiMonitorRoute
   '/console/$section': typeof ConsoleSectionRoute
+  '/console/codebase-map': typeof ConsoleCodebaseMapRoute
+  '/console/pull-requests': typeof ConsolePullRequestsRoute
+  '/console/repositories': typeof ConsoleRepositoriesRoute
+  '/console/review-rules': typeof ConsoleReviewRulesRoute
   '/otlp/$': typeof OtlpSplatRoute
   '/v1/$': typeof V1SplatRoute
   '/webhooks/$': typeof WebhooksSplatRoute
@@ -160,6 +204,7 @@ export interface FileRoutesById {
   '/console/issues/$issueId': typeof ConsoleIssuesIssueIdRoute
   '/console/projects/$projectId': typeof ConsoleProjectsProjectIdRoute
   '/console/projects/new': typeof ConsoleProjectsNewRoute
+  '/console/reviews/$reviewId': typeof ConsoleReviewsReviewIdRoute
   '/console/triage/$bucket': typeof ConsoleTriageBucketRoute
 }
 export interface FileRouteTypes {
@@ -172,6 +217,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/codebase-map'
+    | '/console/pull-requests'
+    | '/console/repositories'
+    | '/console/review-rules'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -180,6 +229,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -189,6 +239,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/codebase-map'
+    | '/console/pull-requests'
+    | '/console/repositories'
+    | '/console/review-rules'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -197,6 +251,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   id:
     | '__root__'
@@ -207,6 +262,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/api/monitor'
     | '/console/$section'
+    | '/console/codebase-map'
+    | '/console/pull-requests'
+    | '/console/repositories'
+    | '/console/review-rules'
     | '/otlp/$'
     | '/v1/$'
     | '/webhooks/$'
@@ -215,6 +274,7 @@ export interface FileRouteTypes {
     | '/console/issues/$issueId'
     | '/console/projects/$projectId'
     | '/console/projects/new'
+    | '/console/reviews/$reviewId'
     | '/console/triage/$bucket'
   fileRoutesById: FileRoutesById
 }
@@ -289,6 +349,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleSectionRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/codebase-map': {
+      id: '/console/codebase-map'
+      path: '/codebase-map'
+      fullPath: '/console/codebase-map'
+      preLoaderRoute: typeof ConsoleCodebaseMapRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/pull-requests': {
+      id: '/console/pull-requests'
+      path: '/pull-requests'
+      fullPath: '/console/pull-requests'
+      preLoaderRoute: typeof ConsolePullRequestsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/repositories': {
+      id: '/console/repositories'
+      path: '/repositories'
+      fullPath: '/console/repositories'
+      preLoaderRoute: typeof ConsoleRepositoriesRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/review-rules': {
+      id: '/console/review-rules'
+      path: '/review-rules'
+      fullPath: '/console/review-rules'
+      preLoaderRoute: typeof ConsoleReviewRulesRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/otlp/$': {
       id: '/otlp/$'
       path: '/otlp/$'
@@ -338,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsoleProjectsNewRouteImport
       parentRoute: typeof ConsoleRoute
     }
+    '/console/reviews/$reviewId': {
+      id: '/console/reviews/$reviewId'
+      path: '/reviews/$reviewId'
+      fullPath: '/console/reviews/$reviewId'
+      preLoaderRoute: typeof ConsoleReviewsReviewIdRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
     '/console/triage/$bucket': {
       id: '/console/triage/$bucket'
       path: '/triage/$bucket'
@@ -350,19 +445,29 @@ declare module '@tanstack/react-router' {
 
 interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
+  ConsoleCodebaseMapRoute: typeof ConsoleCodebaseMapRoute
+  ConsolePullRequestsRoute: typeof ConsolePullRequestsRoute
+  ConsoleRepositoriesRoute: typeof ConsoleRepositoriesRoute
+  ConsoleReviewRulesRoute: typeof ConsoleReviewRulesRoute
   ConsoleIndexRoute: typeof ConsoleIndexRoute
   ConsoleIssuesIssueIdRoute: typeof ConsoleIssuesIssueIdRoute
   ConsoleProjectsProjectIdRoute: typeof ConsoleProjectsProjectIdRoute
   ConsoleProjectsNewRoute: typeof ConsoleProjectsNewRoute
+  ConsoleReviewsReviewIdRoute: typeof ConsoleReviewsReviewIdRoute
   ConsoleTriageBucketRoute: typeof ConsoleTriageBucketRoute
 }
 
 const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
+  ConsoleCodebaseMapRoute: ConsoleCodebaseMapRoute,
+  ConsolePullRequestsRoute: ConsolePullRequestsRoute,
+  ConsoleRepositoriesRoute: ConsoleRepositoriesRoute,
+  ConsoleReviewRulesRoute: ConsoleReviewRulesRoute,
   ConsoleIndexRoute: ConsoleIndexRoute,
   ConsoleIssuesIssueIdRoute: ConsoleIssuesIssueIdRoute,
   ConsoleProjectsProjectIdRoute: ConsoleProjectsProjectIdRoute,
   ConsoleProjectsNewRoute: ConsoleProjectsNewRoute,
+  ConsoleReviewsReviewIdRoute: ConsoleReviewsReviewIdRoute,
   ConsoleTriageBucketRoute: ConsoleTriageBucketRoute,
 }
 

@@ -8,52 +8,6 @@ const BARE = { actions: [], stats: [], tabs: [], table: NO_ROWS }
 const SET_UP_PROJECT = { label: 'Set up a project', href: '/console/projects/new' }
 const CONNECT_REPOSITORY = { label: 'Connect a repository', href: '/console/repositories' }
 
-export const PULL_REQUESTS_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Pull requests',
-  subtitle: 'Whiskers reviews every push to a watched repository',
-  empty: {
-    title: 'No reviews yet',
-    description:
-      'Install the GitHub App on a repository and open a pull request. Whiskers posts its review a minute or two after each push.',
-    action: CONNECT_REPOSITORY,
-  },
-}
-
-export const REPOSITORIES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Repositories',
-  subtitle: 'Repositories the GitHub App can see',
-  empty: {
-    title: 'No repositories connected',
-    description:
-      'Install the CodeWhiskers GitHub App on an account or organization, then pick which repositories Whiskers watches.',
-  },
-}
-
-export const CODEBASE_MAP_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Codebase map',
-  subtitle: 'Where findings land across your repositories',
-  empty: {
-    title: 'Nothing mapped yet',
-    description:
-      'The map fills in from review findings. After Whiskers has reviewed a few pull requests, the files that keep coming up show here.',
-    action: { label: 'See pull requests', href: '/console/pull-requests' },
-  },
-}
-
-export const REVIEW_RULES_SECTION: SectionDefinition = {
-  ...BARE,
-  title: 'Review rules',
-  subtitle: 'Plain-English instructions Whiskers follows on every pull request',
-  empty: {
-    title: 'Connect GitHub first',
-    description: 'Rules belong to an organization, so they need a GitHub App installation.',
-    action: CONNECT_REPOSITORY,
-  },
-}
-
 export const RELEASES_SECTION: SectionDefinition = {
   ...BARE,
   title: 'Releases',

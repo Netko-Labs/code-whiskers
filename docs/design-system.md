@@ -202,7 +202,7 @@ real charts with axes.
 ### Status — `@/components/shared/status`
 
 `SeverityDot` (`tone`, `isPulsing`, `label` makes it readable), `StatusBadge` (hairline pill,
-color in the dot, ink text), `LiveDot` (pulsing "Live" / grey "Paused"). `Tone` is
+color in the dot, ink text; `isPulsing` for a state still in progress), `LiveDot` (pulsing "Live" / grey "Paused"). `Tone` is
 `'error' | 'warning' | 'resolved' | 'info' | 'neutral'`; `TONE_DOT`, `TONE_INK`, `TONE_RULE`,
 `TONE_STROKE` map it to classes. The older console vocabularies (`ConsoleSeverity`,
 `PillTone` in `console/shared/console-ui`) still exist for legacy screens; new code uses `Tone`.
@@ -269,6 +269,24 @@ verbs ("Set up a project", not "Get started"). Numbers are real or absent; blank
   numbers; `TopbarActions` renders nothing until the shell mounts; `CatExpression` in an
   `EmptyState` uses `--background` as its paper, so place it on the page background.
 
+## Code review
+
+`components/console/code-review/` owns the Code review group; each page has its own static route
+under `routes/console/` (they win over `$section`):
+
+- `/console/pull-requests` — one row per pull request, read from its newest push. `repo`,
+  `verdict` (comma lists), `mine` and `sort` live in the URL; the search box filters as you type.
+  Rows re-key when a push lands over realtime and play `animate-highlight` once.
+- `/console/reviews/$reviewId` — any push's review id; the page shows the whole pull request as of
+  that push (`GET /v1/reviews/:id/pull-request`), with the push timeline on the right.
+- `/console/repositories`, `/console/codebase-map`, `/console/review-rules`.
+
+Finding status on the review page is derived, never stored: **open** (reported by the push the
+page reads), **dismissed** (studio triage), **resolved** (an earlier push's finding that a later
+complete full read no longer reports), **outdated** (not re-reported, but only delta or partial
+reads came after). Whiskers drops findings a human answered on GitHub before saving, so "answered"
+is not shown. Shared pieces: `shared/review-model` (pure logic), `VerdictBadge`, `SeverityCounts`.
+
 ## References
 
 Mobbin screens used for the direction:
@@ -287,3 +305,9 @@ Mobbin screens used for the direction:
   [f53e7f03](https://mobbin.com/screens/f53e7f03-0407-4886-8122-49a7a9fe53e5)
 - Inset content panel beside a canvas sidebar (AirOps) —
   [7add224e](https://mobbin.com/screens/7add224e-bafe-4c01-80f9-1e86514011d0)
+- GitHub files-changed review and PR conversation (code review pages) —
+  [e9bad011](https://mobbin.com/screens/e9bad011-d5c5-4e8d-b56f-4fba2ffde691),
+  [f187fa83](https://mobbin.com/screens/f187fa83-44e8-4edb-bcb5-1c49f24cae9f)
+- Vercel deployments list and deployment detail (push timeline, verdict dots) —
+  [e9576405](https://mobbin.com/screens/e9576405-bcef-419a-922a-8fb84b044a54),
+  [ff81f1e9](https://mobbin.com/screens/ff81f1e9-25b1-46f9-8448-31fa40a77e4b)

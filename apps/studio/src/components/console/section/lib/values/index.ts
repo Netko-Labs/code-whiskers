@@ -1,17 +1,13 @@
-import type { SectionDefinition, SectionView } from '../../../shared/console-model'
-import type { IssueSectionView, TableSectionView } from '../types'
+import type { SectionDefinition } from '../../../shared/console-model'
+import type { IssueSectionView, SectionScreenView, TableSectionView } from '../types'
 import {
   ALERT_RULES_SECTION,
   API_KEYS_SECTION,
-  CODEBASE_MAP_SECTION,
   INSTANCE_SECTION,
   INTEGRATIONS_SECTION,
   LIVE_LOGS_SECTION,
   MEMBERS_SECTION,
-  PULL_REQUESTS_SECTION,
   RELEASES_SECTION,
-  REPOSITORIES_SECTION,
-  REVIEW_RULES_SECTION,
   SAVED_QUERIES_SECTION,
   SERVICES_SECTION,
   TRACES_SECTION,
@@ -20,24 +16,16 @@ import {
 export {
   ALERT_RULES_SECTION,
   API_KEYS_SECTION,
-  CODEBASE_MAP_SECTION,
   INSTANCE_SECTION,
   INTEGRATIONS_SECTION,
   LIVE_LOGS_SECTION,
   MEMBERS_SECTION,
-  PULL_REQUESTS_SECTION,
   RELEASES_SECTION,
-  REPOSITORIES_SECTION,
-  REVIEW_RULES_SECTION,
   SERVICES_SECTION,
   TRACES_SECTION,
 }
 
 export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
-  'pull-requests': PULL_REQUESTS_SECTION,
-  repositories: REPOSITORIES_SECTION,
-  'codebase-map': CODEBASE_MAP_SECTION,
-  'review-rules': REVIEW_RULES_SECTION,
   releases: RELEASES_SECTION,
   'alert-rules': ALERT_RULES_SECTION,
   'live-logs': LIVE_LOGS_SECTION,
@@ -52,7 +40,7 @@ export const SECTIONS: Record<TableSectionView, SectionDefinition> = {
 
 export const ISSUE_SECTION_VIEWS: IssueSectionView[] = ['issues', 'regressions']
 
-export const SECTION_VIEWS: SectionView[] = [
+export const SECTION_VIEWS: SectionScreenView[] = [
   ...(Object.keys(SECTIONS) as TableSectionView[]),
   ...ISSUE_SECTION_VIEWS,
 ]

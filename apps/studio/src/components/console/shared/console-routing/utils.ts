@@ -1,6 +1,6 @@
 import { ISSUE_SORTS } from '@/integrations/whiskers'
-import { SECTION_VIEWS } from '../../section/lib'
-import type { SectionView, TriageBucket, TriageFilter } from '../console-model'
+import { SECTION_VIEWS, type SectionScreenView } from '../../section/lib'
+import type { TriageBucket, TriageFilter } from '../console-model'
 import type {
   ConsoleScopeSearch,
   ConsoleScopeSearchInput,
@@ -17,7 +17,7 @@ export function parseTriageBucket(value: string): TriageBucket {
   return BUCKETS.find((bucket) => bucket === value) ?? 'inbox'
 }
 
-export function toSectionView(value: string): SectionView | undefined {
+export function toSectionView(value: string): SectionScreenView | undefined {
   return SECTION_VIEWS.find((view) => view === value)
 }
 

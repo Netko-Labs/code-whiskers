@@ -15,10 +15,16 @@ import type { ConsoleScope } from '../../shared/console-scope'
 
 /** Issues and Regressions are the issue list, not a generic table. */
 export type IssueSectionView = Extract<SectionView, 'issues' | 'regressions'>
-export type TableSectionView = Exclude<SectionView, IssueSectionView>
+/** Code review has its own routes under `routes/console/`, not the section table. */
+export type CodeReviewSectionView = Extract<
+  SectionView,
+  'pull-requests' | 'repositories' | 'codebase-map' | 'review-rules'
+>
+export type TableSectionView = Exclude<SectionView, IssueSectionView | CodeReviewSectionView>
+export type SectionScreenView = IssueSectionView | TableSectionView
 
 export type SectionViewProps = {
-  section: SectionView
+  section: SectionScreenView
   tab: number
   filters: SectionFilters
 }
