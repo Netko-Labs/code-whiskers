@@ -69,6 +69,15 @@ export type KeyValueProps = {
   className?: string
 }
 
+export type SettingRowProps = {
+  label: ReactNode
+  description?: ReactNode
+  /** Makes the label a <label> for the control on the right. */
+  htmlFor?: string
+  children?: ReactNode
+  className?: string
+}
+
 export type SkeletonRowsProps = {
   rows?: number
   className?: string

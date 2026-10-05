@@ -1,17 +1,11 @@
 import { useSyncExternalStore } from 'react'
-import { REDUCED_MOTION_QUERY } from '../constants'
+import { isMotionReduced, readMotionPreference, readSystemReduced, subscribeMotion } from '../utils'
 
-function subscribe(onChange: () => void): () => void {
-  const query = window.matchMedia(REDUCED_MOTION_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-function readPreference(): boolean {
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches
+function readReduced(): boolean {
+  return isMotionReduced(readMotionPreference(), readSystemReduced())
 }
 
 /** The server renders the still version; the client upgrades only if motion is welcome. */
 export function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(subscribe, readPreference, () => true)
+  return useSyncExternalStore(subscribeMotion, readReduced, () => true)
 }

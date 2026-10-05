@@ -1,4 +1,7 @@
 export * from './constants'
 export { useCountUp } from './hooks/use-count-up'
+export { useMotionPreference } from './hooks/use-motion-preference'
 export { usePrefersReducedMotion } from './hooks/use-prefers-reduced-motion'
+export { useStoredMotion } from './hooks/use-stored-motion'
+export type * from './types'
 export * from './utils'

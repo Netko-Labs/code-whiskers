@@ -221,3 +221,27 @@
     animation: none;
   }
 }
+
+/* The in-app "Reduce motion" setting (Settings → Account) does the same without the OS. */
+:root[data-motion="reduce"] {
+  --motion-fast: 0ms;
+  --motion-base: 0ms;
+  --motion-slow: 0ms;
+  --stagger-step: 0ms;
+  --default-transition-duration: 0ms;
+  --animate-enter: none;
+  --animate-enter-up: none;
+  --animate-enter-down: none;
+  --animate-enter-scale: none;
+  --animate-enter-right: none;
+  --animate-shimmer: none;
+  --animate-live: none;
+  --animate-highlight: none;
+  --animate-draw: none;
+}
+
+:root[data-motion="reduce"]::view-transition-group(*),
+:root[data-motion="reduce"]::view-transition-old(*),
+:root[data-motion="reduce"]::view-transition-new(*) {
+  animation: none;
+}
