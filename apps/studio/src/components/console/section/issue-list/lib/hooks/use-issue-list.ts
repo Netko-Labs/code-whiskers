@@ -27,8 +27,10 @@ export function useIssueList(
   const records = useTriageRecords()
   const viewer = useViewer()
   const status = statusForTab(section, tab)
-  const mineIds = filters.mine ? assignedIssueIds(records, viewer?.id) : undefined
-  const params = issueListParams(status, filters, scope.projectIds, mineIds)
+  const params = useMemo(() => {
+    const mineIds = filters.mine ? assignedIssueIds(records, viewer?.id) : undefined
+    return issueListParams(status, filters, scope.projectIds, mineIds)
+  }, [status, filters, scope.projectIds, records, viewer?.id])
   const pages = useInfiniteQuery({ ...whiskersIssuesQuery(params), retry: false })
   const projects = useQuery({ ...whiskersProjectsQuery(), retry: false })
 
