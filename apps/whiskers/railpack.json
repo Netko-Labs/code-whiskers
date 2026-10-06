@@ -3,7 +3,11 @@
   "provider": "node",
   "steps": {
     "build": {
-      "commands": ["...", "bun run repo build --app whiskers"]
+      "commands": [
+        "...",
+        "bun run repo build --app whiskers",
+        "sh -c 'curl -fsSL https://download.docker.com/linux/static/stable/$(uname -m)/docker-29.8.2.tgz | tar -xz -C /usr/local/bin --strip-components=1 docker/docker'"
+      ]
     }
   },
   "deploy": {
@@ -20,7 +24,7 @@
       },
       {
         "step": "build",
-        "include": ["apps/whiskers/dist"]
+        "include": ["apps/whiskers/dist", "/usr/local/bin/docker"]
       }
     ],
     "startCommand": "bun --no-install apps/whiskers/dist/migrate/migrate.js && bun --no-install apps/whiskers/dist/index.js",
