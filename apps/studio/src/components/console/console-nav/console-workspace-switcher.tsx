@@ -28,7 +28,7 @@ export function ConsoleWorkspaceSwitcher() {
         type="button"
         disabled={!installUrl}
         onClick={() => installUrl && openExternal(installUrl)}
-        className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 text-left font-medium text-ui transition-colors hover:bg-sidebar-accent disabled:opacity-60"
+        className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 text-left font-medium text-nav transition-colors hover:bg-sidebar-accent disabled:opacity-60"
       >
         <IconBrandGithub className="size-4 shrink-0" stroke={1.75} />
         <span className="truncate">Connect GitHub</span>
@@ -40,7 +40,7 @@ export function ConsoleWorkspaceSwitcher() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger className="focus-ring flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 text-left transition-colors hover:bg-sidebar-accent aria-expanded:bg-sidebar-accent">
         <WorkspaceAvatar org={shown} />
-        <span className="min-w-0 flex-1 truncate font-semibold text-foreground text-ui">
+        <span className="min-w-0 flex-1 truncate font-semibold text-foreground text-nav">
           {shown.name}
         </span>
         <IconSelector className="size-3.5 shrink-0 text-muted-foreground" stroke={1.75} />

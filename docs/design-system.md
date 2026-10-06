@@ -39,6 +39,7 @@ carries the `dark` class so tokens inside it resolve dark (toasts, log and stack
 | Heading 30/36 | `text-heading font-bold` | rare: dashboard hero numbers |
 | Title 20/28 | `text-title font-semibold` | page titles (`PageHeader`) |
 | UI 13/20 | `text-ui` | console body, rows, menus — the default |
+| Nav 12/16 | `text-nav` | sidebar rows, workspace switcher, search button, user menu — a step under the page |
 | Small 11/16 | `text-2xs` | labels, meta, column headers, hints |
 
 Inter for product, JetBrains Mono (`font-mono`) for evidence: ids, shas, paths, stack frames,

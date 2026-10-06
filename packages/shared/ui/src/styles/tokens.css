@@ -86,6 +86,9 @@
   --text-2xs--line-height: 16px;
   --text-ui: 13px;
   --text-ui--line-height: 20px;
+  /* The sidebar sits a step under the page so the content leads (Linear, PostHog). */
+  --text-nav: 12px;
+  --text-nav--line-height: 16px;
   --text-title: 20px;
   --text-title--line-height: 28px;
   --text-title--letter-spacing: -0.015em;

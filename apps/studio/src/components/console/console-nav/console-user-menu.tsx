@@ -28,7 +28,7 @@ export function ConsoleUserMenu({ isCompact = false }: UserMenuProps) {
       >
         <PersonAvatar name={name} image={viewer?.image} isSelf className="size-6 text-[9px]" />
         {!isCompact && (
-          <span className="min-w-0 flex-1 truncate text-left font-medium text-ui">{name}</span>
+          <span className="min-w-0 flex-1 truncate text-left font-medium text-nav">{name}</span>
         )}
       </PopoverTrigger>
 
@@ -39,7 +39,7 @@ export function ConsoleUserMenu({ isCompact = false }: UserMenuProps) {
         className="w-[260px] gap-0 p-1"
       >
         <div className="flex flex-col px-2 pt-1.5 pb-2">
-          <span className="truncate font-semibold text-ui">{name}</span>
+          <span className="truncate font-semibold text-nav">{name}</span>
           <span className="truncate text-2xs text-muted-foreground">{viewer?.email}</span>
         </div>
         <ThemePicker />

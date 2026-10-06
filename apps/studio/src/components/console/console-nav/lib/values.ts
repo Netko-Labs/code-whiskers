@@ -1,14 +1,14 @@
 import type { ConsoleOrg } from '../../shared/console-model'
 
 export const NAV_ROW =
-  'focus-ring group/nav flex h-7 min-w-0 items-center gap-2 rounded-md px-2 text-ui transition-colors duration-fast'
+  'focus-ring group/nav flex h-[26px] min-w-0 items-center gap-2 rounded-md px-2 text-nav transition-colors duration-fast'
 export const NAV_ROW_IDLE =
   'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
 export const NAV_ROW_ACTIVE = 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
 export const NAV_ICON =
-  'size-4 shrink-0 text-muted-foreground transition-colors group-hover/nav:text-foreground group-data-[status=active]/nav:text-foreground'
+  'size-3.5 shrink-0 text-muted-foreground transition-colors group-hover/nav:text-foreground group-data-[status=active]/nav:text-foreground'
 export const NAV_GROUP_HEADER =
-  'focus-ring group/header flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-left font-medium text-2xs text-muted-foreground transition-colors hover:text-foreground'
+  'focus-ring group/header flex h-6 w-full items-center gap-1.5 rounded-md px-2 text-left font-medium text-2xs text-muted-foreground transition-colors hover:text-foreground'
 export const NAV_ICON_BUTTON =
   'focus-ring flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground'
 export const RAIL_BUTTON =
