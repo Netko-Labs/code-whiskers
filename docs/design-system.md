@@ -306,6 +306,9 @@ verbs ("Set up a project", not "Get started"). Numbers are real or absent; blank
   `cloneElement`, so pass a bare `<Link …/>`; `SplitView` sizes are percent strings or pixel
   numbers; `TopbarActions` renders nothing until the shell mounts; `CatExpression` in an
   `EmptyState` uses `--background` as its paper, so place it on the page background.
+- New token names (a `--text-*`, `--shadow-*` or `--spacing-*` key in `tokens.css`) must also be
+  registered in `cn` (`packages/shared/ui/src/lib/utils.ts`): tailwind-merge otherwise reads
+  `text-<token>` as a colour and drops it beside `text-foreground`, falling back to 16px.
 
 ## Code review
 
