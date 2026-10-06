@@ -3,13 +3,16 @@ import {
   writeFile as fsWriteFile,
   lstat,
   mkdir,
-  mkdtemp,
   realpath,
   rm,
 } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
-import { createSandbox, dockerAvailable, type ExecResult } from '@code-whiskers/sandbox'
+import {
+  createSandbox,
+  dockerAvailable,
+  type ExecResult,
+  mkdtempShared,
+} from '@code-whiskers/sandbox'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { PrRef } from '../review/github'
 import { git } from '../shared/git'
@@ -21,7 +24,7 @@ import { isProtectedPath } from './utils'
  * writes and commands run inside a network-less sandbox mounted over the
  * clone (with `.git` shielded behind an empty mount so container-side
  * tampering can't plant hooks the host would execute); without Docker
- * (e.g. Railway) the agent gets file access only — `exec` is null and no
+ * the agent the agent gets file access only — `exec` is null and no
  * shell ever runs on the host.
  */
 export interface FixWorkspace {
@@ -60,7 +63,7 @@ export async function clonePrBranch(
   branch: string,
   token: string,
 ): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'whiskers-fix-'))
+  const dir = await mkdtempShared('whiskers-fix-')
   // symlinks off: a committed symlink must materialize as a plain file, never
   // as a live link the host-fallback fs tools could traverse out of the tree.
   const result = await git(
@@ -125,7 +128,7 @@ export async function openWorkspace(dir: string): Promise<FixWorkspace> {
   if (await dockerAvailable()) {
     // An empty mount shadows /workspace/.git so container-side writes can
     // never reach the real git dir the host later runs commit/push against.
-    const gitShield = await mkdtemp(join(tmpdir(), 'whiskers-gitshield-'))
+    const gitShield = await mkdtempShared('whiskers-gitshield-')
     let sandbox: Awaited<ReturnType<typeof createSandbox>>
     try {
       sandbox = await createSandbox({

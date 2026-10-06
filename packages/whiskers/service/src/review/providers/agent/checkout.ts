@@ -1,7 +1,6 @@
-import { chmod, mkdtemp, realpath, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { chmod, realpath, rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { ExecResult } from '@code-whiskers/sandbox'
+import { type ExecResult, mkdtempShared } from '@code-whiskers/sandbox'
 import { git } from '../../../shared/git'
 import { readToken } from '../../github'
 import type { ReviewCommit } from '../types'
@@ -29,7 +28,7 @@ async function asCheckout(dir: string): Promise<CheckoutDir> {
  */
 export async function openCheckout({ owner, repo, headSha }: ReviewCommit): Promise<CheckoutDir> {
   const token = await readToken(owner, repo)
-  const dir = await mkdtemp(join(tmpdir(), 'whiskers-review-'))
+  const dir = await mkdtempShared('whiskers-review-')
   try {
     await must('init', git(dir, ['init', '-q']))
     await must(
@@ -63,5 +62,5 @@ export async function openCheckout({ owner, repo, headSha }: ReviewCommit): Prom
 
 /** An empty working directory, for a probe that must not need GitHub. */
 export async function emptyCheckout(): Promise<CheckoutDir> {
-  return asCheckout(await mkdtemp(join(tmpdir(), 'whiskers-probe-')))
+  return asCheckout(await mkdtempShared('whiskers-probe-'))
 }

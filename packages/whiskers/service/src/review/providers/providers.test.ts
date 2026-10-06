@@ -114,20 +114,22 @@ describe('chooseSandbox', () => {
   const noJail = { ...all, jail: { isUsable: false, reason: 'Landlock ABI 3 < 4' } }
   const kind = (...args: Parameters<typeof chooseSandbox>) => chooseSandbox(...args).kind
 
-  test('auto prefers the jail, then Docker, then the host', () => {
-    expect(kind('auto', all)).toBe('jail')
-    expect(kind('auto', noJail)).toBe('docker')
-    expect(kind('auto', { ...all, hasJailBinary: false })).toBe('docker')
-    expect(kind('auto', { ...noJail, hasDocker: false })).toBe('host')
-    expect(kind('auto', { ...noJail, hasLinuxBinary: false })).toBe('host')
+  const noDocker = { ...all, hasDocker: false }
+
+  test('auto prefers Docker, then the jail, then the host', () => {
+    expect(kind('auto', all)).toBe('docker')
+    expect(kind('auto', noDocker)).toBe('jail')
+    expect(kind('auto', { ...all, hasLinuxBinary: false })).toBe('jail')
+    expect(kind('auto', { ...noDocker, jail: noJail.jail })).toBe('host')
+    expect(kind('auto', { ...noDocker, hasJailBinary: false })).toBe('host')
     expect(kind('auto', { ...all, hasCredentialEnv: false })).toBe('host')
   })
 
   test('the reason names what each skipped sandbox lacks', () => {
-    expect(chooseSandbox('auto', noJail).reason).toContain('Landlock ABI 3 < 4')
-    const host = chooseSandbox('auto', { ...noJail, hasDocker: false }).reason
-    expect(host).toContain('Landlock ABI 3 < 4')
+    expect(chooseSandbox('auto', noDocker).reason).toContain('a Docker daemon')
+    const host = chooseSandbox('auto', { ...noDocker, jail: noJail.jail }).reason
     expect(host).toContain('a Docker daemon')
+    expect(host).toContain('Landlock ABI 3 < 4')
   })
 
   test('jail and docker insist, host never tries', () => {

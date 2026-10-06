@@ -92,9 +92,9 @@ function dockerGaps(available: SandboxAvailability): string[] {
 }
 
 /**
- * `auto`: the jail when the boot probe passed, else Docker, else the host. Either sandbox needs a
- * credential in env (a fresh home cannot reach the host's keychain login). `jail` and `docker`
- * insist and throw with what is missing; `host` never tries.
+ * `auto`: Docker when a daemon answers, else the jail when the boot probe passed, else the host.
+ * Either sandbox needs a credential in env (a fresh home cannot reach the host's keychain login).
+ * `jail` and `docker` insist and throw with what is missing; `host` never tries.
  */
 export function chooseSandbox(mode: SandboxMode, available: SandboxAvailability): SandboxChoice {
   if (mode === 'host') return { kind: 'host', reason: 'REVIEW_AGENT_SANDBOX=host' }
@@ -105,10 +105,10 @@ export function chooseSandbox(mode: SandboxMode, available: SandboxAvailability)
     if (gaps.length > 0) throw new Error(`REVIEW_AGENT_SANDBOX=${mode} needs ${gaps.join(', ')}`)
     return { kind: mode, reason: `REVIEW_AGENT_SANDBOX=${mode}` }
   }
-  const noJail = `no jail without ${jail.join(', ')}`
-  if (jail.length === 0) return { kind: 'jail', reason: 'auto: the kernel supports the jail' }
-  if (docker.length === 0) return { kind: 'docker', reason: `auto: ${noJail}` }
-  return { kind: 'host', reason: `auto: ${noJail}; no Docker without ${docker.join(', ')}` }
+  const noDocker = `no Docker without ${docker.join(', ')}`
+  if (docker.length === 0) return { kind: 'docker', reason: 'auto: a Docker daemon answers' }
+  if (jail.length === 0) return { kind: 'jail', reason: `auto: ${noDocker}` }
+  return { kind: 'host', reason: `auto: ${noDocker}; no jail without ${jail.join(', ')}` }
 }
 
 /** The last `limit` characters written, for an error message that says why a process died. */

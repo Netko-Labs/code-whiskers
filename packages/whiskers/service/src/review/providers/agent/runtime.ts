@@ -7,7 +7,9 @@ import {
   type EgressProxy,
   jailEnv,
   jailPolicy,
+  NOBODY_UID,
   spawnJailed,
+  stageForDaemon,
   startEgressProxy,
 } from '@code-whiskers/sandbox'
 import {
@@ -100,8 +102,18 @@ export async function jailRuntime(options: JailRuntimeOptions): Promise<AgentRun
  */
 export async function dockerRuntime(options: DockerRuntimeOptions): Promise<AgentRuntime> {
   const egress = await createEgressNetwork({ allowHosts: options.allowHosts, ttlMs: options.ttlMs })
-  const user = `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`
-  const [uid, gid] = user.split(':')
+  // Root in the worker must not mean root in the sandbox; the checkout is world-readable.
+  const isRoot = process.getuid?.() === 0
+  const uid = isRoot ? NOBODY_UID : (process.getuid?.() ?? 1000)
+  const gid = isRoot ? NOBODY_UID : (process.getgid?.() ?? 1000)
+  const user = `${uid}:${gid}`
+  let binary: string
+  try {
+    binary = await stageForDaemon(options.binary)
+  } catch (error) {
+    await egress.destroy()
+    throw error
+  }
   let sandbox: Awaited<ReturnType<typeof createSandbox>>
   try {
     sandbox = await createSandbox({
@@ -116,7 +128,7 @@ export async function dockerRuntime(options: DockerRuntimeOptions): Promise<Agen
       mounts: [
         { host: options.checkout.dir, container: CONTAINER_WORKDIR, readOnly: true },
         {
-          host: options.binary,
+          host: binary,
           container: `${CONTAINER_BIN_DIR}/${basename(options.binary)}`,
           readOnly: true,
         },

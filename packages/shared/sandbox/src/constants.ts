@@ -20,7 +20,8 @@ net.createServer((client) => {
   const onData = (chunk) => {
     head = Buffer.concat([head, chunk])
     const end = head.indexOf('\\r\\n\\r\\n')
-    if (end < 0) { if (head.length > 8192) client.destroy(); return }
+    if ((end < 0 ? head.length : end) > 8192) { client.destroy(); return }
+    if (end < 0) return
     client.off('data', onData)
     const [method, target] = head.subarray(0, end).toString('latin1').split(' ')
     const [host, port] = (target || '').split(':')
