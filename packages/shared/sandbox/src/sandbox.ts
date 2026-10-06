@@ -1,50 +1,10 @@
-export interface SandboxMount {
-  host: string
-  container: string
-}
+import { spawn as spawnProcess } from 'node:child_process'
+import { DEFAULT_IMAGE, DEFAULT_TTL_MS, LABEL, WORKDIR } from './constants'
+import { docker, dockerClientEnv } from './docker'
+import type { Sandbox, SandboxMount, SandboxOptions } from './types'
 
-export interface SandboxOptions {
-  image?: string
-  ttlMs?: number
-  memory?: string
-  cpus?: string
-  network?: 'none' | 'bridge'
-  mounts?: SandboxMount[]
-}
-
-export interface ExecResult {
-  code: number
-  stdout: string
-  stderr: string
-}
-
-export interface Sandbox {
-  id: string
-  exec(command: string, opts?: { timeoutMs?: number }): Promise<ExecResult>
-  writeFile(path: string, content: string): Promise<void>
-  readFile(path: string): Promise<string>
-  destroy(): Promise<void>
-}
-
-const LABEL = 'code-whiskers-sandbox'
-const DEFAULT_IMAGE = 'oven/bun:1-alpine'
-const DEFAULT_TTL_MS = 10 * 60_000
-const WORKDIR = '/workspace'
-
-async function docker(args: string[], stdin?: string, timeoutMs?: number): Promise<ExecResult> {
-  const proc = Bun.spawn(['docker', ...args], {
-    stdin: stdin === undefined ? 'ignore' : new TextEncoder().encode(stdin),
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const timer = timeoutMs ? setTimeout(() => proc.kill(), timeoutMs) : undefined
-  const [stdout, stderr, code] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ])
-  if (timer) clearTimeout(timer)
-  return { code, stdout, stderr }
+function mountArgs(mount: SandboxMount): string[] {
+  return ['-v', `${mount.host}:${mount.container}${mount.readOnly ? ':ro' : ''}`]
 }
 
 /**
@@ -68,7 +28,12 @@ export async function createSandbox(opts: SandboxOptions = {}): Promise<Sandbox>
     opts.memory ?? '512m',
     '--cpus',
     opts.cpus ?? '1',
-    ...(opts.mounts ?? []).flatMap((m) => ['-v', `${m.host}:${m.container}`]),
+    '--security-opt',
+    'no-new-privileges',
+    ...(opts.readOnlyRoot ? ['--read-only'] : []),
+    ...(opts.tmpfs ?? []).flatMap((spec) => ['--tmpfs', spec]),
+    ...(opts.user ? ['--user', opts.user] : []),
+    ...(opts.mounts ?? []).flatMap(mountArgs),
     '-w',
     WORKDIR,
     image,
@@ -78,7 +43,7 @@ export async function createSandbox(opts: SandboxOptions = {}): Promise<Sandbox>
   if (run.code !== 0) throw new Error(`sandbox create failed: ${run.stderr.trim()}`)
   const id = run.stdout.trim()
 
-  await docker(['exec', id, 'mkdir', '-p', WORKDIR])
+  if (!opts.readOnlyRoot) await docker(['exec', id, 'mkdir', '-p', WORKDIR])
 
   return {
     id,
@@ -110,6 +75,14 @@ export async function createSandbox(opts: SandboxOptions = {}): Promise<Sandbox>
       if (result.code !== 0) throw new Error(`sandbox read failed: ${result.stderr.trim()}`)
       return result.stdout
     },
+    spawn({ argv, env, workdir }) {
+      const names = Object.keys(env).flatMap((name) => ['-e', name])
+      return spawnProcess(
+        'docker',
+        ['exec', '-i', '-w', workdir ?? WORKDIR, ...names, id, ...argv],
+        { env: dockerClientEnv(env), stdio: ['pipe', 'pipe', 'pipe'] },
+      )
+    },
     async destroy() {
       await docker(['rm', '-f', id])
     },
@@ -121,6 +94,9 @@ export async function reapAll(): Promise<number> {
   const ps = await docker(['ps', '-q', '--filter', `label=${LABEL}=1`])
   const ids = ps.stdout.split('\n').filter(Boolean)
   if (ids.length > 0) await docker(['rm', '-f', ...ids])
+  const networks = await docker(['network', 'ls', '-q', '--filter', `label=${LABEL}=1`])
+  const networkIds = networks.stdout.split('\n').filter(Boolean)
+  if (networkIds.length > 0) await docker(['network', 'rm', ...networkIds])
   return ids.length
 }
 
