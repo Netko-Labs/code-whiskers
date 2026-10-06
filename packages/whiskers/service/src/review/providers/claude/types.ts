@@ -6,6 +6,7 @@ import type {
   SDKResultMessage,
 } from '@anthropic-ai/claude-agent-sdk'
 import type { ReviewerStatus, WhiskersConfig } from '@code-whiskers/whiskers-domain'
+import type { AgentRuntime, CheckoutDir, SandboxChoice } from '../agent'
 
 export type ClaudeRunInput = {
   cwd: string
@@ -37,6 +38,18 @@ export type ClaudeRunState = {
   result: SDKResultMessage | null
   assistantError: SDKAssistantMessageError | null
   rateLimit: SDKRateLimitInfo | null
+}
+
+export type ClaudeSandboxSpec = {
+  review: WhiskersConfig['review']
+  hostBinary: string | null
+  sandboxBinary: string | null
+}
+
+export type ClaudeSandbox = {
+  choose(): Promise<SandboxChoice>
+  open(checkout: CheckoutDir): Promise<AgentRuntime>
+  isolation(): Promise<NonNullable<ReviewerStatus['isolation']>>
 }
 
 export type ResolvedExecutable = Pick<NonNullable<ReviewerStatus['executable']>, 'path' | 'source'>

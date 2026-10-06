@@ -14,7 +14,7 @@ import {
   STDERR_TAIL_CHARS,
 } from '../agent'
 import type { ReviewSession } from '../types'
-import { containerClaudeEnv, definedEnv, hostClaudeEnv } from './env'
+import { claudeEnvFor, definedEnv } from './env'
 import { buildClaudeOptions, readOnlyGuard } from './options'
 import { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'
 import type { ClaudeSessionSpec, ReviewSlice } from './types'
@@ -31,6 +31,7 @@ async function runOnce(
   controllers.add(abortController)
   const timer = setTimeout(() => abortController.abort(), spec.limits.timeoutMs)
   const { spawn } = runtime
+  const binary = runtime.kind === 'docker' ? spec.containerBinary : spec.hostBinary
   const stderr = createTail(STDERR_TAIL_CHARS)
   let state = emptyRunState()
   try {
@@ -38,17 +39,17 @@ async function runOnce(
       prompt: reviewPrompt(slice.diff, slice.context),
       options: buildClaudeOptions({
         cwd: runtime.workdir,
-        env: spawn ? containerClaudeEnv() : hostClaudeEnv(configDir, spec.isDev),
+        env: claudeEnvFor(runtime.kind, configDir, spec.isDev),
         systemPrompt: AGENT_REVIEW_SYSTEM,
         config: { ...spec.config, maxTurns: spec.limits.maxTurns },
-        executable: spawn ? spec.containerBinary : spec.hostBinary,
+        executable: binary,
         abortController,
         guard: readOnlyGuard(runtime.isInside),
         stderr: stderr.push,
         spawn:
-          spawn && spec.containerBinary
+          spawn && binary
             ? ({ args, env }) => {
-                const child = spawn([spec.containerBinary ?? '', ...args], definedEnv(env))
+                const child = spawn([binary, ...args], definedEnv(env))
                 child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk.toString()))
                 return child
               }

@@ -1,6 +1,15 @@
-import { realpath } from 'node:fs/promises'
+import { chown, mkdir, mkdtemp, realpath, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { basename, isAbsolute, join } from 'node:path'
-import { createEgressNetwork, createSandbox } from '@code-whiskers/sandbox'
+import {
+  createEgressNetwork,
+  createSandbox,
+  type EgressProxy,
+  jailEnv,
+  jailPolicy,
+  spawnJailed,
+  startEgressProxy,
+} from '@code-whiskers/sandbox'
 import {
   CONTAINER_BIN_DIR,
   CONTAINER_HOME,
@@ -8,7 +17,7 @@ import {
   SANDBOX_CPUS,
   SANDBOX_MEMORY,
 } from './constants'
-import type { AgentRuntime, CheckoutDir, DockerRuntimeOptions } from './types'
+import type { AgentRuntime, CheckoutDir, DockerRuntimeOptions, JailRuntimeOptions } from './types'
 import { isWithin } from './utils'
 
 /**
@@ -19,13 +28,68 @@ export function hostRuntime(checkout: CheckoutDir): AgentRuntime {
   return {
     kind: 'host',
     workdir: checkout.dir,
-    isInside: async (path) => {
-      const absolute = isAbsolute(path) ? path : join(checkout.root, path)
-      const resolved = await realpath(absolute).catch(() => null)
-      return resolved !== null && isWithin(checkout.root, resolved)
-    },
+    isInside: insideCheckout(checkout),
     spawn: null,
     destroy: async () => {},
+  }
+}
+
+function insideCheckout(checkout: CheckoutDir): AgentRuntime['isInside'] {
+  return async (path) => {
+    const absolute = isAbsolute(path) ? path : join(checkout.root, path)
+    const resolved = await realpath(absolute).catch(() => null)
+    return resolved !== null && isWithin(checkout.root, resolved)
+  }
+}
+
+/** A fresh home the jailed uid owns: config, session state and TMPDIR all land here. */
+async function jailHome(uid: number): Promise<string> {
+  const home = await mkdtemp(join(tmpdir(), 'whiskers-jail-'))
+  await mkdir(join(home, 'tmp'))
+  if (process.getuid?.() === 0) {
+    await Promise.all([chown(home, uid, uid), chown(join(home, 'tmp'), uid, uid)])
+  }
+  return home
+}
+
+/**
+ * The harness runs on this kernel under a launcher that drops to an unprivileged uid, caps
+ * rlimits, then applies Landlock (read-only checkout and runtime, one writable home, TCP connect
+ * to the proxy's port only) and a seccomp deny-list before it becomes the binary. The proxy runs
+ * in this process and admits only `allowHosts`. Paths are the host's, so the host guard applies.
+ */
+export async function jailRuntime(options: JailRuntimeOptions): Promise<AgentRuntime> {
+  const home = await jailHome(options.uid)
+  const removeHome = () => rm(home, { recursive: true, force: true })
+  let proxy: EgressProxy
+  try {
+    proxy = await startEgressProxy(options.allowHosts)
+  } catch (error) {
+    await removeHome()
+    throw error
+  }
+  const policy = jailPolicy({
+    checkout: options.checkout.root,
+    binary: options.binary,
+    home,
+    proxyPort: proxy.port,
+    uid: options.uid,
+    limits: options.limits,
+    hasSeccomp: options.hasSeccomp,
+  })
+  return {
+    kind: 'jail',
+    workdir: options.checkout.root,
+    isInside: insideCheckout(options.checkout),
+    spawn: (argv, env) =>
+      spawnJailed({ policy, argv, env: jailEnv(env, home, proxy.url), launcherCwd: home }),
+    destroy: async () => {
+      try {
+        await proxy.close()
+      } finally {
+        await removeHome()
+      }
+    },
   }
 }
 

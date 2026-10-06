@@ -50,7 +50,25 @@ describe('reviewConfigFrom', () => {
       sandboxImage: 'debian:bookworm-slim',
     })
     expect(reviewConfigFrom({ REVIEW_AGENT_SANDBOX: 'host' }).sandbox).toBe('host')
+    expect(reviewConfigFrom({ REVIEW_AGENT_SANDBOX: 'jail' }).sandbox).toBe('jail')
     expect(() => reviewConfigFrom({ REVIEW_AGENT_SANDBOX: 'vm' })).toThrow()
+  })
+
+  test('jail identity and limits default to nobody and sane caps; each is tunable', () => {
+    expect(reviewConfigFrom({}).jail).toEqual({
+      uid: 65_534,
+      cpuSeconds: 1_200,
+      memoryMb: 8_192,
+      processes: 512,
+      fileSizeMb: 256,
+      openFiles: 4_096,
+    })
+    const jail = reviewConfigFrom({
+      REVIEW_AGENT_JAIL_UID: '61000',
+      REVIEW_AGENT_JAIL_MEMORY_MB: '4096',
+      REVIEW_AGENT_JAIL_PROCESSES: '0',
+    }).jail
+    expect(jail).toMatchObject({ uid: 61_000, memoryMb: 4_096, processes: 0 })
   })
 
   test('a blank provider is unset; a misspelt one refuses to boot', () => {

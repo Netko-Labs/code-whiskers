@@ -1,4 +1,6 @@
 import type { ChildProcessWithoutNullStreams } from 'node:child_process'
+import type { JailLimits, JailProbe } from '@code-whiskers/sandbox'
+import type { WhiskersConfig } from '@code-whiskers/whiskers-domain'
 
 export type CheckoutDir = {
   dir: string
@@ -6,15 +8,23 @@ export type CheckoutDir = {
   destroy(): Promise<void>
 }
 
-export type SandboxKind = 'docker' | 'host'
+export type SandboxKind = 'jail' | 'docker' | 'host'
+export type SandboxMode = WhiskersConfig['review']['sandbox']
 
 export type SandboxAvailability = {
+  jail: Pick<JailProbe, 'isUsable' | 'reason'>
+  hasJailBinary: boolean
   hasDocker: boolean
   hasLinuxBinary: boolean
   hasCredentialEnv: boolean
 }
 
-/** Where an agent harness runs: a network-less container over the checkout, or the host itself. */
+export type SandboxChoice = {
+  kind: SandboxKind
+  reason: string
+}
+
+/** Where an agent harness runs: jailed on this kernel, in a container, or on the host itself. */
 export interface AgentRuntime {
   kind: SandboxKind
   workdir: string
@@ -29,6 +39,15 @@ export type DockerRuntimeOptions = {
   binary: string
   allowHosts: string[]
   ttlMs: number
+}
+
+export type JailRuntimeOptions = {
+  checkout: CheckoutDir
+  binary: string
+  allowHosts: string[]
+  uid: number
+  limits: JailLimits
+  hasSeccomp: boolean
 }
 
 export type OutputTail = {

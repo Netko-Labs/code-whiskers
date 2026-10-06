@@ -1,6 +1,7 @@
 export const REVIEW_PROVIDERS = ['openrouter', 'ai-gateway', 'openai', 'claude'] as const
 
-export const REVIEW_SANDBOX_MODES = ['auto', 'docker', 'host'] as const
+export const REVIEW_SANDBOX_MODES = ['auto', 'jail', 'docker', 'host'] as const
+export const REVIEW_SANDBOX_KINDS = ['jail', 'docker', 'host'] as const
 
 export const REVIEW_EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const
 

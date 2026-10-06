@@ -104,18 +104,41 @@ describe('reviewJsonSchema', () => {
 })
 
 describe('chooseSandbox', () => {
-  const all = { hasDocker: true, hasLinuxBinary: true, hasCredentialEnv: true }
+  const all = {
+    jail: { isUsable: true, reason: null },
+    hasJailBinary: true,
+    hasDocker: true,
+    hasLinuxBinary: true,
+    hasCredentialEnv: true,
+  }
+  const noJail = { ...all, jail: { isUsable: false, reason: 'Landlock ABI 3 < 4' } }
+  const kind = (...args: Parameters<typeof chooseSandbox>) => chooseSandbox(...args).kind
 
-  test('auto takes Docker only when everything it needs is there', () => {
-    expect(chooseSandbox('auto', all)).toBe('docker')
-    expect(chooseSandbox('auto', { ...all, hasDocker: false })).toBe('host')
-    expect(chooseSandbox('auto', { ...all, hasLinuxBinary: false })).toBe('host')
-    expect(chooseSandbox('auto', { ...all, hasCredentialEnv: false })).toBe('host')
+  test('auto prefers the jail, then Docker, then the host', () => {
+    expect(kind('auto', all)).toBe('jail')
+    expect(kind('auto', noJail)).toBe('docker')
+    expect(kind('auto', { ...all, hasJailBinary: false })).toBe('docker')
+    expect(kind('auto', { ...noJail, hasDocker: false })).toBe('host')
+    expect(kind('auto', { ...noJail, hasLinuxBinary: false })).toBe('host')
+    expect(kind('auto', { ...all, hasCredentialEnv: false })).toBe('host')
   })
 
-  test('docker insists, host never tries', () => {
+  test('the reason names what each skipped sandbox lacks', () => {
+    expect(chooseSandbox('auto', noJail).reason).toContain('Landlock ABI 3 < 4')
+    const host = chooseSandbox('auto', { ...noJail, hasDocker: false }).reason
+    expect(host).toContain('Landlock ABI 3 < 4')
+    expect(host).toContain('a Docker daemon')
+  })
+
+  test('jail and docker insist, host never tries', () => {
+    expect(kind('jail', { ...all, hasDocker: false })).toBe('jail')
+    expect(() => chooseSandbox('jail', noJail)).toThrow('REVIEW_AGENT_SANDBOX=jail needs')
+    expect(() => chooseSandbox('jail', { ...all, hasCredentialEnv: false })).toThrow(
+      'a credential in env',
+    )
+    expect(kind('docker', noJail)).toBe('docker')
     expect(() => chooseSandbox('docker', { ...all, hasDocker: false })).toThrow('a Docker daemon')
-    expect(chooseSandbox('host', all)).toBe('host')
+    expect(kind('host', all)).toBe('host')
   })
 })
 

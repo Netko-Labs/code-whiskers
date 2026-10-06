@@ -1,6 +1,6 @@
 export { createClaudeProvider } from './claude'
 export * from './constants'
-export { containerClaudeEnv, definedEnv, hostClaudeEnv } from './env'
+export { claudeEnvFor, containerClaudeEnv, definedEnv, hostClaudeEnv, jailClaudeEnv } from './env'
 export { resolveClaudeExecutable, sandboxClaudeBinary, sdkPlatformBinary } from './executable'
 export { buildClaudeOptions, readOnlyGuard } from './options'
 export { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'

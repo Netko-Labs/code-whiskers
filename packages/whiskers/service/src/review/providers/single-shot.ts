@@ -47,6 +47,7 @@ export function createSingleShotProvider(spec: SingleShotSpec): ReviewProvider {
       credentials: credentialPresence(spec.credentials),
       executable: null,
       sandbox: null,
+      isolation: null,
       problems: credentialPresence(spec.credentials).some((c) => c.isSet)
         ? []
         : [`set ${spec.credentials.join(' or ')} — every review will fail without it`],

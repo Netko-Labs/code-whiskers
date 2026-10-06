@@ -3,9 +3,10 @@ import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { HookInput, SDKMessage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
+import { jailEnv } from '@code-whiskers/sandbox'
 import { hostRuntime } from '../agent'
 import { ReviewProviderError } from '../errors'
-import { containerClaudeEnv, hostClaudeEnv } from './env'
+import { claudeEnvFor, containerClaudeEnv, hostClaudeEnv, jailClaudeEnv } from './env'
 import { resolveClaudeExecutable, sandboxClaudeBinary } from './executable'
 import { buildClaudeOptions, readOnlyGuard } from './options'
 import { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'
@@ -103,6 +104,7 @@ describe('agent env', () => {
     for (const env of [
       hostClaudeEnv('/tmp/config', false, WORKER_ENV),
       containerClaudeEnv(WORKER_ENV),
+      jailEnv(jailClaudeEnv(WORKER_ENV), '/tmp/whiskers-jail-x', 'http://127.0.0.1:41000'),
     ]) {
       for (const name of [
         'DATABASE_URL',
@@ -135,6 +137,23 @@ describe('agent env', () => {
       CLAUDE_CONFIG_DIR: '/home/agent/.claude',
       PATH: '/usr/local/bin:/usr/bin:/bin',
     })
+  })
+
+  test('jailed: the worker’s HOME and proxy never apply; only the jail’s own do', () => {
+    const worker = { ...WORKER_ENV, HTTPS_PROXY: 'http://user:pass@corp-proxy:3128' }
+    const env = jailEnv(jailClaudeEnv(worker), '/tmp/whiskers-jail-x', 'http://127.0.0.1:41000')
+    expect(env).toMatchObject({
+      HOME: '/tmp/whiskers-jail-x',
+      TMPDIR: '/tmp/whiskers-jail-x/tmp',
+      HTTPS_PROXY: 'http://127.0.0.1:41000',
+      HTTP_PROXY: 'http://127.0.0.1:41000',
+      PATH: '/usr/local/bin:/usr/bin:/bin',
+      CLAUDE_CODE_OAUTH_TOKEN: TOKEN,
+    })
+    expect(env.CLAUDE_CONFIG_DIR).toBeUndefined()
+    expect(Object.values(env).join('\n')).not.toContain('pass@')
+    expect(claudeEnvFor('jail', '/tmp/config', false).HOME).toBeUndefined()
+    expect(claudeEnvFor('docker', '/tmp/config', false).HOME).toBe('/home/agent')
   })
 })
 
