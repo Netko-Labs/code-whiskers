@@ -3,6 +3,7 @@ import {
   ReviewEffortSchema,
   type ReviewProviderId,
   ReviewProviderSchema,
+  ReviewSandboxModeSchema,
   type WhiskersConfig,
 } from '@code-whiskers/whiskers-domain'
 
@@ -32,6 +33,9 @@ export function reviewConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['review
     timeoutMs: numeric(env, 'REVIEW_AGENT_TIMEOUT_MS') ?? 600_000,
     maxBudgetUsd: numeric(env, 'REVIEW_AGENT_MAX_BUDGET_USD'),
     claudeExecutable: setting(env, 'CLAUDE_CODE_EXECUTABLE'),
+    sandbox: ReviewSandboxModeSchema.parse(setting(env, 'REVIEW_AGENT_SANDBOX') ?? 'auto'),
+    sandboxImage: setting(env, 'REVIEW_AGENT_SANDBOX_IMAGE') ?? 'debian:bookworm-slim',
+    sandboxExecutable: setting(env, 'CLAUDE_CODE_SANDBOX_EXECUTABLE'),
   }
 }
 

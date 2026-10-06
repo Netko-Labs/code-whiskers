@@ -44,6 +44,15 @@ describe('reviewConfigFrom', () => {
     })
   })
 
+  test('the agent sandbox defaults to auto and accepts an explicit mode', () => {
+    expect(reviewConfigFrom({})).toMatchObject({
+      sandbox: 'auto',
+      sandboxImage: 'debian:bookworm-slim',
+    })
+    expect(reviewConfigFrom({ REVIEW_AGENT_SANDBOX: 'host' }).sandbox).toBe('host')
+    expect(() => reviewConfigFrom({ REVIEW_AGENT_SANDBOX: 'vm' })).toThrow()
+  })
+
   test('a blank provider is unset; a misspelt one refuses to boot', () => {
     expect(reviewConfigFrom({ REVIEW_PROVIDER: ' ' }).provider).toBe('openrouter')
     expect(() => reviewConfigFrom({ REVIEW_PROVIDER: 'anthropic' })).toThrow()
