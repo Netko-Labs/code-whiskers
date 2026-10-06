@@ -51,3 +51,15 @@ export interface EgressNetwork {
   proxyUrl: string
   destroy(): Promise<void>
 }
+
+export interface ConnectTarget {
+  host: string
+  port: number
+}
+
+/** A loopback CONNECT proxy in this process; `url` is what HTTPS_PROXY should say. */
+export interface EgressProxy {
+  port: number
+  url: string
+  close(): Promise<void>
+}

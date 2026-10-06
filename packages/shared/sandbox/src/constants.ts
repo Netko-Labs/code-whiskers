@@ -41,3 +41,5 @@ net.createServer((client) => {
   client.on('data', onData)
 }).listen(${EGRESS_PORT}, '0.0.0.0', () => console.log('${EGRESS_READY}'))
 `
+export const LOOPBACK = '127.0.0.1'
+export const CONNECT_HEAD_MAX_BYTES = 8192

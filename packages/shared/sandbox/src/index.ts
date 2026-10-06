@@ -1,4 +1,6 @@
 export { WORKDIR } from './constants'
 export { createEgressNetwork } from './egress'
+export * from './jail'
+export { allowedTarget, startEgressProxy } from './proxy'
 export { createSandbox, dockerAvailable, reapAll } from './sandbox'
 export type * from './types'
