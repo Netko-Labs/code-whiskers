@@ -12,11 +12,9 @@ import { dirname, join, sep } from 'node:path'
 import { createSandbox, dockerAvailable, type ExecResult } from '@code-whiskers/sandbox'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { PrRef } from '../review/github'
-import { GIT_TIMEOUT_MS, SANDBOX_TTL_MS } from './constants'
+import { git } from '../shared/git'
+import { SANDBOX_TTL_MS } from './constants'
 import { isProtectedPath } from './utils'
-
-const BOT_NAME = 'code-whiskers[bot]'
-const BOT_EMAIL = 'code-whiskers[bot]@users.noreply.github.com'
 
 /**
  * The agent's window onto the PR checkout. With Docker available, reads,
@@ -55,58 +53,6 @@ export function assertSafeRelPath(path: string): void {
 export function assertSafeWritePath(path: string): void {
   assertSafeRelPath(path)
   if (isProtectedPath(path)) throw new Error(`protected path: ${path}`)
-}
-
-interface GitOptions {
-  authToken?: string
-  noSymlinks?: boolean
-  identity?: boolean
-}
-
-/**
- * Credentials and per-call config travel via GIT_CONFIG_* env vars — never
- * argv (visible in /proc) and never the on-disk config. Hooks and fsmonitor
- * are always disabled: the checkout's `.git` is agent-adjacent, and the host
- * must not execute anything from it.
- */
-async function git(dir: string | null, args: string[], opts: GitOptions = {}): Promise<ExecResult> {
-  const configs: Array<[string, string]> = [
-    ['core.hooksPath', '/dev/null'],
-    ['core.fsmonitor', 'false'],
-  ]
-  if (opts.authToken) {
-    const basic = Buffer.from(`x-access-token:${opts.authToken}`).toString('base64')
-    configs.push(['http.extraHeader', `Authorization: Basic ${basic}`])
-  }
-  if (opts.noSymlinks) configs.push(['core.symlinks', 'false'])
-  if (opts.identity) configs.push(['user.name', BOT_NAME], ['user.email', BOT_EMAIL])
-
-  // Minimal env — the service's own secrets (API keys, app key) have no
-  // business inside git subprocesses, and inherited GIT_* vars could
-  // redirect or instrument the clone.
-  const env: Record<string, string | undefined> = {
-    PATH: process.env.PATH,
-    HOME: process.env.HOME,
-    GIT_CONFIG_COUNT: String(configs.length),
-  }
-  configs.forEach(([key, value], i) => {
-    env[`GIT_CONFIG_KEY_${i}`] = key
-    env[`GIT_CONFIG_VALUE_${i}`] = value
-  })
-
-  const proc = Bun.spawn(['git', ...(dir ? ['-C', dir] : []), ...args], {
-    env,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const timer = setTimeout(() => proc.kill(), GIT_TIMEOUT_MS)
-  const [stdout, stderr, code] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ])
-  clearTimeout(timer)
-  return { code, stdout, stderr }
 }
 
 export async function clonePrBranch(
