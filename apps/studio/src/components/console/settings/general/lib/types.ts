@@ -1,4 +1,8 @@
-import type { InstanceHealth } from '@/integrations/studio-api'
+import type {
+  InstanceHealth,
+  InstanceReviewer,
+  InstanceReviewerTest,
+} from '@/integrations/studio-api'
 import type { WhiskersInstance } from '@/integrations/whiskers'
 
 export type InstanceNameForm = {
@@ -39,3 +43,15 @@ export type InstanceStorageProps = {
 export type InstanceReviewerProps = {
   reviewer: NonNullable<WhiskersInstance['reviewer']>
 }
+
+export type AiReviewer = {
+  reviewer: InstanceReviewer | undefined
+  isLoading: boolean
+  isError: boolean
+  retry: () => void
+  test: InstanceReviewerTest | null
+  isTesting: boolean
+  runTest: () => void
+}
+
+export type ReviewerSandbox = NonNullable<InstanceReviewer['sandbox']>

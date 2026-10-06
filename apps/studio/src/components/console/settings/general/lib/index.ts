@@ -1,4 +1,5 @@
 export * from './constants'
+export { useAiReviewer } from './hooks/use-ai-reviewer'
 export { useInstanceName } from './hooks/use-instance-name'
 export { useInstanceUsage } from './hooks/use-instance-usage'
 export type * from './types'

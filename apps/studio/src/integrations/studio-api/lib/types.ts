@@ -35,6 +35,10 @@ export type Viewer = z.infer<typeof viewerSchema>
 export type Instance = z.infer<typeof instanceSchema>
 export type InstanceHealth = z.infer<typeof instanceHealthSchema>
 export type InstanceSettingsInput = { name: string }
+export type {
+  WhiskersReviewer as InstanceReviewer,
+  WhiskersReviewerTest as InstanceReviewerTest,
+} from '@code-whiskers/studio-domain'
 export type TriageRecord = z.infer<typeof triageRecordSchema>
 export type Member = z.infer<typeof memberSchema>
 export type TriageComment = z.infer<typeof triageCommentSchema>
