@@ -16,6 +16,7 @@ export const AGENT_PROXY_ENV = ['HTTPS_PROXY', 'HTTP_PROXY', 'NO_PROXY'] as cons
 export const AGENT_CONFIG_PATHS = [
   '.claude',
   '.mcp.json',
+  'CLAUDE.md',
   'CLAUDE.local.md',
   '.opencode',
   'opencode.json',
