@@ -84,19 +84,51 @@ memory, no persisted session, and an env built from names (never the worker's da
 key). A hook refuses any path that resolves outside the checkout. The checkout is shallow at the
 head sha, cloned with a contents-read token, with `.git` and harness config removed.
 
-Where the harness itself runs (`REVIEW_AGENT_SANDBOX`, `auto` | `jail` | `docker` | `host`; `auto`
+Where the harness itself runs (`REVIEW_AGENT_SANDBOX`, `auto` | `docker` | `jail` | `host`; `auto`
 tries them in that order, and every sandbox needs a credential in env):
 
-- **jail** (Linux, no Docker needed — the production path): a launcher process drops to an
+- **docker** (the production path, via Docker-in-Docker): a Docker daemon and a Linux `claude`
+  binary. Checkout and binary mounted read-only, read-only root, tmpfs home, an unprivileged uid
+  when the worker is root, and an internal network whose only way out is a proxy container that
+  tunnels only `CONNECT api.anthropic.com:443`.
+- **jail** (Linux, no Docker needed): a launcher process drops to an
   unprivileged uid (`REVIEW_AGENT_JAIL_UID`, 65534) when the worker is root, sets no-new-privs and
   rlimits, applies Landlock (read-only: the checkout, the binary's directory, the image's runtime
   and TLS/DNS files; writable: one fresh home that is also `TMPDIR`; TCP connect only to the
   egress proxy's port, no bind) and a seccomp deny-list, then becomes `claude` on the SDK's stdio.
   The proxy runs inside the worker on `127.0.0.1:<random>` and tunnels only
   `CONNECT api.anthropic.com:443`. Needs Landlock ABI ≥ 4 (Linux 6.7+); a boot probe checks it.
-- **docker**: a Docker daemon and a Linux `claude` binary. Checkout and binary mounted read-only,
-  read-only root, tmpfs home, and an internal network whose only way out is the same proxy.
 - **host**: the confined tools only; the worker warns at boot.
+
+The fix agent uses the same daemon: its `run` tool exists only when Docker answers.
+
+**Docker-in-Docker.** The worker reaches a `docker:dind` sidecar over a socket the two share,
+never the host's daemon. A sidecar daemon resolves bind-mount sources on its own filesystem, so
+checkouts (and a staged copy of the `claude` binary) live on `SANDBOX_WORK_DIR`, a directory both
+containers mount at the same path. In Coolify, a Docker Compose resource on the worker's network:
+
+```yaml
+services:
+  dind:
+    image: docker:29-dind
+    privileged: true
+    restart: unless-stopped
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command: ["--host=unix:///run/dind/docker.sock"]
+    volumes:
+      - /data/whiskers/dind-sock:/run/dind
+      - /data/whiskers/sandbox:/sandbox
+      - dind-data:/var/lib/docker
+volumes:
+  dind-data:
+```
+
+and on the whiskers app: directory mounts `/data/whiskers/dind-sock` → `/run/dind` and
+`/data/whiskers/sandbox` → `/sandbox`, plus `DOCKER_HOST=unix:///run/dind/docker.sock` and
+`SANDBOX_WORK_DIR=/sandbox`. The image ships the static docker CLI. The sidecar is privileged:
+whoever holds its socket is root on the host, which is why it is a socket on a host directory and
+not a TCP port on the shared network.
 
 Knobs: `REVIEW_AGENT_EFFORT` (medium), `REVIEW_AGENT_MAX_TURNS` (40),
 `REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset), `REVIEW_AGENT_SANDBOX`

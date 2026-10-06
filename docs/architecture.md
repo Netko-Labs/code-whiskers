@@ -310,7 +310,13 @@ records the provider's model; an agent's cost and turns are logged, not stored. 
 allowlisting egress proxy from `packages/shared/sandbox`) is harness-agnostic, so another agent
 SDK plugs in beside `claude`.
 
-**Agent jail.** Production has no Docker daemon, so the agent's default sandbox is self-built on
+**Agent sandbox.** Production runs the agent in Docker, against a privileged `docker:dind`
+sidecar the worker reaches over a shared unix socket (setup in the README). Bind-mount sources
+resolve on the sidecar's filesystem, so checkouts are made under `SANDBOX_WORK_DIR` (mounted at the
+same path in both containers, `mkdtempShared`) and the `claude` binary is copied there once
+(`stageForDaemon`). Without `SANDBOX_WORK_DIR` both stay where they are, which suits a local daemon.
+
+**Agent jail.** Where no Docker daemon answers, the fallback sandbox is self-built on
 the kernel (`packages/shared/sandbox/src/jail`, `jailRuntime` in `providers/agent`). The SDK's
 `spawnClaudeCodeProcess` hook starts `bun jail.js <policy> claude …` (bundled to
 `dist/jail/jail.js`; started in the run's home, never the checkout, with `--no-env-file
@@ -339,9 +345,10 @@ on `127.0.0.1:<random>` (`startEgressProxy`) and gets `HTTPS_PROXY`/`HTTP_PROXY`
 empty); it tunnels only `CONNECT <ANTHROPIC_BASE_URL host or api.anthropic.com>:443`.
 
 At boot a probe runs the same sequence on a throwaway launcher with an empty policy, reporting after
-each stage, and the AI reviewer panel shows the result. `auto` picks the jail when the probe passed
-(ABI ≥ 4, the uid drop worked when root, Landlock confined it), a Linux binary sits on the host and
-a credential is in env; else Docker; else the host with a warning. `jail` insists and the review
+each stage, and the AI reviewer panel shows the result. `auto` picks Docker when a daemon answers,
+a Linux binary is available and a credential is in env; else the jail when the probe passed
+(ABI ≥ 4, the uid drop worked when root, Landlock confined it) and a Linux binary sits on the host;
+else the host with a warning. `jail` insists and the review
 fails with what is missing. A probe whose seccomp step fails still leaves a usable jail without
 the filter, and the panel says so; as root without `CAP_SETUID` the probe fails and `auto` moves on.
 
