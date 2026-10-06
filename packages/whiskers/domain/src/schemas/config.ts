@@ -62,9 +62,5 @@ export const WhiskersConfigSchema = z.object({
     environment: z.string(),
     dsn: z.string().optional(),
   }),
-  fix: z.object({
-    maxTurns: z.number().int().positive().default(12),
-    execTimeoutMs: z.number().int().positive().default(120_000),
-  }),
 })
 export type WhiskersConfig = z.infer<typeof WhiskersConfigSchema>

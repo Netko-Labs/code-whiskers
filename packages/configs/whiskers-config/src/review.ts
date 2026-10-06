@@ -47,7 +47,7 @@ export function reviewConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['review
   }
 }
 
-/** Mentions and the fix agent stay on OpenRouter; they follow `REVIEW_MODEL` only while reviews do. */
+/** Mentions and fix replies stay on OpenRouter; they follow `REVIEW_MODEL` only while reviews do. */
 export function openrouterModelFrom(env: NodeJS.ProcessEnv): string {
   const reviewModel = reviewProviderFrom(env) === 'openrouter' ? setting(env, 'REVIEW_MODEL') : null
   return setting(env, 'OPENROUTER_MODEL') ?? reviewModel ?? DEFAULT_REVIEW_MODELS.openrouter

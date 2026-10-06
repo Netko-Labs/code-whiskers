@@ -15,7 +15,7 @@ const logger = createLogger('whiskers-webhooks')
 
 const REVIEWED_ACTIONS = new Set(['opened', 'synchronize', 'reopened', 'ready_for_review'])
 const MENTION_EVENTS = new Set(['issue_comment', 'pull_request_review_comment'])
-// Fix runs spend money and push commits — only repo insiders may trigger them.
+// Fix replies spend money — only repo insiders may trigger them.
 const TRUSTED_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR'])
 
 function validSignature(raw: string, signature: string | null): boolean {

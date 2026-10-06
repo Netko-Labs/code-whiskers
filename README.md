@@ -73,7 +73,7 @@ Each `review completed` log line carries the review's token tally (and turns and
 | `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-opus-5-5` |
 
 Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
-malformed JSON is repaired and missing fields default. Mentions and the fix agent stay on OpenRouter:
+malformed JSON is repaired and missing fields default. Mentions and fix replies stay on OpenRouter:
 they follow `REVIEW_MODEL` while `REVIEW_PROVIDER=openrouter`, otherwise `OPENROUTER_MODEL`.
 
 The `claude` agent may open files in the checkout to verify a claim before filing it; evidence must
@@ -175,7 +175,7 @@ Mention `@code-whiskers` in a PR comment or on one of its review threads (repo i
 
 | Mention | Does |
 | --- | --- |
-| `@code-whiskers fix` | pushes the change for the thread, or proposes one for the PR |
+| `@code-whiskers fix` | replies with a committable suggestion for the thread, or a proposed diff for the PR — it never pushes |
 | `@code-whiskers review` | reviews the current head again, even if it was reviewed |
 | `@code-whiskers ignore [why]` | on a review thread: dismisses the finding for the whole repo and resolves the thread |
 | `@code-whiskers <question>` | answers from the finding, the file at head or the diff |

@@ -76,26 +76,6 @@ export async function fetchPrHeadSha(ref: PrRef): Promise<string> {
   return (await fetchPrHead(ref)).sha
 }
 
-/**
- * A token that can push to the repo: a short-lived installation token under
- * App auth, the configured PAT otherwise.
- */
-export async function pushToken(owner: string, repo: string): Promise<string> {
-  if (!githubApp) {
-    if (!token) throw new Error('no GitHub credentials able to push')
-    return token
-  }
-  const { data: installation } = await githubApp.octokit.request(
-    'GET /repos/{owner}/{repo}/installation',
-    { owner, repo },
-  )
-  const { data } = await githubApp.octokit.request(
-    'POST /app/installations/{installation_id}/access_tokens',
-    { installation_id: installation.id },
-  )
-  return data.token
-}
-
 /** A token that can only read this one repository's contents; the configured PAT without an App. */
 export async function readToken(owner: string, repo: string): Promise<string> {
   if (!githubApp) {
