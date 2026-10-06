@@ -1,8 +1,7 @@
-import { chmod, mkdtemp, realpath, rm } from 'node:fs/promises'
+import { mkdtemp, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { ExecResult } from '@code-whiskers/sandbox'
-import { git } from '../../../shared/git'
+import { type ExecResult, git } from '../../../shared/git'
 import { readToken } from '../../github'
 import type { ReviewCommit } from '../types'
 import { AGENT_CONFIG_PATHS } from './constants'
@@ -14,8 +13,6 @@ async function must(step: string, result: Promise<ExecResult>): Promise<void> {
 }
 
 async function asCheckout(dir: string): Promise<CheckoutDir> {
-  // The sandbox user may not be the owner of a 0700 mkdtemp.
-  await chmod(dir, 0o755)
   return {
     dir,
     root: await realpath(dir),

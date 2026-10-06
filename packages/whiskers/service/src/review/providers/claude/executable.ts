@@ -39,7 +39,7 @@ export function sdkPlatformBinary(
   }
 }
 
-/** The binary on this host, wherever it comes from — what a sandbox mounts when the host is Linux. */
+/** The binary on this host, wherever it comes from. */
 export function hostClaudeBinary(configured: string | undefined): ResolvedExecutable {
   const resolved = resolveClaudeExecutable({
     configured,
@@ -49,14 +49,4 @@ export function hostClaudeBinary(configured: string | undefined): ResolvedExecut
   if (resolved.path) return resolved
   const fromSdk = sdkPlatformBinary()
   return fromSdk ? { path: fromSdk, source: 'sdk' } : { path: null, source: 'missing' }
-}
-
-/** A sandbox runs Linux: the host binary only fits when the host is Linux too. */
-export function sandboxClaudeBinary(
-  configured: string | undefined,
-  host: ResolvedExecutable,
-  platform: NodeJS.Platform = process.platform,
-): string | null {
-  if (configured) return configured
-  return platform === 'linux' ? host.path : null
 }

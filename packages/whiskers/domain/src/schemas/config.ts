@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { DEFAULT_REVIEW_MODELS } from '../values/reviewer'
-import { ReviewEffortSchema, ReviewProviderSchema, ReviewSandboxModeSchema } from './reviewer'
+import { ReviewEffortSchema, ReviewProviderSchema } from './reviewer'
 
 export const WhiskersConfigSchema = z.object({
   app: z.object({
@@ -38,19 +38,6 @@ export const WhiskersConfigSchema = z.object({
     timeoutMs: z.number().int().positive().default(600_000),
     maxBudgetUsd: z.number().positive().optional(),
     claudeExecutable: z.string().optional(),
-    sandbox: ReviewSandboxModeSchema.default('auto'),
-    sandboxImage: z.string().default('debian:bookworm-slim'),
-    sandboxExecutable: z.string().optional(),
-    jail: z
-      .object({
-        uid: z.number().int().positive().default(65_534),
-        cpuSeconds: z.number().int().nonnegative().default(1_200),
-        memoryMb: z.number().int().nonnegative().default(8_192),
-        processes: z.number().int().nonnegative().default(512),
-        fileSizeMb: z.number().int().nonnegative().default(256),
-        openFiles: z.number().int().nonnegative().default(4_096),
-      })
-      .prefault({}),
   }),
   telemetry: z.object({
     retentionDays: z.number().int().positive().default(7),

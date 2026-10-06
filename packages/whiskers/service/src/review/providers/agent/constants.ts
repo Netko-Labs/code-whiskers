@@ -24,15 +24,6 @@ export const AGENT_CONFIG_PATHS = [
   '.codex',
 ] as const
 
-export const CONTAINER_WORKDIR = '/workspace'
-export const CONTAINER_HOME = '/home/agent'
-export const CONTAINER_BIN_DIR = '/opt/agent'
-export const CONTAINER_PATH = '/usr/local/bin:/usr/bin:/bin'
-export const SANDBOX_MEMORY = '2g'
-export const SANDBOX_CPUS = '2'
-// The sandbox outlives the slowest agent run with margin; its TTL is a backstop, not the timeout.
-export const SANDBOX_TTL_MARGIN_MS = 5 * 60_000
-
 /** Shapes of credentials an agent could be tricked into echoing into a finding. */
 export const SECRET_PATTERNS: readonly RegExp[] = [
   /sk-ant-[A-Za-z0-9_-]{16,}/g,

@@ -7,21 +7,21 @@ import { addSpend, type TokenTally } from '../../../shared/llm'
 import { AGENT_REVIEW_SYSTEM, reviewPrompt } from '../../prompt'
 import {
   AGENT_RETRY,
-  type AgentRuntime,
   type CheckoutDir,
   createTail,
+  isInsideCheckout,
   redactSecrets,
   STDERR_TAIL_CHARS,
 } from '../agent'
 import type { ReviewSession } from '../types'
-import { claudeEnvFor, definedEnv } from './env'
+import { claudeEnv } from './env'
 import { buildClaudeOptions, readOnlyGuard } from './options'
 import { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'
 import type { ClaudeSessionSpec, ReviewSlice } from './types'
 
 async function runOnce(
   spec: ClaudeSessionSpec,
-  runtime: AgentRuntime,
+  checkout: CheckoutDir,
   configDir: string,
   slice: ReviewSlice,
   tokens: TokenTally,
@@ -30,30 +30,20 @@ async function runOnce(
   const abortController = new AbortController()
   controllers.add(abortController)
   const timer = setTimeout(() => abortController.abort(), spec.limits.timeoutMs)
-  const { spawn } = runtime
-  const binary = runtime.kind === 'docker' ? spec.containerBinary : spec.hostBinary
   const stderr = createTail(STDERR_TAIL_CHARS)
   let state = emptyRunState()
   try {
     const messages = query({
       prompt: reviewPrompt(slice.diff, slice.context),
       options: buildClaudeOptions({
-        cwd: runtime.workdir,
-        env: claudeEnvFor(runtime.kind, configDir, spec.isDev),
+        cwd: checkout.root,
+        env: claudeEnv(configDir, spec.isDev),
         systemPrompt: AGENT_REVIEW_SYSTEM,
         config: { ...spec.config, maxTurns: spec.limits.maxTurns },
-        executable: binary,
+        executable: spec.binary,
         abortController,
-        guard: readOnlyGuard(runtime.isInside),
+        guard: readOnlyGuard(isInsideCheckout(checkout)),
         stderr: stderr.push,
-        spawn:
-          spawn && binary
-            ? ({ args, env }) => {
-                const child = spawn([binary, ...args], definedEnv(env))
-                child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk.toString()))
-                return child
-              }
-            : undefined,
       }),
     })
     for await (const message of messages) state = observe(state, message)
@@ -70,29 +60,29 @@ async function runOnce(
   return redactSecrets(reviewFromRun(state))
 }
 
-/** One checkout and one runtime per review; `close` aborts what still runs, then removes both. */
+/** One checkout per review; `close` aborts what still runs, then removes it. */
 export async function openClaudeSession(
   spec: ClaudeSessionSpec,
   checkout: CheckoutDir,
-  openRuntime: (checkout: CheckoutDir) => Promise<AgentRuntime>,
 ): Promise<ReviewSession> {
-  const configDir = await mkdtemp(join(tmpdir(), 'whiskers-claude-'))
-  const removeConfig = () => rm(configDir, { recursive: true, force: true })
-  const controllers = new Set<AbortController>()
-  let runtime: AgentRuntime
+  let configDir: string
   try {
-    runtime = await openRuntime(checkout)
+    configDir = await mkdtemp(join(tmpdir(), 'whiskers-claude-'))
   } catch (error) {
-    await Promise.allSettled([checkout.destroy(), removeConfig()])
+    await checkout.destroy()
     throw error
   }
+  const controllers = new Set<AbortController>()
   return {
     retry: AGENT_RETRY,
     review: (diff, context, tokens) =>
-      runOnce(spec, runtime, configDir, { diff, context }, tokens, controllers),
+      runOnce(spec, checkout, configDir, { diff, context }, tokens, controllers),
     close: async () => {
       for (const controller of controllers) controller.abort()
-      await Promise.allSettled([runtime.destroy(), checkout.destroy(), removeConfig()])
+      await Promise.allSettled([
+        checkout.destroy(),
+        rm(configDir, { recursive: true, force: true }),
+      ])
     },
   }
 }

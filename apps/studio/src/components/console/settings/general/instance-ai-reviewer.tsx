@@ -2,8 +2,7 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { ErrorState } from '@/components/shared/empty-state'
 import { Panel, PanelSkeleton, SettingRow } from '@/components/shared/page'
 import { StatusBadge } from '@/components/shared/status'
-import { InstanceAiReviewerIsolation } from './instance-ai-reviewer-isolation'
-import { SANDBOX_DETAIL, SANDBOX_LABEL, SANDBOX_TONE, useAiReviewer } from './lib'
+import { useAiReviewer } from './lib'
 
 /** Env-driven and read-only: which reviewer the worker runs, what it is missing, and a test run. */
 export function InstanceAiReviewer() {
@@ -50,14 +49,6 @@ export function InstanceAiReviewer() {
           </StatusBadge>
         ))}
       </SettingRow>
-      {reviewer.sandbox && (
-        <SettingRow label="Sandbox" description={SANDBOX_DETAIL[reviewer.sandbox]}>
-          <StatusBadge tone={SANDBOX_TONE[reviewer.sandbox]}>
-            {SANDBOX_LABEL[reviewer.sandbox]}
-          </StatusBadge>
-        </SettingRow>
-      )}
-      {reviewer.isolation && <InstanceAiReviewerIsolation isolation={reviewer.isolation} />}
       {reviewer.problems.map((problem) => (
         <SettingRow key={problem} label="Needs attention" description={problem}>
           <StatusBadge tone="warning">Check</StatusBadge>

@@ -31,9 +31,8 @@ flowchart LR
 | Database | auth tables | reviews, findings, projects, issues, events |
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
-Shared: `packages/shared/{cli,logger,ui,sandbox,typescript-config}`. The cat mark and expressions
-ship from `@code-whiskers/ui/brand`. Disposable Docker sandboxes for the fix agent, and the
-Landlock jail and egress proxy for the review agent, live in `packages/shared/sandbox`.
+Shared: `packages/shared/{cli,logger,observability,ui,typescript-config}`. The cat mark and
+expressions ship from `@code-whiskers/ui/brand`.
 
 ## Run it
 
@@ -84,44 +83,21 @@ memory, no persisted session, and an env built from names (never the worker's da
 key). A hook refuses any path that resolves outside the checkout. The checkout is shallow at the
 head sha, cloned with a contents-read token, with `.git` and harness config removed.
 
-Where the harness itself runs (`REVIEW_AGENT_SANDBOX`, `auto` | `jail` | `docker` | `host`; `auto`
-tries them in that order, and every sandbox needs a credential in env):
-
-- **jail** (Linux, no Docker needed — the production path): a launcher process drops to an
-  unprivileged uid (`REVIEW_AGENT_JAIL_UID`, 65534) when the worker is root, sets no-new-privs and
-  rlimits, applies Landlock (read-only: the checkout, the binary's directory, the image's runtime
-  and TLS/DNS files; writable: one fresh home that is also `TMPDIR`; TCP connect only to the
-  egress proxy's port, no bind) and a seccomp deny-list, then becomes `claude` on the SDK's stdio.
-  The proxy runs inside the worker on `127.0.0.1:<random>` and tunnels only
-  `CONNECT api.anthropic.com:443`. Needs Landlock ABI ≥ 4 (Linux 6.7+); a boot probe checks it.
-- **docker**: a Docker daemon and a Linux `claude` binary. Checkout and binary mounted read-only,
-  read-only root, tmpfs home, and an internal network whose only way out is the same proxy.
-- **host**: the confined tools only; the worker warns at boot.
+The harness runs in the worker process, no sandbox: the bot is read-only, and those tool limits,
+the path guard and the trimmed env are the boundary.
 
 Knobs: `REVIEW_AGENT_EFFORT` (medium), `REVIEW_AGENT_MAX_TURNS` (40),
-`REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset), `REVIEW_AGENT_SANDBOX`
-(`auto`), jail limits `REVIEW_AGENT_JAIL_CPU_SECONDS` (1200), `REVIEW_AGENT_JAIL_MEMORY_MB` (8192,
-data segment, not RSS), `REVIEW_AGENT_JAIL_PROCESSES` (512, threads count; shared by every process
-of that uid), `REVIEW_AGENT_JAIL_FILE_SIZE_MB` (256), `REVIEW_AGENT_JAIL_OPEN_FILES` (4096); `0`
-lifts one. `REVIEW_AGENT_SANDBOX_IMAGE` (`debian:bookworm-slim`),
-`CLAUDE_CODE_EXECUTABLE` (the build ships one at `dist/claude/claude`), `CLAUDE_CODE_SANDBOX_EXECUTABLE`
-(a Linux build to mount when the host is not Linux). A usage limit retries at its reset when that is
-within 15 minutes; an expired or revoked token fails the review saying to run `claude setup-token`.
+`REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset),
+`CLAUDE_CODE_EXECUTABLE` (the build ships one at `dist/claude/claude`). A usage limit retries at
+its reset when that is within 15 minutes; an expired or revoked token fails the review saying to
+run `claude setup-token`.
 Without either credential a development worker uses the machine's own Claude Code login.
 
 A `claude setup-token` token is for one operator's personal instance. A shared or team instance
 uses `ANTHROPIC_API_KEY`.
 
-Settings → General shows the active reviewer, which credentials are set (never their values), the
-sandbox and why `auto` picked it, the jail probe (Landlock ABI, whether root is dropped, seccomp),
+Settings → General shows the active reviewer, which credentials are set (never their values),
 what is missing, and a **Test** button that runs one tiny review through it.
-
-The jail's integration test (`packages/shared/sandbox/tests/jail.test.ts`) runs wherever the probe
-passes and skips elsewhere. On a Mac, run it in a Linux container whose VM kernel has Landlock
-(OrbStack's 7.0 does; an emulated `linux/amd64` container does not): `docker run --rm -v "$PWD":/repo -w /repo/packages/shared/sandbox
-oven/bun:1.4.0-debian bun test tests/jail.test.ts` (add `--user 1000:1000` for the non-root path).
-`packages/whiskers/service/tests/claude-jail.test.ts` jails a real Linux `claude`
-(`CLAUDE_JAIL_TEST_BINARY`) with a fake token and expects the permanent token error.
 
 ## Error tracking
 

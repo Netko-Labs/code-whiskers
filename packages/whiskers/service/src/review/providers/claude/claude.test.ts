@@ -3,11 +3,10 @@ import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { HookInput, SDKMessage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
-import { jailEnv } from '@code-whiskers/sandbox'
-import { hostRuntime } from '../agent'
+import { isInsideCheckout } from '../agent'
 import { ReviewProviderError } from '../errors'
-import { claudeEnvFor, containerClaudeEnv, hostClaudeEnv, jailClaudeEnv } from './env'
-import { resolveClaudeExecutable, sandboxClaudeBinary } from './executable'
+import { claudeEnv } from './env'
+import { resolveClaudeExecutable } from './executable'
 import { buildClaudeOptions, readOnlyGuard } from './options'
 import { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'
 
@@ -32,7 +31,6 @@ const options = (env: Record<string, string>) =>
     abortController: new AbortController(),
     guard: async () => ({}),
     stderr: () => {},
-    spawn: undefined,
   })
 
 const result = (overrides: Partial<Record<string, unknown>>): SDKResultMessage =>
@@ -92,7 +90,7 @@ describe('buildClaudeOptions', () => {
   })
 
   test('the credential travels in env only, never elsewhere in the options', () => {
-    const built = options(hostClaudeEnv('/tmp/config', false, WORKER_ENV))
+    const built = options(claudeEnv('/tmp/config', false, WORKER_ENV))
     const { env, abortController, hooks, ...rest } = built
     expect(JSON.stringify(rest)).not.toContain(TOKEN)
     expect(env?.CLAUDE_CODE_OAUTH_TOKEN).toBe(TOKEN)
@@ -101,59 +99,29 @@ describe('buildClaudeOptions', () => {
 
 describe('agent env', () => {
   test('the worker’s own secrets never reach the agent process', () => {
-    for (const env of [
-      hostClaudeEnv('/tmp/config', false, WORKER_ENV),
-      containerClaudeEnv(WORKER_ENV),
-      jailEnv(jailClaudeEnv(WORKER_ENV), '/tmp/whiskers-jail-x', 'http://127.0.0.1:41000'),
+    const env = claudeEnv('/tmp/config', false, WORKER_ENV)
+    for (const name of [
+      'DATABASE_URL',
+      'GITHUB_APP_PRIVATE_KEY_B64',
+      'OPENROUTER_API_KEY',
+      'INTERNAL_TOKEN',
     ]) {
-      for (const name of [
-        'DATABASE_URL',
-        'GITHUB_APP_PRIVATE_KEY_B64',
-        'OPENROUTER_API_KEY',
-        'INTERNAL_TOKEN',
-      ]) {
-        expect(env[name]).toBeUndefined()
-      }
-      expect(env.CLAUDE_CODE_DISABLE_AUTO_MEMORY).toBe('1')
+      expect(env[name]).toBeUndefined()
     }
+    expect(env.CLAUDE_CODE_DISABLE_AUTO_MEMORY).toBe('1')
   })
 
   test('a fresh config dir and HOME, unless a dev worker borrows the local login', () => {
-    const isolated = hostClaudeEnv('/tmp/config', false, WORKER_ENV)
+    const isolated = claudeEnv('/tmp/config', false, WORKER_ENV)
     expect(isolated).toMatchObject({
       HOME: '/tmp/config',
       CLAUDE_CONFIG_DIR: '/tmp/config/.claude',
     })
     const { CLAUDE_CODE_OAUTH_TOKEN, ...withoutToken } = WORKER_ENV
-    const local = hostClaudeEnv('/tmp/config', true, withoutToken)
+    const local = claudeEnv('/tmp/config', true, withoutToken)
     expect(local.HOME).toBe('/root')
     expect(local.CLAUDE_CONFIG_DIR).toBeUndefined()
-    expect(hostClaudeEnv('/tmp/config', false, withoutToken).CLAUDE_CONFIG_DIR).toBeDefined()
-  })
-
-  test('inside the sandbox only container paths apply', () => {
-    expect(containerClaudeEnv(WORKER_ENV)).toMatchObject({
-      HOME: '/home/agent',
-      CLAUDE_CONFIG_DIR: '/home/agent/.claude',
-      PATH: '/usr/local/bin:/usr/bin:/bin',
-    })
-  })
-
-  test('jailed: the worker’s HOME and proxy never apply; only the jail’s own do', () => {
-    const worker = { ...WORKER_ENV, HTTPS_PROXY: 'http://user:pass@corp-proxy:3128' }
-    const env = jailEnv(jailClaudeEnv(worker), '/tmp/whiskers-jail-x', 'http://127.0.0.1:41000')
-    expect(env).toMatchObject({
-      HOME: '/tmp/whiskers-jail-x',
-      TMPDIR: '/tmp/whiskers-jail-x/tmp',
-      HTTPS_PROXY: 'http://127.0.0.1:41000',
-      HTTP_PROXY: 'http://127.0.0.1:41000',
-      PATH: '/usr/local/bin:/usr/bin:/bin',
-      CLAUDE_CODE_OAUTH_TOKEN: TOKEN,
-    })
-    expect(env.CLAUDE_CONFIG_DIR).toBeUndefined()
-    expect(Object.values(env).join('\n')).not.toContain('pass@')
-    expect(claudeEnvFor('jail', '/tmp/config', false).HOME).toBeUndefined()
-    expect(claudeEnvFor('docker', '/tmp/config', false).HOME).toBe('/home/agent')
+    expect(claudeEnv('/tmp/config', false, withoutToken).CLAUDE_CONFIG_DIR).toBeDefined()
   })
 })
 
@@ -164,7 +132,7 @@ describe('readOnlyGuard', () => {
     await writeFile(join(root, 'src', 'a.ts'), 'x')
     await symlink('/etc/hosts', join(root, 'src', 'hosts'))
     const checkout = { dir: root, root: await realpath(root), destroy: async () => {} }
-    const guard = readOnlyGuard(hostRuntime(checkout).isInside)
+    const guard = readOnlyGuard(isInsideCheckout(checkout))
     const decision = async (tool: string, input: unknown) =>
       JSON.stringify(await guard(preToolUse(tool, input), undefined, signal))
     try {
@@ -289,12 +257,5 @@ describe('executable resolution', () => {
     expect(lookup('/opt/claude', true)).toEqual({ path: '/opt/claude', source: 'env' })
     expect(lookup(undefined, true)).toEqual({ path: '/app/dist/claude/claude', source: 'bundled' })
     expect(lookup(undefined, false)).toEqual({ path: null, source: 'sdk' })
-  })
-
-  test('a sandbox mounts the host binary only on Linux', () => {
-    const host = { path: '/app/dist/claude/claude', source: 'bundled' as const }
-    expect(sandboxClaudeBinary(undefined, host, 'linux')).toBe('/app/dist/claude/claude')
-    expect(sandboxClaudeBinary(undefined, host, 'darwin')).toBeNull()
-    expect(sandboxClaudeBinary('/opt/linux/claude', host, 'darwin')).toBe('/opt/linux/claude')
   })
 })
