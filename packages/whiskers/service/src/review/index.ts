@@ -1,6 +1,5 @@
 import { createLogger } from '@code-whiskers/logger'
 import { reportError } from '@code-whiskers/observability/server'
-import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createReview } from '../mutations'
 import { hasReviewOfHead } from '../queries'
@@ -14,8 +13,9 @@ import {
   startCheckRun,
 } from './github'
 import { runPipeline } from './pipeline'
+import { reviewProvider } from './providers'
 import { renderFailureComment } from './render'
-import { isTransient, RETRY_DELAYS_MS } from './retry'
+import { RETRY_DELAYS_MS, retryDelayFor } from './retry'
 import type { PipelineAttempt, ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
@@ -24,6 +24,8 @@ export * from './conventions'
 export * from './github'
 export * from './grounding'
 export * from './llm'
+export * from './prompt'
+export * from './providers'
 export * from './render'
 export * from './retry'
 export * from './rules'
@@ -93,7 +95,7 @@ async function reviewHead(
     additions: head.additions,
     deletions: head.deletions,
     status: 'running',
-    model: whiskersEnvConfig.openrouter.model,
+    model: reviewProvider().model,
   })
   if (!review) return undefined
   logger.info({ ...ref, headSha, reviewId: review.id }, 'review started')
@@ -130,8 +132,8 @@ async function reviewHead(
         ...usage(),
       })
     } catch (error) {
-      const delay = RETRY_DELAYS_MS[attempt]
-      if (delay !== undefined && isTransient(error)) {
+      const delay = retryDelayFor(error, attempt)
+      if (delay !== undefined) {
         logger.warn(
           { ...ref, headSha, attempt: attempt + 1, retryInMs: delay, err: messageOf(error) },
           'review attempt failed — retrying',

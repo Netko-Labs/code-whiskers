@@ -5,7 +5,9 @@ import {
   githubAccessFor,
   hasGithubApp,
   previewCondition,
+  reviewProvider,
   setIssueLifecycle,
+  testReviewer,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
 
@@ -51,4 +53,20 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       return { error: 'unauthorized' }
     }
     return previewCondition(body)
+  })
+  // (・ω・) which reviewer this worker runs and whether its credential is there — never its value
+  .get('/reviewer', async ({ request, set }) => {
+    if (!authorized(request.headers.get('authorization'))) {
+      set.status = 401
+      return { error: 'unauthorized' }
+    }
+    return reviewProvider().status()
+  })
+  // (｀・ω・´) one tiny structured review through it, to prove the credential and model answer
+  .post('/reviewer/test', async ({ request, set }) => {
+    if (!authorized(request.headers.get('authorization'))) {
+      set.status = 401
+      return { error: 'unauthorized' }
+    }
+    return testReviewer()
   })

@@ -9,4 +9,9 @@ export * from './queries'
 export * from './realtime'
 export * from './saved-queries'
 export * from './shared'
-export { probeWhiskers, type WhiskersHealth } from './whiskers'
+export {
+  probeWhiskers,
+  reviewerInWhiskers,
+  testReviewerInWhiskers,
+  type WhiskersHealth,
+} from './whiskers'

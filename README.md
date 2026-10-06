@@ -32,8 +32,8 @@ flowchart LR
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
 Shared: `packages/shared/{cli,logger,ui,sandbox,typescript-config}`. The cat mark and expressions
-ship from `@code-whiskers/ui/brand`. Disposable Docker sandboxes for the fix agent live in
-`packages/shared/sandbox`.
+ship from `@code-whiskers/ui/brand`. Disposable Docker sandboxes for the fix agent, and the
+Landlock jail and egress proxy for the review agent, live in `packages/shared/sandbox`.
 
 ## Run it
 
@@ -57,12 +57,71 @@ are set.
 
 Install the GitHub App on the organization with **Pull request**, **Issue comment** and **Pull
 request review comment** events, webhook URL `https://whiskers.netko.dev/webhooks/github`. On every
-PR the worker chunks the diff (14k chars, generated, vendored and binary files skipped), reviews
-chunks in parallel on the `REVIEW_MODEL` (default `openai/gpt-6-luna`, medium reasoning) with
-OpenRouter routed for throughput, and posts a review plus a check run. Mentioning the bot on a review
-thread queues a fix. Cheap models are expected: malformed JSON is repaired, missing fields default,
-and a failing chunk gets three jittered attempts (a timeout splits it) before it is skipped. Each
-`review completed` log line carries the review's token tally.
+PR the worker chunks the diff (generated, vendored and binary files skipped), reviews the chunks
+with the configured provider and posts a review plus a check run. Mentioning the bot on a review
+thread queues a fix. Every provider gets the same preamble (rules, conventions, description, file
+list, delta note, PR history) and its findings go through the same grounding, settling and verdict.
+Each `review completed` log line carries the review's token tally (and turns and cost for an agent).
+
+`REVIEW_PROVIDER` picks the reviewer; `REVIEW_MODEL` overrides its default model:
+
+| `REVIEW_PROVIDER` | how it reviews | credential | default `REVIEW_MODEL` |
+| --- | --- | --- | --- |
+| `openrouter` (default) | one structured call per 14k-char chunk, 6 in parallel, medium reasoning | `OPENROUTER_API_KEY` | `openai/gpt-6-luna` |
+| `ai-gateway` | the same, through Vercel AI Gateway; cost lands in the tally | `AI_GATEWAY_API_KEY` | `openai/gpt-6-luna` |
+| `openai` | the same, straight to OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` |
+| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-opus-5-5` |
+
+Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
+malformed JSON is repaired and missing fields default. Mentions and the fix agent stay on OpenRouter:
+they follow `REVIEW_MODEL` while `REVIEW_PROVIDER=openrouter`, otherwise `OPENROUTER_MODEL`.
+
+The `claude` agent may open files in the checkout to verify a claim before filing it; evidence must
+still quote changed lines. It gets `Read`, `Grep` and `Glob` only (every other tool removed),
+`permissionMode: dontAsk`, no setting sources (a PR's `CLAUDE.md`, `.claude/` hooks or MCP config
+never load; the repo's conventions reach the prompt as for every provider), a fresh config dir, no
+memory, no persisted session, and an env built from names (never the worker's database URL or App
+key). A hook refuses any path that resolves outside the checkout. The checkout is shallow at the
+head sha, cloned with a contents-read token, with `.git` and harness config removed.
+
+Where the harness itself runs (`REVIEW_AGENT_SANDBOX`, `auto` | `jail` | `docker` | `host`; `auto`
+tries them in that order, and every sandbox needs a credential in env):
+
+- **jail** (Linux, no Docker needed — the production path): a launcher process drops to an
+  unprivileged uid (`REVIEW_AGENT_JAIL_UID`, 65534) when the worker is root, sets no-new-privs and
+  rlimits, applies Landlock (read-only: the checkout, the binary's directory, the image's runtime
+  and TLS/DNS files; writable: one fresh home that is also `TMPDIR`; TCP connect only to the
+  egress proxy's port, no bind) and a seccomp deny-list, then becomes `claude` on the SDK's stdio.
+  The proxy runs inside the worker on `127.0.0.1:<random>` and tunnels only
+  `CONNECT api.anthropic.com:443`. Needs Landlock ABI ≥ 4 (Linux 6.7+); a boot probe checks it.
+- **docker**: a Docker daemon and a Linux `claude` binary. Checkout and binary mounted read-only,
+  read-only root, tmpfs home, and an internal network whose only way out is the same proxy.
+- **host**: the confined tools only; the worker warns at boot.
+
+Knobs: `REVIEW_AGENT_EFFORT` (medium), `REVIEW_AGENT_MAX_TURNS` (40),
+`REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset), `REVIEW_AGENT_SANDBOX`
+(`auto`), jail limits `REVIEW_AGENT_JAIL_CPU_SECONDS` (1200), `REVIEW_AGENT_JAIL_MEMORY_MB` (8192,
+data segment, not RSS), `REVIEW_AGENT_JAIL_PROCESSES` (512, threads count; shared by every process
+of that uid), `REVIEW_AGENT_JAIL_FILE_SIZE_MB` (256), `REVIEW_AGENT_JAIL_OPEN_FILES` (4096); `0`
+lifts one. `REVIEW_AGENT_SANDBOX_IMAGE` (`debian:bookworm-slim`),
+`CLAUDE_CODE_EXECUTABLE` (the build ships one at `dist/claude/claude`), `CLAUDE_CODE_SANDBOX_EXECUTABLE`
+(a Linux build to mount when the host is not Linux). A usage limit retries at its reset when that is
+within 15 minutes; an expired or revoked token fails the review saying to run `claude setup-token`.
+Without either credential a development worker uses the machine's own Claude Code login.
+
+A `claude setup-token` token is for one operator's personal instance. A shared or team instance
+uses `ANTHROPIC_API_KEY`.
+
+Settings → General shows the active reviewer, which credentials are set (never their values), the
+sandbox and why `auto` picked it, the jail probe (Landlock ABI, whether root is dropped, seccomp),
+what is missing, and a **Test** button that runs one tiny review through it.
+
+The jail's integration test (`packages/shared/sandbox/tests/jail.test.ts`) runs wherever the probe
+passes and skips elsewhere. On a Mac, run it in a Linux container whose VM kernel has Landlock
+(OrbStack's 7.0 does; an emulated `linux/amd64` container does not): `docker run --rm -v "$PWD":/repo -w /repo/packages/shared/sandbox
+oven/bun:1.4.0-debian bun test tests/jail.test.ts` (add `--user 1000:1000` for the non-root path).
+`packages/whiskers/service/tests/claude-jail.test.ts` jails a real Linux `claude`
+(`CLAUDE_JAIL_TEST_BINARY`) with a fake token and expects the permanent token error.
 
 ## Error tracking
 
@@ -92,7 +151,8 @@ Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KE
 encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`
 (default `code-whiskers`), `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`,
 `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
-`OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
+`OPENROUTER_API_KEY`, `REVIEW_PROVIDER`, `REVIEW_MODEL` and the reviewer's credential (see
+Reviews), `INTERNAL_TOKEN` (also switches on alert evaluation),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
 code-whiskers reports its own errors to a code-whiskers project when `SENTRY_DSN` is set (both apps;

@@ -4,4 +4,8 @@ export type TokenTally = {
   cachedInput: number
   output: number
   reasoning: number
+  turns: number
+  costUsd: number
 }
+
+export type TokenSpend = Partial<Omit<TokenTally, 'calls'>>

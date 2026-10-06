@@ -24,7 +24,7 @@
       }
     ],
     "startCommand": "bun --no-install apps/whiskers/dist/migrate/migrate.js && bun --no-install apps/whiskers/dist/index.js",
-    "aptPackages": ["curl"],
+    "aptPackages": ["curl", "git"],
     "variables": {
       "CI": ""
     }

@@ -297,6 +297,63 @@ were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before 
 `delta_from` (the last reviewed sha a delta read from), token counts, `created_at`,
 `completed_at`. `GET /v1/reviews/:id/pull-request` returns every push of that PR with its findings.
 
+**Review providers.** `REVIEW_PROVIDER` selects one implementation of `ReviewProvider`
+(`packages/whiskers/service/src/review/providers`): `openrouter`, `ai-gateway` and `openai` share
+one single-shot path (one `generateObject` per chunk; only the model factory differs); `claude`
+runs the Claude Agent SDK over a read-only checkout. A provider opens one session per review
+(checkout and sandbox for an agent, nothing for a single-shot one) and answers per chunk; grounding,
+settling and the verdict are common. A `ReviewProviderError` is the provider's, not the chunk's: a
+transient one (rate limit, overload) goes to the review-level retry, honouring a reset within 15
+minutes; a permanent one (dead token, unknown model) fails the review with its message. `model`
+records the provider's model; an agent's cost and turns are logged, not stored. The agent plumbing
+(`providers/agent`: checkout, env from names, path guard, JSON schema, Docker runtime with an
+allowlisting egress proxy from `packages/shared/sandbox`) is harness-agnostic, so another agent
+SDK plugs in beside `claude`.
+
+**Agent jail.** Production has no Docker daemon, so the agent's default sandbox is self-built on
+the kernel (`packages/shared/sandbox/src/jail`, `jailRuntime` in `providers/agent`). The SDK's
+`spawnClaudeCodeProcess` hook starts `bun jail.js <policy> claude …` (bundled to
+`dist/jail/jail.js`; started in the run's home, never the checkout, with `--no-env-file
+--no-install`, since it is root until it drops). Through `bun:ffi` against libc the launcher, in
+order:
+
+1. `setgroups`/`setresgid`/`setresuid` to `REVIEW_AGENT_JAIL_UID` when root, and fails if root
+   can be regained — the agent cannot read `/proc/<worker>/environ`;
+2. `PR_SET_NO_NEW_PRIVS`;
+3. rlimits, soft = hard: CPU, data segment, processes, file size, open files; core dumps off;
+4. Landlock at the highest ABI the kernel reports, handling every right that ABI knows (fs, TCP
+   and from ABI 10 UDP, abstract-socket and signal scopes from 6): read-only the checkout, the
+   binary's directory, `/usr`, `/lib*`, `/bin` and the TLS/DNS/passwd files under `/etc`, a few
+   `/proc` and `/sys` reads and `/dev/null`-style nodes; read-write only a fresh per-run home
+   (`HOME`, `TMPDIR`, the claude config) with no execute; TCP connect only to the proxy's port,
+   no bind;
+5. a seccomp filter: foreign arch and x32 killed; `ptrace`, `process_vm_*`, mount family,
+   `unshare`/`setns`, module and kexec calls, `bpf`, `perf_event_open`, keyrings, `userfaultfd`,
+   handle-based opens, `io_uring_*` refused with EPERM; `clone3` ENOSYS so libc falls back to
+   `clone`, whose namespace flags are refused; UDP sockets refused;
+6. `close_range(CLOEXEC)` above stdio, then `execve` the binary — the launcher *becomes* the
+   harness, so stdio, exit codes and the SDK's kill need no forwarding.
+
+Any failed step exits 126 before the harness starts. The allowlisting proxy runs inside the worker
+on `127.0.0.1:<random>` (`startEgressProxy`) and gets `HTTPS_PROXY`/`HTTP_PROXY` (with `NO_PROXY`
+empty); it tunnels only `CONNECT <ANTHROPIC_BASE_URL host or api.anthropic.com>:443`.
+
+At boot a probe runs the same sequence on a throwaway launcher with an empty policy, reporting after
+each stage, and the AI reviewer panel shows the result. `auto` picks the jail when the probe passed
+(ABI ≥ 4, the uid drop worked when root, Landlock confined it), a Linux binary sits on the host and
+a credential is in env; else Docker; else the host with a warning. `jail` insists and the review
+fails with what is missing. A probe whose seccomp step fails still leaves a usable jail without
+the filter, and the panel says so; as root without `CAP_SETUID` the probe fails and `auto` moves on.
+
+Limits: a jail shares the worker's kernel — a kernel bug is an escape, which a VM-backed sandbox
+would contain. Landlock network rules match ports, not hosts: the agent may reach any address on
+the proxy's port, which is why only the proxy decides hosts. Below ABI 10 UDP is outside Landlock
+and only the seccomp filter stops it. Rlimits are per process (processes per uid), not a cgroup:
+the container's own memory limit still matters. Every concurrent run shares the jail uid; Landlock
+keeps each run to its own home. None of this replaces the tool layer: the agent still has only
+`Read`/`Grep`/`Glob` behind the path guard and no network tool — the jail is what holds if that
+layer fails.
+
 **`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
 `title`, `body`, `suggestion`, `created_at`.
 

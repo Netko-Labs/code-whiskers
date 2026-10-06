@@ -17,3 +17,40 @@ export const WhiskersHealthBodySchema = z.object({
   release: z.string().nullish(),
   environment: z.string().nullish(),
 })
+
+/** What whiskers' `/internal/reviewer` answers: credentials are presence flags, never values. */
+export const WhiskersReviewerSchema = z.object({
+  provider: z.string(),
+  model: z.string(),
+  isAgentic: z.boolean(),
+  credentials: z.array(z.object({ name: z.string(), isSet: z.boolean() })),
+  executable: z
+    .object({ name: z.string(), path: z.string().nullable(), source: z.string() })
+    .nullable(),
+  sandbox: z.enum(['jail', 'docker', 'host']).nullable(),
+  isolation: z
+    .object({
+      mode: z.string(),
+      reason: z.string(),
+      jail: z
+        .object({
+          landlockAbi: z.number().nullable(),
+          canDropUid: z.boolean(),
+          hasSeccomp: z.boolean(),
+          reason: z.string().nullable(),
+        })
+        .nullable(),
+    })
+    .nullish(),
+  problems: z.array(z.string()),
+})
+export type WhiskersReviewer = z.infer<typeof WhiskersReviewerSchema>
+
+export const WhiskersReviewerTestSchema = z.object({
+  provider: z.string(),
+  model: z.string(),
+  isOk: z.boolean(),
+  latencyMs: z.number(),
+  error: z.string().nullable(),
+})
+export type WhiskersReviewerTest = z.infer<typeof WhiskersReviewerTestSchema>

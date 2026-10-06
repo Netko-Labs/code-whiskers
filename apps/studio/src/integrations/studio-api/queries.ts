@@ -1,3 +1,4 @@
+import { WhiskersReviewerSchema, WhiskersReviewerTestSchema } from '@code-whiskers/studio-domain'
 import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
 import { ResponseError } from '@/integrations/observability'
@@ -107,6 +108,15 @@ export const instanceHealthQuery = () =>
 
 export const updateInstanceSettings = (input: InstanceSettingsInput) =>
   fetchStudio('/instance', instanceSettingsSchema, 'PATCH', input)
+
+export const instanceReviewerQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance', 'reviewer'],
+    queryFn: () => fetchStudio('/instance/reviewer', WhiskersReviewerSchema),
+  })
+
+export const testInstanceReviewer = () =>
+  fetchStudio('/instance/reviewer/test', WhiskersReviewerTestSchema, 'POST')
 
 export const studioStorageQuery = () =>
   queryOptions({
