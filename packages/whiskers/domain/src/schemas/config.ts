@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { DEFAULT_REVIEW_MODELS } from '../values/reviewer'
+import { ReviewEffortSchema, ReviewProviderSchema } from './reviewer'
 
 export const WhiskersConfigSchema = z.object({
   app: z.object({
@@ -20,7 +22,22 @@ export const WhiskersConfigSchema = z.object({
   }),
   openrouter: z.object({
     apiKey: z.string().default(''),
-    model: z.string().default('openai/gpt-6-luna'),
+    model: z.string().default(DEFAULT_REVIEW_MODELS.openrouter),
+  }),
+  openai: z.object({
+    apiKey: z.string().default(''),
+  }),
+  aiGateway: z.object({
+    apiKey: z.string().default(''),
+  }),
+  review: z.object({
+    provider: ReviewProviderSchema.default('openrouter'),
+    model: z.string().min(1),
+    effort: ReviewEffortSchema.default('medium'),
+    maxTurns: z.number().int().positive().default(40),
+    timeoutMs: z.number().int().positive().default(600_000),
+    maxBudgetUsd: z.number().positive().optional(),
+    claudeExecutable: z.string().optional(),
   }),
   telemetry: z.object({
     retentionDays: z.number().int().positive().default(7),
