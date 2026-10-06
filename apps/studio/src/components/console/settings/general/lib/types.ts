@@ -53,11 +53,3 @@ export type AiReviewer = {
   isTesting: boolean
   runTest: () => void
 }
-
-export type ReviewerSandbox = NonNullable<InstanceReviewer['sandbox']>
-
-export type ReviewerIsolation = NonNullable<InstanceReviewer['isolation']>
-
-export type InstanceReviewerIsolationProps = {
-  isolation: ReviewerIsolation
-}

@@ -1,45 +1,31 @@
 import { existsSync } from 'node:fs'
-import { basename, join } from 'node:path'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { ReviewerStatus, WhiskersConfig } from '@code-whiskers/whiskers-domain'
 import {
   AGENT_CHUNK_CHARS,
   AGENT_CONCURRENCY,
-  CONTAINER_BIN_DIR,
   emptyCheckout,
   openCheckout,
   PROBE_MAX_TURNS,
   PROBE_TIMEOUT_MS,
-  type SandboxChoice,
 } from '../agent'
 import { PROBE_DIFF } from '../constants'
 import { credentialPresence } from '../credentials'
 import type { ReviewProvider } from '../types'
 import { CLAUDE_CREDENTIALS } from './constants'
-import { hostClaudeBinary, sandboxClaudeBinary } from './executable'
-import { claudeSandbox } from './sandbox'
+import { hostClaudeBinary } from './executable'
 import { openClaudeSession } from './session'
 import type { ClaudeSessionSpec } from './types'
 
-/** The Claude Agent SDK over a read-only checkout, jailed or containerised when it can be. */
+/** The Claude Agent SDK over a read-only checkout: three read tools, confined to the checkout. */
 export function createClaudeProvider(config: WhiskersConfig = whiskersEnvConfig): ReviewProvider {
   const review = config.review
   const isDev = config.app.dev
   const host = hostClaudeBinary(review.claudeExecutable)
-  const sandboxBinary = sandboxClaudeBinary(review.sandboxExecutable, host)
-  const spec: ClaudeSessionSpec = {
-    config: review,
-    limits: review,
-    isDev,
-    hostBinary: host.path,
-    containerBinary: sandboxBinary ? join(CONTAINER_BIN_DIR, basename(sandboxBinary)) : null,
-  }
-  const sandbox = claudeSandbox({ review, hostBinary: host.path, sandboxBinary })
+  const spec: ClaudeSessionSpec = { config: review, limits: review, isDev, binary: host.path }
 
   const status = async (): Promise<ReviewerStatus> => {
     const credentials = credentialPresence(CLAUDE_CREDENTIALS)
-    const choice: SandboxChoice | null = await sandbox.choose().catch(() => null)
-    const isolation = await sandbox.isolation()
     const problems = [
       !credentials.some((c) => c.isSet) &&
         (isDev
@@ -50,10 +36,6 @@ export function createClaudeProvider(config: WhiskersConfig = whiskersEnvConfig)
         host.path !== null &&
         !existsSync(host.path) &&
         'CLAUDE_CODE_EXECUTABLE points at a missing file',
-      choice === null && `${isolation.reason}: reviews will fail`,
-      choice?.kind === 'host' &&
-        review.sandbox !== 'host' &&
-        `no sandbox (${isolation.reason}): the agent runs on the host with its tools confined to the checkout`,
     ].filter((problem): problem is string => typeof problem === 'string')
     return {
       provider: 'claude',
@@ -61,8 +43,6 @@ export function createClaudeProvider(config: WhiskersConfig = whiskersEnvConfig)
       isAgentic: true,
       credentials,
       executable: { name: 'claude', ...host },
-      sandbox: choice?.kind ?? null,
-      isolation,
       problems,
     }
   }
@@ -73,13 +53,13 @@ export function createClaudeProvider(config: WhiskersConfig = whiskersEnvConfig)
     isAgentic: true,
     chunkChars: AGENT_CHUNK_CHARS,
     concurrency: AGENT_CONCURRENCY,
-    open: async (target) => openClaudeSession(spec, await openCheckout(target), sandbox.open),
+    open: async (target) => openClaudeSession(spec, await openCheckout(target)),
     probe: async (tokens) => {
       const probeSpec = {
         ...spec,
         limits: { maxTurns: PROBE_MAX_TURNS, timeoutMs: PROBE_TIMEOUT_MS },
       }
-      const session = await openClaudeSession(probeSpec, await emptyCheckout(), sandbox.open)
+      const session = await openClaudeSession(probeSpec, await emptyCheckout())
       try {
         return await session.review(PROBE_DIFF, '', tokens)
       } finally {

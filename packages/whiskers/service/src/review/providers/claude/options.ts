@@ -63,6 +63,5 @@ export function buildClaudeOptions(input: ClaudeRunInput): Options {
     abortController: input.abortController,
     stderr: input.stderr,
     ...(input.executable ? { pathToClaudeCodeExecutable: input.executable } : {}),
-    ...(input.spawn ? { spawnClaudeCodeProcess: input.spawn } : {}),
   }
 }

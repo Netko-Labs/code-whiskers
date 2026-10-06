@@ -1,6 +1,5 @@
-import type { ExecResult } from '@code-whiskers/sandbox'
-import { BOT_EMAIL, BOT_NAME, GIT_TIMEOUT_MS } from './constants'
-import type { GitOptions } from './types'
+import { GIT_TIMEOUT_MS } from './constants'
+import type { ExecResult, GitOptions } from './types'
 
 /**
  * Credentials and per-call config travel via GIT_CONFIG_* env vars — never
@@ -22,7 +21,6 @@ export async function git(
     configs.push(['http.extraHeader', `Authorization: Basic ${basic}`])
   }
   if (opts.noSymlinks) configs.push(['core.symlinks', 'false'])
-  if (opts.identity) configs.push(['user.name', BOT_NAME], ['user.email', BOT_EMAIL])
 
   // Minimal env — the service's own secrets (API keys, app key) have no
   // business inside git subprocesses, and inherited GIT_* vars could

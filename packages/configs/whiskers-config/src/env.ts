@@ -44,10 +44,6 @@ const whiskersConfig: WhiskersConfig = {
     environment: environmentOf(process.env),
     dsn: dsnOf(process.env.SENTRY_DSN),
   },
-  fix: {
-    maxTurns: Number(process.env.FIX_AGENT_MAX_TURNS ?? 12),
-    execTimeoutMs: Number(process.env.FIX_AGENT_EXEC_TIMEOUT_MS ?? 120_000),
-  },
 }
 
 export const whiskersEnvConfig = WhiskersConfigSchema.parse(whiskersConfig)

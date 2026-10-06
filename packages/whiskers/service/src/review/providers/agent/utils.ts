@@ -1,8 +1,9 @@
-import { isAbsolute, posix, resolve, sep } from 'node:path'
+import { realpath } from 'node:fs/promises'
+import { isAbsolute, join, posix, resolve, sep } from 'node:path'
 import { type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
 import { z } from 'zod'
 import { AGENT_BASE_ENV, REDACTED, SECRET_PATTERNS } from './constants'
-import type { OutputTail, SandboxAvailability, SandboxChoice, SandboxMode } from './types'
+import type { CheckoutDir, OutputTail } from './types'
 
 /**
  * A fresh env from names: the base a process needs, the credentials it is allowed, and fixed
@@ -72,43 +73,13 @@ export function redactSecrets(review: LlmReview): LlmReview {
   }
 }
 
-const present = (gaps: (string | false)[]): string[] =>
-  gaps.filter((gap): gap is string => typeof gap === 'string')
-
-function jailGaps({ jail, hasJailBinary, hasCredentialEnv }: SandboxAvailability): string[] {
-  return present([
-    !jail.isUsable && `a usable Landlock jail (${jail.reason ?? 'probe failed'})`,
-    !hasJailBinary && 'a Linux harness binary on this host',
-    !hasCredentialEnv && 'a credential in env',
-  ])
-}
-
-function dockerGaps(available: SandboxAvailability): string[] {
-  return present([
-    !available.hasDocker && 'a Docker daemon',
-    !available.hasLinuxBinary && 'a Linux harness binary (CLAUDE_CODE_SANDBOX_EXECUTABLE)',
-    !available.hasCredentialEnv && 'a credential in env',
-  ])
-}
-
-/**
- * `auto`: the jail when the boot probe passed, else Docker, else the host. Either sandbox needs a
- * credential in env (a fresh home cannot reach the host's keychain login). `jail` and `docker`
- * insist and throw with what is missing; `host` never tries.
- */
-export function chooseSandbox(mode: SandboxMode, available: SandboxAvailability): SandboxChoice {
-  if (mode === 'host') return { kind: 'host', reason: 'REVIEW_AGENT_SANDBOX=host' }
-  const jail = jailGaps(available)
-  const docker = dockerGaps(available)
-  if (mode === 'jail' || mode === 'docker') {
-    const gaps = mode === 'jail' ? jail : docker
-    if (gaps.length > 0) throw new Error(`REVIEW_AGENT_SANDBOX=${mode} needs ${gaps.join(', ')}`)
-    return { kind: mode, reason: `REVIEW_AGENT_SANDBOX=${mode}` }
+/** The read-only guard's check: the path, symlinks resolved, stays inside the checkout. */
+export function isInsideCheckout(checkout: CheckoutDir): (path: string) => Promise<boolean> {
+  return async (path) => {
+    const absolute = isAbsolute(path) ? path : join(checkout.root, path)
+    const resolved = await realpath(absolute).catch(() => null)
+    return resolved !== null && isWithin(checkout.root, resolved)
   }
-  const noJail = `no jail without ${jail.join(', ')}`
-  if (jail.length === 0) return { kind: 'jail', reason: 'auto: the kernel supports the jail' }
-  if (docker.length === 0) return { kind: 'docker', reason: `auto: ${noJail}` }
-  return { kind: 'host', reason: `auto: ${noJail}; no Docker without ${docker.join(', ')}` }
 }
 
 /** The last `limit` characters written, for an error message that says why a process died. */

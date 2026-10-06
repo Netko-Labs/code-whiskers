@@ -2,10 +2,8 @@ import * as fs from 'node:fs'
 import { createRequire } from 'node:module'
 import * as path from 'node:path'
 import { getAppPackageDir } from './apps'
-import { run } from './shell'
 
 const CLAUDE_SDK = '@anthropic-ai/claude-agent-sdk'
-const JAIL_LAUNCHER = '@code-whiskers/sandbox/jail-launcher'
 
 function isMusl(): boolean {
   const report = process.report?.getReport() as { header?: { glibcVersionRuntime?: string } }
@@ -34,21 +32,4 @@ export function bundleClaudeBinary(appName: string, outDir: string): void {
   fs.copyFileSync(binary, target)
   fs.chmodSync(target, 0o755)
   console.log(`🤖 Copied ${platformPackage} into ${path.relative(process.cwd(), target)}`)
-}
-
-/**
- * The jail launcher runs as its own process (it restricts itself, then becomes the harness), so
- * it is a second bundle at `{out}/jail/jail.js`, where the sandbox package looks for it first.
- */
-export async function bundleJailLauncher(appName: string, outDir: string): Promise<void> {
-  const service = path.join(getAppPackageDir(appName), 'service', 'package.json')
-  let entry: string
-  try {
-    entry = createRequire(service).resolve(JAIL_LAUNCHER)
-  } catch {
-    return
-  }
-  const target = path.join(outDir, 'jail')
-  await run(['bun', 'build', entry, '--outfile', path.join(target, 'jail.js'), '--target', 'bun'])
-  console.log(`🔒 Bundled the jail launcher into ${path.relative(process.cwd(), target)}`)
 }

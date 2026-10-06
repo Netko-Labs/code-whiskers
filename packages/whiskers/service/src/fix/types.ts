@@ -11,9 +11,3 @@ export interface FixTarget {
   body: string
   author: string
 }
-
-/** What the agent loop hands back: its closing summary and how many turns it spent. */
-export interface AgentFixOutcome {
-  summary: string
-  steps: number
-}

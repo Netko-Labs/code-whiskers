@@ -1,14 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import {
-  buildAgentRequest,
-  buildCommitMessage,
   buildFixReply,
   isBotLogin,
   isBotMention,
   isProtectedPath,
   numberedExcerpt,
 } from '../src/fix/utils'
-import { assertSafeRelPath, assertSafeWritePath } from '../src/fix/workspace'
 
 describe('isBotMention', () => {
   test('matches the handle word-bounded and case-insensitive', () => {
@@ -100,91 +97,6 @@ describe('buildFixReply', () => {
     expect(buildFixReply({ explanation: 'x', suggestion: 'if (a === b) {' })).toBe(
       'x\n\n```suggestion\nif (a === b) {\n```',
     )
-  })
-})
-
-describe('assertSafeRelPath', () => {
-  test('accepts normal repo-relative paths', () => {
-    expect(() => assertSafeRelPath('src/app.ts')).not.toThrow()
-    expect(() => assertSafeRelPath('packages/a/b.test.ts')).not.toThrow()
-  })
-
-  test('rejects escapes, absolute paths, quotes, and .git', () => {
-    for (const path of [
-      '',
-      '/etc/passwd',
-      '../x',
-      'a/../../x',
-      "a'b",
-      'a\\b',
-      '.git',
-      '.git/config',
-    ]) {
-      expect(() => assertSafeRelPath(path)).toThrow('unsafe path')
-    }
-  })
-})
-
-describe('buildAgentRequest', () => {
-  const base = { commentId: 1, body: '@code-whiskers fix the null check', author: 'peje' }
-
-  test('anchors to the commented lines when known', () => {
-    const request = buildAgentRequest({ ...base, path: 'src/a.ts', startLine: 3, line: 5 })
-    expect(request).toContain('src/a.ts, lines 3-5')
-    expect(request).toContain('@peje')
-    expect(request).toContain('fix the null check')
-  })
-
-  test('omits the anchor for PR-level requests', () => {
-    const request = buildAgentRequest({
-      ...base,
-      commentId: null,
-      path: null,
-      startLine: null,
-      line: null,
-    })
-    expect(request).not.toContain('lines')
-  })
-})
-
-describe('buildCommitMessage', () => {
-  const target = (body: string) => ({
-    commentId: null,
-    path: null,
-    startLine: null,
-    line: null,
-    body,
-    author: 'peje',
-  })
-
-  test('uses the first line with the mention stripped', () => {
-    expect(
-      buildCommitMessage(target('@code-whiskers please fix the race\ndetails'), 'code-whiskers'),
-    ).toBe('🐛 fix: please fix the race')
-  })
-
-  test('falls back when the comment is only the mention', () => {
-    expect(buildCommitMessage(target('@code-whiskers'), 'code-whiskers')).toBe(
-      '🐛 fix: address PR comment',
-    )
-  })
-
-  test('truncates long subjects', () => {
-    const message = buildCommitMessage(target(`fix ${'x'.repeat(100)}`), 'code-whiskers')
-    expect(message.length).toBeLessThanOrEqual('🐛 fix: '.length + 60)
-  })
-})
-
-describe('assertSafeWritePath', () => {
-  test('additionally rejects protected paths', () => {
-    expect(() => assertSafeWritePath('.github/workflows/ci.yml')).toThrow('protected path')
-    expect(() => assertSafeWritePath('package.json')).toThrow('protected path')
-    expect(() => assertSafeWritePath('src/app.ts')).not.toThrow()
-  })
-
-  test('still composes the rel-path safety check', () => {
-    expect(() => assertSafeWritePath('../x')).toThrow('unsafe path')
-    expect(() => assertSafeWritePath('.git/config')).toThrow('unsafe path')
   })
 })
 

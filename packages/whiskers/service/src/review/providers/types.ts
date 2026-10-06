@@ -22,7 +22,7 @@ export type ChunkRetryPolicy = {
   splitsOnTimeout: boolean
 }
 
-/** One review's provider state (a checkout, a sandbox), released by `close`; answers are ungrounded. */
+/** One review's provider state (a checkout), released by `close`; answers are ungrounded. */
 export interface ReviewSession {
   retry: ChunkRetryPolicy
   review(diff: string, context: string, tokens: TokenTally): Promise<LlmReview>

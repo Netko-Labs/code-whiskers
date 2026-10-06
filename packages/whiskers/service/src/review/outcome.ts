@@ -89,7 +89,7 @@ export async function reviewChunkWithRetry(
   return { review: null, reviewed: 0, attempted: 1 }
 }
 
-/** Every chunk through one provider session — a checkout or sandbox opens only when there is work. */
+/** Every chunk through one provider session — a checkout opens only when there is work. */
 export async function reviewChunks(
   provider: ReviewProvider,
   target: ReviewCommit,

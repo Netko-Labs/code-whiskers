@@ -27,21 +27,6 @@ export const WhiskersReviewerSchema = z.object({
   executable: z
     .object({ name: z.string(), path: z.string().nullable(), source: z.string() })
     .nullable(),
-  sandbox: z.enum(['jail', 'docker', 'host']).nullable(),
-  isolation: z
-    .object({
-      mode: z.string(),
-      reason: z.string(),
-      jail: z
-        .object({
-          landlockAbi: z.number().nullable(),
-          canDropUid: z.boolean(),
-          hasSeccomp: z.boolean(),
-          reason: z.string().nullable(),
-        })
-        .nullable(),
-    })
-    .nullish(),
   problems: z.array(z.string()),
 })
 export type WhiskersReviewer = z.infer<typeof WhiskersReviewerSchema>
