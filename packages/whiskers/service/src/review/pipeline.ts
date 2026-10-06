@@ -3,7 +3,7 @@ import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { clearFindings, createFindings } from '../mutations'
 import { countReviews, getPreviousReview } from '../queries'
-import { mapWithConcurrency, type TokenTally } from '../shared/llm'
+import type { TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
 import { withoutDisprovedCompileClaims } from './ci'
 import { buildPrContext } from './context'
@@ -17,7 +17,8 @@ import {
 } from './delta'
 import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
-import { resolveOutcome, reviewChunkWithRetry } from './outcome'
+import { resolveOutcome, reviewChunks } from './outcome'
+import { reviewProvider } from './providers'
 import type { ReviewReport } from './render'
 import { dismissStaleBlocks, hasStandingApproval, isStillHead } from './review-state'
 import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
@@ -132,9 +133,14 @@ export async function runPipeline(
     )
   }
 
-  const chunks = chunkDiff(delta ?? diff)
-  const outcomes = await mapWithConcurrency(chunks, (chunk) =>
-    reviewChunkWithRetry(chunk, context, tokens),
+  const provider = reviewProvider()
+  const chunks = chunkDiff(delta ?? diff, provider.chunkChars)
+  const outcomes = await reviewChunks(
+    provider,
+    { owner: ref.owner, repo: ref.repo, headSha },
+    chunks,
+    context,
+    tokens,
   )
   const { review: raw, coverage } = resolveOutcome(outcomes)
   if (coverage.reviewed < coverage.total) logger.warn({ ...ref, ...coverage }, 'partial review')
@@ -155,7 +161,7 @@ export async function runPipeline(
   const merged = { ...raw, summary, findings: remaining, verdict }
   const report: ReviewReport = {
     review: merged,
-    model: review.model ?? whiskersEnvConfig.openrouter.model,
+    model: review.model ?? provider.model,
     coverage,
   }
 

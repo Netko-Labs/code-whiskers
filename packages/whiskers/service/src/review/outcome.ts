@@ -1,7 +1,13 @@
 import { createLogger } from '@code-whiskers/logger'
-import type { TokenTally } from '../shared/llm'
+import { mapWithConcurrency, type TokenTally } from '../shared/llm'
 import { splitChunk } from './chunk'
 import { mergeReviews, reviewChunk } from './llm'
+import {
+  type ReviewCommit,
+  type ReviewProvider,
+  ReviewProviderError,
+  type ReviewSession,
+} from './providers'
 import type { ChunkOutcome, ReviewOutcome } from './types'
 
 const logger = createLogger('whiskers-review')
@@ -13,7 +19,6 @@ const TRANSIENT_ERROR =
 // A timeout says the prompt was too big for the window, not that the provider is
 // unwell — the same chunk will time out again, so that retry splits instead.
 const TIMEOUT_ERROR = /timed out|timeout|abort/i
-const MAX_ATTEMPTS = 3
 const RETRY_BASE_MS = 1_500
 // Halving twice turns one 24k chunk into four; past that the timeout is not size.
 const MAX_SPLIT_DEPTH = 2
@@ -36,34 +41,42 @@ function combineOutcomes(outcomes: ChunkOutcome[]): ChunkOutcome {
 }
 
 /**
- * Up to three attempts per chunk with jittered backoff. A chunk that still
+ * Up to the session's attempts per chunk with jittered backoff. A chunk that still
  * fails resolves to a `null` review rather than throwing: one unlucky section
- * must not discard the findings from every other one.
+ * must not discard the findings from every other one. A provider failure is not
+ * the chunk's: it ends the attempt for the review-level retry to judge.
  */
 export async function reviewChunkWithRetry(
+  session: ReviewSession,
   chunk: string,
   context: string,
   tokens: TokenTally,
   depth = 0,
 ): Promise<ChunkOutcome> {
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  const { maxAttempts, splitsOnTimeout } = session.retry
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return { review: await reviewChunk(chunk, context, tokens), reviewed: 1, attempted: 1 }
+      return {
+        review: await reviewChunk(session, chunk, context, tokens),
+        reviewed: 1,
+        attempted: 1,
+      }
     } catch (error) {
+      if (error instanceof ReviewProviderError) throw error
       const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
-      const last = attempt === MAX_ATTEMPTS
+      const last = attempt === maxAttempts
       if (!TRANSIENT_ERROR.test(message) || last) {
         logger.warn({ err: message, attempt }, 'chunk failed — skipping this section')
         return { review: null, reviewed: 0, attempted: 1 }
       }
 
-      if (TIMEOUT_ERROR.test(message) && depth < MAX_SPLIT_DEPTH) {
+      if (splitsOnTimeout && TIMEOUT_ERROR.test(message) && depth < MAX_SPLIT_DEPTH) {
         const halves = splitChunk(chunk)
         if (halves.length > 1) {
           logger.warn({ attempt, depth, chars: chunk.length }, 'chunk timed out — splitting')
           return combineOutcomes(
             await Promise.all(
-              halves.map((half) => reviewChunkWithRetry(half, context, tokens, depth + 1)),
+              halves.map((half) => reviewChunkWithRetry(session, half, context, tokens, depth + 1)),
             ),
           )
         }
@@ -74,6 +87,27 @@ export async function reviewChunkWithRetry(
     }
   }
   return { review: null, reviewed: 0, attempted: 1 }
+}
+
+/** Every chunk through one provider session — a checkout or sandbox opens only when there is work. */
+export async function reviewChunks(
+  provider: ReviewProvider,
+  target: ReviewCommit,
+  chunks: string[],
+  context: string,
+  tokens: TokenTally,
+): Promise<ChunkOutcome[]> {
+  if (chunks.length === 0) return []
+  const session = await provider.open(target)
+  try {
+    return await mapWithConcurrency(
+      chunks,
+      (chunk) => reviewChunkWithRetry(session, chunk, context, tokens),
+      provider.concurrency,
+    )
+  } finally {
+    await session.close()
+  }
 }
 
 /**

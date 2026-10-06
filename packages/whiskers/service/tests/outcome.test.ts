@@ -3,6 +3,7 @@ import type { LlmFinding, LlmReview } from '@code-whiskers/whiskers-domain'
 import { chunkDiff } from '../src/review/chunk'
 import * as llm from '../src/review/llm'
 import { resolveOutcome, reviewChunkWithRetry } from '../src/review/outcome'
+import { ReviewProviderError, type ReviewSession } from '../src/review/providers'
 import { createTokenTally } from '../src/shared/llm'
 
 const section = (file: string) => `diff --git a/${file} b/${file}\n+${'x'.repeat(40)}\n`
@@ -21,10 +22,16 @@ const finding: LlmFinding = {
 }
 const review: LlmReview = { findings: [finding], summary: 'reviewed', verdict: 'approve' }
 const timeout = Object.assign(new Error('The operation timed out.'), { name: 'TimeoutError' })
+const session = (maxAttempts = 3, splitsOnTimeout = true): ReviewSession => ({
+  retry: { maxAttempts, splitsOnTimeout },
+  review: async () => review,
+  close: async () => {},
+})
+const SINGLE_SHOT = session()
 
 /** Chunks with more than one file time out; any single-file chunk naming `bad.ts` fails for good. */
 function mockReviewChunk() {
-  return spyOn(llm, 'reviewChunk').mockImplementation(async (chunk) => {
+  return spyOn(llm, 'reviewChunk').mockImplementation(async (_session, chunk) => {
     if (chunk.split('diff --git ').length > 2) throw timeout
     if (chunk.includes('bad.ts')) throw new Error('400 invalid request')
     return review
@@ -38,19 +45,29 @@ afterEach(() => {
 describe('reviewChunkWithRetry', () => {
   test('a clean chunk counts as one reviewed section', async () => {
     mockReviewChunk()
-    const outcome = await reviewChunkWithRetry(section('ok.ts'), '', createTokenTally())
+    const outcome = await reviewChunkWithRetry(
+      SINGLE_SHOT,
+      section('ok.ts'),
+      '',
+      createTokenTally(),
+    )
     expect(outcome).toEqual({ review, reviewed: 1, attempted: 1 })
   })
 
   test('a permanent failure counts as one skipped section', async () => {
     mockReviewChunk()
-    const outcome = await reviewChunkWithRetry(section('bad.ts'), '', createTokenTally())
+    const outcome = await reviewChunkWithRetry(
+      SINGLE_SHOT,
+      section('bad.ts'),
+      '',
+      createTokenTally(),
+    )
     expect(outcome).toEqual({ review: null, reviewed: 0, attempted: 1 })
   })
 
   test('a split whose second half fails reports the gap', async () => {
     mockReviewChunk()
-    const outcome = await reviewChunkWithRetry(TWO_FILES, '', createTokenTally())
+    const outcome = await reviewChunkWithRetry(SINGLE_SHOT, TWO_FILES, '', createTokenTally())
     expect(outcome.review?.findings).toEqual([finding])
     expect(outcome.reviewed).toBe(1)
     expect(outcome.attempted).toBe(2)
@@ -58,11 +75,26 @@ describe('reviewChunkWithRetry', () => {
 
   test('nested splits count every leaf', async () => {
     const spy = mockReviewChunk()
-    const outcome = await reviewChunkWithRetry(FOUR_FILES, '', createTokenTally())
+    const outcome = await reviewChunkWithRetry(SINGLE_SHOT, FOUR_FILES, '', createTokenTally())
     expect(outcome.reviewed).toBe(3)
     expect(outcome.attempted).toBe(4)
     expect(outcome.review?.findings).toHaveLength(3)
     expect(spy).toHaveBeenCalledTimes(7)
+  })
+
+  test('an agent session neither retries nor splits a timed-out chunk', async () => {
+    const spy = mockReviewChunk()
+    const outcome = await reviewChunkWithRetry(session(1, false), TWO_FILES, '', createTokenTally())
+    expect(outcome).toEqual({ review: null, reviewed: 0, attempted: 1 })
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  test('a provider failure ends the attempt instead of skipping the section', async () => {
+    const limited = new ReviewProviderError('Claude usage limit reached', { kind: 'transient' })
+    spyOn(llm, 'reviewChunk').mockRejectedValue(limited)
+    await expect(
+      reviewChunkWithRetry(SINGLE_SHOT, section('ok.ts'), '', createTokenTally()),
+    ).rejects.toBe(limited)
   })
 })
 
