@@ -9,6 +9,7 @@ import { assertProductionEnv, whiskersEnvConfig } from '@code-whiskers/whiskers-
 import { closeDb } from '@code-whiskers/whiskers-repository'
 import {
   failStaleReviews,
+  reviewProvider,
   startAlertLoop,
   startReactionLoop,
   startRetentionLoop,
@@ -26,6 +27,12 @@ if (!appConfig.dev && !observability.dsn) {
 app.listen(appConfig.port)
 const url = process.env.PORTLESS_URL ?? `http://localhost:${appConfig.port}`
 logger.info(`🚀 whiskers server listening on ${url}`)
+reviewProvider()
+  .status()
+  .then(({ provider, problems }) => {
+    for (const problem of problems) logger.warn({ provider }, `reviewer: ${problem}`)
+  })
+  .catch((error: Error) => logger.warn({ err: error.message }, 'reviewer status unavailable'))
 startAlertLoop()
 startRetentionLoop()
 startReactionLoop()

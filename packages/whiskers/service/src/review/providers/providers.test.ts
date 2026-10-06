@@ -96,7 +96,7 @@ describe('reviewJsonSchema', () => {
     const findings = schema.properties as JsonObject
     const finding = (findings.findings as JsonObject).items as JsonObject
     const severity = (finding.properties as JsonObject).severity as JsonObject
-    expect(String(schema['$schema'])).toContain('draft-07')
+    expect(String(schema.$schema)).toContain('draft-07')
     expect(schema.required).toEqual(['findings', 'summary', 'verdict'])
     expect(finding.required).toContain('evidence')
     expect(severity.enum).toEqual(['low', 'medium', 'high', 'critical'])

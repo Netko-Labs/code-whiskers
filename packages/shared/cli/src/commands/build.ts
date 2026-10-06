@@ -8,6 +8,7 @@ import {
   parseAppArg,
   validateApp,
 } from '../utils/apps'
+import { bundleClaudeBinary } from '../utils/native'
 import { loadEnvFile, run } from '../utils/shell'
 
 /**
@@ -57,6 +58,7 @@ export async function build(args: string[]) {
   })
 
   await bundleMigrations(appName, path.join(appDir, outDir))
+  if (kind === 'server') bundleClaudeBinary(appName, path.join(appDir, outDir))
 
   console.log(`✅ Build for ${appName} completed!`)
 }
