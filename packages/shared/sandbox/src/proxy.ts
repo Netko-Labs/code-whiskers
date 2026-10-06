@@ -15,10 +15,12 @@ function tunnel(client: Socket, allowHosts: ReadonlySet<string>): void {
   const onData = (chunk: Buffer) => {
     head = Buffer.concat([head, chunk])
     const end = head.indexOf('\r\n\r\n')
-    if (end < 0) {
-      if (head.length > CONNECT_HEAD_MAX_BYTES) client.destroy()
+    // The cap holds however the head arrives — split across chunks or in one oversized write.
+    if ((end < 0 ? head.length : end) > CONNECT_HEAD_MAX_BYTES) {
+      client.destroy()
       return
     }
+    if (end < 0) return
     client.off('data', onData)
     const target = allowedTarget(head.subarray(0, end).toString('latin1'), allowHosts)
     if (!target) {

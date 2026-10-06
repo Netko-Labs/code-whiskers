@@ -14,8 +14,10 @@ import {
 
 const probe = await probeJail(NOBODY_UID)
 const isRoot = process.getuid?.() === 0
+// It reaches api.anthropic.com through the proxy, so it runs only when asked: offline CI stays green.
+const isRequested = process.env.JAIL_INTEGRATION_TEST === '1'
 
-describe.if(probe.isUsable)('jail (Linux, Landlock)', () => {
+describe.if(probe.isUsable && isRequested)('jail (Linux, Landlock)', () => {
   let root: string
   let checkout: string
   let outside: string
