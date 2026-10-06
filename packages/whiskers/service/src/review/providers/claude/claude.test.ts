@@ -30,6 +30,7 @@ const options = (env: Record<string, string>) =>
     executable: null,
     abortController: new AbortController(),
     guard: async () => ({}),
+    stderr: () => {},
     spawn: undefined,
   })
 

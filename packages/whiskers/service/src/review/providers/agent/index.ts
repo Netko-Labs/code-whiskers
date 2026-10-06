@@ -5,6 +5,7 @@ export type * from './types'
 export {
   agentEnv,
   chooseSandbox,
+  createTail,
   isEscapingPattern,
   isWithin,
   pickEnv,

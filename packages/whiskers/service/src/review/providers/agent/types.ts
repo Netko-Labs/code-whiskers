@@ -30,3 +30,8 @@ export type DockerRuntimeOptions = {
   allowHosts: string[]
   ttlMs: number
 }
+
+export type OutputTail = {
+  push(text: string): void
+  text(): string
+}

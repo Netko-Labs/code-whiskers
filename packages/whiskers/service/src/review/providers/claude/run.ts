@@ -111,8 +111,8 @@ export function reviewFromRun(state: ClaudeRunState): LlmReview {
 }
 
 /** A throw from the SDK itself: a missing binary or a refused credential is not worth a retry. */
-export function classifySdkError(error: unknown): unknown {
-  const message = error instanceof Error ? error.message : String(error)
+export function classifySdkError(error: unknown, stderr = ''): unknown {
+  const message = `${error instanceof Error ? error.message : String(error)} ${stderr}`
   if (MISSING_BINARY_TEXT.test(message)) {
     return new ReviewProviderError(
       'Claude Code binary not found — set CLAUDE_CODE_EXECUTABLE or rebuild whiskers',
@@ -125,5 +125,8 @@ export function classifySdkError(error: unknown): unknown {
       cause: error,
     })
   }
-  return error
+  if (!stderr) return error
+  return new Error(`${error instanceof Error ? error.message : String(error)}: ${stderr}`, {
+    cause: error,
+  })
 }

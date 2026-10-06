@@ -5,7 +5,14 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { LlmReview } from '@code-whiskers/whiskers-domain'
 import { addSpend, type TokenTally } from '../../../shared/llm'
 import { AGENT_REVIEW_SYSTEM, reviewPrompt } from '../../prompt'
-import { AGENT_RETRY, type AgentRuntime, type CheckoutDir, redactSecrets } from '../agent'
+import {
+  AGENT_RETRY,
+  type AgentRuntime,
+  type CheckoutDir,
+  createTail,
+  redactSecrets,
+  STDERR_TAIL_CHARS,
+} from '../agent'
 import type { ReviewSession } from '../types'
 import { containerClaudeEnv, definedEnv, hostClaudeEnv } from './env'
 import { buildClaudeOptions, readOnlyGuard } from './options'
@@ -24,6 +31,7 @@ async function runOnce(
   controllers.add(abortController)
   const timer = setTimeout(() => abortController.abort(), spec.limits.timeoutMs)
   const { spawn } = runtime
+  const stderr = createTail(STDERR_TAIL_CHARS)
   let state = emptyRunState()
   try {
     const messages = query({
@@ -36,9 +44,14 @@ async function runOnce(
         executable: spawn ? spec.containerBinary : spec.hostBinary,
         abortController,
         guard: readOnlyGuard(runtime.isInside),
+        stderr: stderr.push,
         spawn:
           spawn && spec.containerBinary
-            ? ({ args, env }) => spawn([spec.containerBinary ?? '', ...args], definedEnv(env))
+            ? ({ args, env }) => {
+                const child = spawn([spec.containerBinary ?? '', ...args], definedEnv(env))
+                child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk.toString()))
+                return child
+              }
             : undefined,
       }),
     })
@@ -47,7 +60,7 @@ async function runOnce(
     if (abortController.signal.aborted && !state.result) {
       throw new Error(`the Claude agent timed out after ${spec.limits.timeoutMs}ms`)
     }
-    if (!state.result) throw classifySdkError(error)
+    if (!state.result) throw classifySdkError(error, stderr.text())
   } finally {
     clearTimeout(timer)
     controllers.delete(abortController)

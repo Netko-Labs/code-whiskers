@@ -1,9 +1,10 @@
+import { DOCKER_CLIENT_ENV } from './constants'
 import type { ExecResult } from './types'
 
 /** The docker CLI's own env; anything an agent needs is added per call, never inherited wholesale. */
 export function dockerClientEnv(extra: Record<string, string> = {}): Record<string, string> {
   const env: Record<string, string> = {}
-  for (const name of ['PATH', 'HOME', 'DOCKER_HOST', 'DOCKER_CONFIG', 'DOCKER_CONTEXT']) {
+  for (const name of DOCKER_CLIENT_ENV) {
     const value = process.env[name]
     if (value) env[name] = value
   }

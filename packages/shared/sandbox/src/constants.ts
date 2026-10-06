@@ -2,6 +2,7 @@ export const LABEL = 'code-whiskers-sandbox'
 export const DEFAULT_IMAGE = 'oven/bun:1-alpine'
 export const DEFAULT_TTL_MS = 10 * 60_000
 export const WORKDIR = '/workspace'
+export const DOCKER_CLIENT_ENV = ['PATH', 'HOME', 'DOCKER_HOST', 'DOCKER_CONFIG', 'DOCKER_CONTEXT']
 export const EGRESS_ALIAS = 'egress'
 export const EGRESS_PORT = 3128
 export const EGRESS_READY = 'egress ready'

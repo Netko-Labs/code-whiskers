@@ -6,7 +6,7 @@ import {
 } from '@code-whiskers/whiskers-domain'
 import { z } from 'zod'
 import { AGENT_BASE_ENV, REDACTED, SECRET_PATTERNS } from './constants'
-import type { SandboxAvailability, SandboxKind } from './types'
+import type { OutputTail, SandboxAvailability, SandboxKind } from './types'
 
 /**
  * A fresh env from names: the base a process needs, the credentials it is allowed, and fixed
@@ -95,4 +95,15 @@ export function chooseSandbox(
     throw new Error(`REVIEW_AGENT_SANDBOX=docker needs ${missing.join(', ')}`)
   }
   return isPossible ? 'docker' : 'host'
+}
+
+/** The last `limit` characters written, for an error message that says why a process died. */
+export function createTail(limit: number): OutputTail {
+  let buffer = ''
+  return {
+    push: (text) => {
+      buffer = (buffer + text).slice(-limit)
+    },
+    text: () => buffer.trim(),
+  }
 }

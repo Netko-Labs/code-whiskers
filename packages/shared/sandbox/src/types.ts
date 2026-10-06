@@ -1,4 +1,4 @@
-import type { ChildProcess } from 'node:child_process'
+import type { ChildProcessWithoutNullStreams } from 'node:child_process'
 
 export interface SandboxMount {
   host: string
@@ -36,7 +36,7 @@ export interface Sandbox {
   exec(command: string, opts?: { timeoutMs?: number }): Promise<ExecResult>
   writeFile(path: string, content: string): Promise<void>
   readFile(path: string): Promise<string>
-  spawn(request: SpawnInSandbox): ChildProcess
+  spawn(request: SpawnInSandbox): ChildProcessWithoutNullStreams
   destroy(): Promise<void>
 }
 

@@ -61,6 +61,7 @@ export function buildClaudeOptions(input: ClaudeRunInput): Options {
     outputFormat: { type: 'json_schema', schema: reviewJsonSchema() },
     hooks: { PreToolUse: [{ hooks: [input.guard] }] },
     abortController: input.abortController,
+    stderr: input.stderr,
     ...(input.executable ? { pathToClaudeCodeExecutable: input.executable } : {}),
     ...(input.spawn ? { spawnClaudeCodeProcess: input.spawn } : {}),
   }

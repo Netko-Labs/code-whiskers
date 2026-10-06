@@ -1,5 +1,5 @@
 import { spawn as spawnProcess } from 'node:child_process'
-import { DEFAULT_IMAGE, DEFAULT_TTL_MS, LABEL, WORKDIR } from './constants'
+import { DEFAULT_IMAGE, DEFAULT_TTL_MS, DOCKER_CLIENT_ENV, LABEL, WORKDIR } from './constants'
 import { docker, dockerClientEnv } from './docker'
 import type { Sandbox, SandboxMount, SandboxOptions } from './types'
 
@@ -76,11 +76,23 @@ export async function createSandbox(opts: SandboxOptions = {}): Promise<Sandbox>
       return result.stdout
     },
     spawn({ argv, env, workdir }) {
-      const names = Object.keys(env).flatMap((name) => ['-e', name])
+      // Names the docker CLI itself needs (HOME, PATH) go by value; the rest by name only.
+      const shared = new Set<string>(DOCKER_CLIENT_ENV)
+      const byName = Object.entries(env).filter(([name]) => !shared.has(name))
+      const byValue = Object.entries(env).filter(([name]) => shared.has(name))
       return spawnProcess(
         'docker',
-        ['exec', '-i', '-w', workdir ?? WORKDIR, ...names, id, ...argv],
-        { env: dockerClientEnv(env), stdio: ['pipe', 'pipe', 'pipe'] },
+        [
+          'exec',
+          '-i',
+          '-w',
+          workdir ?? WORKDIR,
+          ...byValue.flatMap(([name, value]) => ['-e', `${name}=${value}`]),
+          ...byName.flatMap(([name]) => ['-e', name]),
+          id,
+          ...argv,
+        ],
+        { env: dockerClientEnv(Object.fromEntries(byName)), stdio: ['pipe', 'pipe', 'pipe'] },
       )
     },
     async destroy() {

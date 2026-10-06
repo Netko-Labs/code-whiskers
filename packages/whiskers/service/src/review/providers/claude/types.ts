@@ -15,6 +15,7 @@ export type ClaudeRunInput = {
   executable: string | null
   abortController: AbortController
   guard: HookCallback
+  stderr: (text: string) => void
   spawn: Options['spawnClaudeCodeProcess'] | undefined
 }
 

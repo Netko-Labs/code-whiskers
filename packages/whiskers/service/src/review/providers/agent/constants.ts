@@ -6,6 +6,7 @@ export const AGENT_CONCURRENCY = 2
 export const AGENT_RETRY: ChunkRetryPolicy = { maxAttempts: 1, splitsOnTimeout: false }
 export const PROBE_MAX_TURNS = 3
 export const PROBE_TIMEOUT_MS = 90_000
+export const STDERR_TAIL_CHARS = 600
 
 /** Never inherited wholesale: the worker's own env holds the database URL and the GitHub App key. */
 export const AGENT_BASE_ENV = ['PATH', 'LANG', 'LC_ALL', 'TZ', 'TMPDIR'] as const
