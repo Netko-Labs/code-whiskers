@@ -57,12 +57,48 @@ are set.
 
 Install the GitHub App on the organization with **Pull request**, **Issue comment** and **Pull
 request review comment** events, webhook URL `https://whiskers.netko.dev/webhooks/github`. On every
-PR the worker chunks the diff (14k chars, generated, vendored and binary files skipped), reviews
-chunks in parallel on the `REVIEW_MODEL` (default `openai/gpt-6-luna`, medium reasoning) with
-OpenRouter routed for throughput, and posts a review plus a check run. Mentioning the bot on a review
-thread queues a fix. Cheap models are expected: malformed JSON is repaired, missing fields default,
-and a failing chunk gets three jittered attempts (a timeout splits it) before it is skipped. Each
-`review completed` log line carries the review's token tally.
+PR the worker chunks the diff (generated, vendored and binary files skipped), reviews the chunks
+with the configured provider and posts a review plus a check run. Mentioning the bot on a review
+thread queues a fix. Every provider gets the same preamble (rules, conventions, description, file
+list, delta note, PR history) and its findings go through the same grounding, settling and verdict.
+Each `review completed` log line carries the review's token tally (and turns and cost for an agent).
+
+`REVIEW_PROVIDER` picks the reviewer; `REVIEW_MODEL` overrides its default model:
+
+| `REVIEW_PROVIDER` | how it reviews | credential | default `REVIEW_MODEL` |
+| --- | --- | --- | --- |
+| `openrouter` (default) | one structured call per 14k-char chunk, 6 in parallel, medium reasoning | `OPENROUTER_API_KEY` | `openai/gpt-6-luna` |
+| `ai-gateway` | the same, through Vercel AI Gateway; cost lands in the tally | `AI_GATEWAY_API_KEY` | `openai/gpt-6-luna` |
+| `openai` | the same, straight to OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` |
+| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-opus-5-5` |
+
+Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
+malformed JSON is repaired and missing fields default. Mentions and the fix agent stay on OpenRouter:
+they follow `REVIEW_MODEL` while `REVIEW_PROVIDER=openrouter`, otherwise `OPENROUTER_MODEL`.
+
+The `claude` agent may open files in the checkout to verify a claim before filing it; evidence must
+still quote changed lines. It gets `Read`, `Grep` and `Glob` only (every other tool removed),
+`permissionMode: dontAsk`, no setting sources (a PR's `CLAUDE.md`, `.claude/` hooks or MCP config
+never load; the repo's conventions reach the prompt as for every provider), a fresh config dir, no
+memory, no persisted session, and an env built from names (never the worker's database URL or App
+key). A hook refuses any path that resolves outside the checkout. The checkout is shallow at the
+head sha, cloned with a contents-read token, with `.git` and harness config removed. With a Docker
+daemon, a Linux `claude` binary and a credential in env it runs inside the sandbox: checkout and
+binary mounted read-only, read-only root, tmpfs home, and an internal network whose only way out is
+a proxy admitting `api.anthropic.com`. Otherwise it runs on the host with the confined tools and the
+worker warns at boot. Knobs: `REVIEW_AGENT_EFFORT` (medium), `REVIEW_AGENT_MAX_TURNS` (40),
+`REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset), `REVIEW_AGENT_SANDBOX`
+(`auto` | `docker` | `host`), `REVIEW_AGENT_SANDBOX_IMAGE` (`debian:bookworm-slim`),
+`CLAUDE_CODE_EXECUTABLE` (the build ships one at `dist/claude/claude`), `CLAUDE_CODE_SANDBOX_EXECUTABLE`
+(a Linux build to mount when the host is not Linux). A usage limit retries at its reset when that is
+within 15 minutes; an expired or revoked token fails the review saying to run `claude setup-token`.
+Without either credential a development worker uses the machine's own Claude Code login.
+
+A `claude setup-token` token is for one operator's personal instance. A shared or team instance
+uses `ANTHROPIC_API_KEY`.
+
+Settings → General shows the active reviewer, which credentials are set (never their values), the
+sandbox, what is missing, and a **Test** button that runs one tiny review through it.
 
 ## Error tracking
 
@@ -92,7 +128,8 @@ Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KE
 encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`
 (default `code-whiskers`), `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`,
 `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
-`OPENROUTER_API_KEY`, `REVIEW_MODEL`, `INTERNAL_TOKEN` (also switches on alert evaluation),
+`OPENROUTER_API_KEY`, `REVIEW_PROVIDER`, `REVIEW_MODEL` and the reviewer's credential (see
+Reviews), `INTERNAL_TOKEN` (also switches on alert evaluation),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
 code-whiskers reports its own errors to a code-whiskers project when `SENTRY_DSN` is set (both apps;

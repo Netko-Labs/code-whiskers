@@ -297,6 +297,19 @@ were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before 
 `delta_from` (the last reviewed sha a delta read from), token counts, `created_at`,
 `completed_at`. `GET /v1/reviews/:id/pull-request` returns every push of that PR with its findings.
 
+**Review providers.** `REVIEW_PROVIDER` selects one implementation of `ReviewProvider`
+(`packages/whiskers/service/src/review/providers`): `openrouter`, `ai-gateway` and `openai` share
+one single-shot path (one `generateObject` per chunk; only the model factory differs); `claude`
+runs the Claude Agent SDK over a read-only checkout. A provider opens one session per review
+(checkout and sandbox for an agent, nothing for a single-shot one) and answers per chunk; grounding,
+settling and the verdict are common. A `ReviewProviderError` is the provider's, not the chunk's: a
+transient one (rate limit, overload) goes to the review-level retry, honouring a reset within 15
+minutes; a permanent one (dead token, unknown model) fails the review with its message. `model`
+records the provider's model; an agent's cost and turns are logged, not stored. The agent plumbing
+(`providers/agent`: checkout, env from names, path guard, JSON schema, Docker runtime with an
+allowlisting egress proxy from `packages/shared/sandbox`) is harness-agnostic, so another agent
+SDK plugs in beside `claude`.
+
 **`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
 `title`, `body`, `suggestion`, `created_at`.
 
