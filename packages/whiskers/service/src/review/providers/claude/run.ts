@@ -103,7 +103,9 @@ export function reviewFromRun(state: ClaudeRunState): LlmReview {
   }
   if (result.is_error) throw new Error(`the Claude agent failed: ${text.slice(0, 300)}`)
   if (result.structured_output === undefined) {
-    throw new Error('the Claude agent finished without structured output')
+    const denied = [...new Set((result.permission_denials ?? []).map((d) => d.tool_name))]
+    const detail = denied.length > 0 ? ` (denied: ${denied.join(', ')})` : ''
+    throw new Error(`the Claude agent finished without structured output${detail}`)
   }
   const parsed = LlmReviewSchema.safeParse(result.structured_output)
   if (!parsed.success) throw new Error('the Claude agent output did not match the review schema')

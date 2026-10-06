@@ -1,9 +1,9 @@
 import type { HookCallback, Options } from '@anthropic-ai/claude-agent-sdk'
 import { isEscapingPattern, reviewJsonSchema } from '../agent'
-import { CLAUDE_DENIED_TOOLS, CLAUDE_TOOLS } from './constants'
+import { CLAUDE_DENIED_TOOLS, CLAUDE_TOOLS, STRUCTURED_OUTPUT_TOOL } from './constants'
 import type { ClaudeRunInput } from './types'
 
-const ALLOWED: ReadonlySet<string> = new Set(CLAUDE_TOOLS)
+const ALLOWED: ReadonlySet<string> = new Set([...CLAUDE_TOOLS, STRUCTURED_OUTPUT_TOOL])
 
 function deny(reason: string) {
   return {

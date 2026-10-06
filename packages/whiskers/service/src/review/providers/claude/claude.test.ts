@@ -150,6 +150,7 @@ describe('readOnlyGuard', () => {
       JSON.stringify(await guard(preToolUse(tool, input), undefined, signal))
     try {
       expect(await decision('Bash', { command: 'env' })).toContain('deny')
+      expect(await decision('StructuredOutput', { findings: [] })).toBe('{}')
       expect(await decision('Read', { file_path: join(root, 'src', 'a.ts') })).toBe('{}')
       expect(await decision('Read', { file_path: 'src/a.ts' })).toBe('{}')
       expect(await decision('Read', { file_path: '/proc/self/environ' })).toContain('deny')

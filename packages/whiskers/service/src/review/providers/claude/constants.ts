@@ -1,6 +1,8 @@
 import { REVIEW_PROVIDER_CREDENTIALS } from '@code-whiskers/whiskers-domain'
 
 export const CLAUDE_TOOLS = ['Read', 'Grep', 'Glob'] as const
+// How the CLI delivers `outputFormat`: the model calls it with the answer. Denying it means no answer.
+export const STRUCTURED_OUTPUT_TOOL = 'StructuredOutput'
 
 /** Bare names remove the tool from the model's context entirely, not just deny the call. */
 export const CLAUDE_DENIED_TOOLS = [
