@@ -8,12 +8,16 @@ vector DB); notes auto-apply, humans audit; human merges unless a repo lets the 
       Memory page + activity with undo, `/api/memory`, internal read/write/used, whiskers
       memory context (rules always, rest ranked by full-text), review_rule migrated + dropped,
       conventions read from the base branch, settled list = findings only
-- [ ] PR 2 · Verdict contract (`feat/verdict-contract`, parallel agent): fingerprints,
+- [x] PR 2 · Verdict contract (`feat/verdict-contract`, parallel agent): fingerprints,
       done_when, loop verdict + round, fixed-thread resolve, check run JSON, `/v1` contract
-- [ ] PR 3 · MCP server + `cw_` `loop` scope + `/whiskers-loop` Claude Code skill
-- [ ] PR 4 · Learning loop + Haiku→Sonnet engine + reviewer memory tools + repo summary
-- [ ] PR 5 · Merge brief, 5-round/stall limits, per-repo autonomy, merge_readiness
-- [ ] PR 6 · Production context (issues/errors per changed file) in notes and findings
+- [x] PR 3 · MCP server + `cw_` `loop` scope + `/whiskers-loop` Claude Code skill
+- [x] PR 4 · Learning loop + Haiku→Sonnet engine + reviewer memory tools + repo summary
+- [x] PR 5 · Merge brief, 5-round/stall limits, per-repo autonomy, merge_readiness
+- [x] PR 6 · Production context (issues/errors per changed file) in notes and findings
+
+Stack (linear, local, not pushed): feat/repo-memory → feat/verdict-contract → feat/learning-loop →
+feat/mcp → feat/merge-brief → feat/production-context. Migrations: studio 0016–0019, whiskers
+0011–0012. Not run live: no LLM/GitHub calls, no Claude Code ↔ /api/mcp round trip.
 
 ## Acceptance (PR 1)
 
