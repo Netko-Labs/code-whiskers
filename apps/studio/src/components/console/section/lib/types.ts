@@ -18,7 +18,7 @@ export type IssueSectionView = Extract<SectionView, 'issues' | 'regressions'>
 /** Code review has its own routes under `routes/console/`, not the section table. */
 export type CodeReviewSectionView = Extract<
   SectionView,
-  'pull-requests' | 'repositories' | 'codebase-map' | 'review-rules'
+  'pull-requests' | 'repositories' | 'codebase-map' | 'memory'
 >
 /** Telemetry pages have routes of their own (`components/console/telemetry`). */
 export type TelemetrySectionView = Extract<

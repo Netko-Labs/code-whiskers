@@ -19,6 +19,7 @@ import { Route as ConsoleIndexRouteImport } from './routes/console/index'
 import { Route as ConsoleSectionRouteImport } from './routes/console/$section'
 import { Route as ConsoleCodebaseMapRouteImport } from './routes/console/codebase-map'
 import { Route as ConsoleLiveLogsRouteImport } from './routes/console/live-logs'
+import { Route as ConsoleMemoryRouteImport } from './routes/console/memory'
 import { Route as ConsoleOverviewRouteImport } from './routes/console/overview'
 import { Route as ConsolePullRequestsRouteImport } from './routes/console/pull-requests'
 import { Route as ConsoleRepositoriesRouteImport } from './routes/console/repositories'
@@ -99,6 +100,11 @@ const ConsoleCodebaseMapRoute = ConsoleCodebaseMapRouteImport.update({
 const ConsoleLiveLogsRoute = ConsoleLiveLogsRouteImport.update({
   id: '/live-logs',
   path: '/live-logs',
+  getParentRoute: () => ConsoleRoute,
+} as any)
+const ConsoleMemoryRoute = ConsoleMemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
   getParentRoute: () => ConsoleRoute,
 } as any)
 const ConsoleOverviewRoute = ConsoleOverviewRouteImport.update({
@@ -269,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
   '/console/live-logs': typeof ConsoleLiveLogsRoute
+  '/console/memory': typeof ConsoleMemoryRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
   '/console/live-logs': typeof ConsoleLiveLogsRoute
+  '/console/memory': typeof ConsoleMemoryRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/console/$section': typeof ConsoleSectionRoute
   '/console/codebase-map': typeof ConsoleCodebaseMapRoute
   '/console/live-logs': typeof ConsoleLiveLogsRoute
+  '/console/memory': typeof ConsoleMemoryRoute
   '/console/overview': typeof ConsoleOverviewRoute
   '/console/pull-requests': typeof ConsolePullRequestsRoute
   '/console/repositories': typeof ConsoleRepositoriesRoute
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/console/$section'
     | '/console/codebase-map'
     | '/console/live-logs'
+    | '/console/memory'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/console/$section'
     | '/console/codebase-map'
     | '/console/live-logs'
+    | '/console/memory'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
@@ -483,6 +494,7 @@ export interface FileRouteTypes {
     | '/console/$section'
     | '/console/codebase-map'
     | '/console/live-logs'
+    | '/console/memory'
     | '/console/overview'
     | '/console/pull-requests'
     | '/console/repositories'
@@ -600,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/live-logs'
       fullPath: '/console/live-logs'
       preLoaderRoute: typeof ConsoleLiveLogsRouteImport
+      parentRoute: typeof ConsoleRoute
+    }
+    '/console/memory': {
+      id: '/console/memory'
+      path: '/memory'
+      fullPath: '/console/memory'
+      preLoaderRoute: typeof ConsoleMemoryRouteImport
       parentRoute: typeof ConsoleRoute
     }
     '/console/overview': {
@@ -848,6 +867,7 @@ interface ConsoleRouteChildren {
   ConsoleSectionRoute: typeof ConsoleSectionRoute
   ConsoleCodebaseMapRoute: typeof ConsoleCodebaseMapRoute
   ConsoleLiveLogsRoute: typeof ConsoleLiveLogsRoute
+  ConsoleMemoryRoute: typeof ConsoleMemoryRoute
   ConsoleOverviewRoute: typeof ConsoleOverviewRoute
   ConsolePullRequestsRoute: typeof ConsolePullRequestsRoute
   ConsoleRepositoriesRoute: typeof ConsoleRepositoriesRoute
@@ -876,6 +896,7 @@ const ConsoleRouteChildren: ConsoleRouteChildren = {
   ConsoleSectionRoute: ConsoleSectionRoute,
   ConsoleCodebaseMapRoute: ConsoleCodebaseMapRoute,
   ConsoleLiveLogsRoute: ConsoleLiveLogsRoute,
+  ConsoleMemoryRoute: ConsoleMemoryRoute,
   ConsoleOverviewRoute: ConsoleOverviewRoute,
   ConsolePullRequestsRoute: ConsolePullRequestsRoute,
   ConsoleRepositoriesRoute: ConsoleRepositoriesRoute,

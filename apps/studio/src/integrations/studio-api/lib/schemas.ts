@@ -175,20 +175,45 @@ export const studioStorageSchema = z.object({
   ),
 })
 
-export const REVIEW_RULE_EFFECTS = ['blocker', 'suggestion', 'filter', 'tone'] as const
+export const MEMORY_KINDS = ['rule', 'dont_flag', 'lesson', 'context', 'preference'] as const
 
-export const reviewRuleSchema = z.object({
+export const memoryNoteSchema = z.object({
   id: z.string(),
   installationId: z.number(),
   organization: z.string(),
+  repositoryId: z.number().nullable(),
+  repository: z.string().nullable(),
+  kind: z.enum(MEMORY_KINDS),
   body: z.string(),
-  scope: z.string(),
-  effect: z.enum(REVIEW_RULE_EFFECTS),
-  isMuted: z.boolean(),
+  paths: z.array(z.string()),
+  source: z.enum(['human', 'review', 'fix', 'agent']),
+  sourceUrl: z.string().nullable(),
   authorName: z.string().nullable(),
+  status: z.enum(['active', 'retired']),
+  uses: z.number(),
+  lastUsedAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+})
+export const memoryNoteListSchema = z.array(memoryNoteSchema)
+
+const noteSnapshotSchema = z
+  .object({ kind: z.enum(MEMORY_KINDS), body: z.string(), status: z.enum(['active', 'retired']) })
+  .nullable()
+
+export const memoryActivitySchema = z.object({
+  id: z.string(),
+  installationId: z.number(),
+  organization: z.string(),
+  noteId: z.string(),
+  action: z.enum(['created', 'edited', 'retired', 'restored', 'deleted', 'undone']),
+  actorName: z.string().nullable(),
+  before: noteSnapshotSchema,
+  after: noteSnapshotSchema,
+  undoneAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
 })
-export const reviewRuleListSchema = z.array(reviewRuleSchema)
+export const memoryActivityListSchema = z.array(memoryActivitySchema)
 
 export const apiKeySchema = z.object({
   id: z.string(),

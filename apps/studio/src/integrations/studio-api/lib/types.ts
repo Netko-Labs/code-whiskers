@@ -8,13 +8,14 @@ import type {
   integrationSchema,
   issueLifecycleResultSchema,
   issueLifecycleSchema,
+  MEMORY_KINDS,
   memberSchema,
+  memoryActivitySchema,
+  memoryNoteSchema,
   organizationSchema,
   RESOLVE_MODES,
-  REVIEW_RULE_EFFECTS,
   recentTriageActivitySchema,
   repositorySchema,
-  reviewRuleSchema,
   SAVED_QUERY_SECTIONS,
   savedQuerySchema,
   studioStorageSchema,
@@ -57,13 +58,18 @@ export type TriageDecision = TriageItemRef & {
   snoozedUntil?: Date
 }
 export type StudioStorage = z.infer<typeof studioStorageSchema>
-export type ReviewRule = z.infer<typeof reviewRuleSchema>
-export type ReviewRuleEffect = (typeof REVIEW_RULE_EFFECTS)[number]
-export type ReviewRuleInput = {
+export type MemoryNote = z.infer<typeof memoryNoteSchema>
+export type MemoryKind = (typeof MEMORY_KINDS)[number]
+export type MemoryActivity = z.infer<typeof memoryActivitySchema>
+export type MemoryNoteInput = {
   installationId: number
+  repositoryId: number | null
+  kind: MemoryKind
   body: string
-  scope: string
-  effect: ReviewRuleEffect
+  paths: string[]
+}
+export type MemoryNotePatch = Partial<Omit<MemoryNoteInput, 'installationId'>> & {
+  status?: MemoryNote['status']
 }
 export type ApiKey = z.infer<typeof apiKeySchema>
 export type Integration = z.infer<typeof integrationSchema>

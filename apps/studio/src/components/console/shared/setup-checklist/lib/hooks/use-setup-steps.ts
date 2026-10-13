@@ -4,9 +4,9 @@ import { alertRulesQuery } from '@/integrations/alerts-api'
 import {
   instanceQuery,
   integrationsQuery,
+  memoryQuery,
   organizationsQuery,
   repositoriesQuery,
-  rulesQuery,
 } from '@/integrations/studio-api'
 import { whiskersInstanceQuery } from '@/integrations/whiskers'
 import type { SetupStep } from '../types'
@@ -18,7 +18,7 @@ export function useSetupSteps(): SetupStep[] {
   const { data: worker } = useQuery({ ...whiskersInstanceQuery(), retry: false })
   const { data: hooks } = useQuery({ ...integrationsQuery(), retry: false })
   const { data: alerts } = useQuery({ ...alertRulesQuery(), retry: false })
-  const { data: rules } = useQuery({ ...rulesQuery(), retry: false })
+  const { data: notes } = useQuery({ ...memoryQuery(), retry: false })
   const { data: instance } = useQuery({ ...instanceQuery(), retry: false })
 
   return useMemo(() => {
@@ -73,11 +73,11 @@ export function useSetupSteps(): SetupStep[] {
         link: { kind: 'path', path: '/console/alerts' },
       },
       {
-        step: 'Write a review rule',
-        isDone: (rules?.length ?? 0) > 0,
-        how: 'Optional — tell the reviewer what your team cares about',
-        link: { kind: 'section', section: 'review-rules' },
+        step: 'Teach Whiskers one thing',
+        isDone: (notes?.length ?? 0) > 0,
+        how: 'Optional — a rule, a thing not to flag, or how the code works',
+        link: { kind: 'section', section: 'memory' },
       },
     ]
-  }, [orgs, repos, worker, hooks, alerts, rules, instance])
+  }, [orgs, repos, worker, hooks, alerts, notes, instance])
 }
