@@ -1,6 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ReviewRulesPage } from '@/components/console/code-review'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
+/** Review rules became memory notes; old links land on the new page. */
 export const Route = createFileRoute('/console/review-rules')({
-  component: ReviewRulesPage,
+  beforeLoad: () => {
+    throw redirect({ to: '/console/memory' })
+  },
 })

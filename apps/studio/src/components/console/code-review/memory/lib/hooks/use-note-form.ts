@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import type { RuleDraft, RuleFormState } from '../types'
+import type { NoteDraft, NoteFormState } from '../types'
 import { draftError } from '../utils'
-import { useRuleActions } from './use-rule-actions'
+import { useMemoryActions } from './use-memory-actions'
 
-export function useRuleForm(initial: RuleDraft): RuleFormState {
+export function useNoteForm(initial: NoteDraft): NoteFormState {
   const [draft, setDraft] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setSaving] = useState(false)
-  const { save } = useRuleActions()
+  const { save } = useMemoryActions()
 
   return {
     draft,
@@ -28,7 +28,7 @@ export function useRuleForm(initial: RuleDraft): RuleFormState {
         await save(draft)
         return true
       } catch (failure) {
-        setError(failure instanceof Error ? failure.message : 'The rule was not saved')
+        setError(failure instanceof Error ? failure.message : 'The note was not saved')
         return false
       } finally {
         setSaving(false)

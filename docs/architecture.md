@@ -42,7 +42,7 @@ their own GitHub installations. That is a design constraint, not a footnote:
    and minting one for a single-operator tool is ceremony without a threat behind it.
    An unset token leaves `/api/internal/*` closed rather than open. Studio's server-side
    writes into whiskers (`/internal/*`, never forwarded publicly) present the same token.
-4. **Whiskers caches studio config** (watched repos, review rules, project keys) with a
+4. **Whiskers caches studio config** (watched repos, memory notes, project keys) with a
    short TTL. A webhook must not block on a studio round trip per event.
 
 ```
@@ -128,18 +128,33 @@ Ingest reads the project's keys from its own database on each envelope; no studi
 
 ### Rules
 
-**`review_rule`** — prose, not config. Whiskers quotes the rule it applied.
+**`memory_note`** — what the reviewer knows about a codebase, in a sentence or three anyone can
+read and edit (it replaced `review_rule` in studio 0016–0017; old rules became notes). Scoped
+org → repo → folders: no `repository_id` means the whole installation, `paths` (globs) narrow it
+to matching files. Notes apply as soon as they are written — by a person, or by whiskers through
+`POST /api/internal/memory` — and humans audit them in `memory_activity`.
 
 | column | type | note |
 | --- | --- | --- |
 | `id` | uuid PK | |
 | `installation_id` | bigint | |
-| `body` | text | the rule, in English |
-| `scope` | text | glob or `*` |
-| `effect` | enum | `blocker` \| `suggestion` \| `filter` \| `tone` |
-| `author_user_id` | text | |
-| `is_muted` | boolean | |
-| `created_at` | timestamp | |
+| `repository_id` | bigint? | null = every repository in the installation |
+| `kind` | enum | `rule` (blocks) \| `preference` (suggestion) \| `dont_flag` \| `context` \| `lesson` |
+| `body` | text | 3–600 chars, plain English |
+| `paths` | text[] | globs; empty = every file |
+| `source` | enum | `human` \| `review` \| `fix` \| `agent`, plus `source_url` (the PR) |
+| `author_user_id` / `author_label` | text | a user, or a GitHub login / `whiskers` |
+| `status` | enum | `active` \| `retired` |
+| `uses`, `last_used_at` | | bumped when a review reads it (`POST /api/internal/memory/used`) |
+| `search` | tsvector | generated from `body`, GIN-indexed |
+
+Retrieval is Postgres full text, not a vector store: whiskers asks `GET /api/internal/memory?repo=&q=`
+with the PR title and changed paths, filters by `paths` itself, always includes every `rule`
+(own 1.6k budget), and fills a 2k budget with the rest by rank, narrowest scope first.
+
+**`memory_activity`** — every change to a note with its `before`/`after` snapshot and actor, no
+foreign key to the note so a deletion stays undoable. `POST /api/memory/activity/:id/undo` puts
+the note back the way it was before that one change.
 
 **`alert_rule`** — WHEN a trigger fires, IF the filters hold, THEN notify destinations.
 
@@ -414,7 +429,7 @@ Timescale is the natural first move because nothing above the driver changes.
 | Pull requests | `repository` | `review` `finding` |
 | Repositories | `repository` `organization` | review counts |
 | Codebase map | `repository` ownership | `finding` `span` risk |
-| Review rules | `review_rule` | — |
+| Memory | `memory_note` `memory_activity` | reads per review |
 | Issues / Regressions | `triage_state` | `issue` `event` `regression` |
 | Releases | — | `release` `deploy` `release_commit` |
 | Alert rules | `alert_rule` | evaluation in `job` |
@@ -445,7 +460,7 @@ Timescale is the natural first move because nothing above the driver changes.
    suppressed" rather than failing the review. Newest 200 only; past that studio sets
    `x-suppressions-truncated: true` and whiskers logs it. `POST /api/triage` only
    writes under an `owner/repo` scope the caller is a member of. Since then:
-   `/api/internal/rules`, `/api/internal/repository` (is it watched?),
+   `/api/internal/memory` (+ `/used`), `/api/internal/repository` (is it watched?),
    `/api/internal/alert-rules`, `/api/internal/alert-rules/:id/fire|quiet`,
    `/api/internal/alert-rules/evaluated` and `/api/internal/projects/created` — whiskers
    evaluates alert conditions every minute and studio delivers them (see `alert_rule`).

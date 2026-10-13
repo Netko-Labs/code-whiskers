@@ -320,7 +320,7 @@ under `routes/console/` (they win over `$section`):
   Rows re-key when a push lands over realtime and play `animate-highlight` once.
 - `/console/reviews/$reviewId` — any push's review id; the page shows the whole pull request as of
   that push (`GET /v1/reviews/:id/pull-request`), with the push timeline on the right.
-- `/console/repositories`, `/console/codebase-map`, `/console/review-rules`.
+- `/console/repositories`, `/console/codebase-map`, `/console/memory`.
 
 Finding status on the review page is derived, never stored: **open** (reported by the push the
 page reads), **dismissed** (studio triage), **resolved** (an earlier push's finding that a later

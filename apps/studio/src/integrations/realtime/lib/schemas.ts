@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const topicSchema = z.enum(['reviews', 'issues', 'logs', 'traces', 'alerts'])
+const topicSchema = z.enum(['reviews', 'issues', 'logs', 'traces', 'alerts', 'memory'])
 
 export const realtimeMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ready') }),

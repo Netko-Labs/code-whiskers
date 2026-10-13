@@ -28,10 +28,10 @@ export function PullRequestsBody({ state, isFiltered }: PullRequestsBodyProps) {
         }
         secondary={
           <Link
-            to="/console/review-rules"
+            to="/console/memory"
             className="text-muted-foreground text-ui underline-offset-4 hover:text-foreground hover:underline"
           >
-            Write a review rule
+            Tell Whiskers about your code
           </Link>
         }
       />

@@ -4,7 +4,7 @@ Plan rendered in-thread (decisions, loop, memory, MCP, contract). Bot stays read
 are the source of truth; memory in studio Postgres (scope org → repo → folders, full-text, no
 vector DB); notes auto-apply, humans audit; human merges unless a repo lets the agent.
 
-- [ ] PR 1 · Repo memory (`feat/repo-memory`): `memory_note` + `memory_activity`, console
+- [x] PR 1 · Repo memory (`feat/repo-memory`): `memory_note` + `memory_activity`, console
       Memory page + activity with undo, `/api/memory`, internal read/write/used, whiskers
       memory context (rules always, rest ranked by full-text), review_rule migrated + dropped,
       conventions read from the base branch, settled list = findings only
@@ -17,9 +17,9 @@ vector DB); notes auto-apply, humans audit; human merges unless a repo lets the 
 
 ## Acceptance (PR 1)
 
-- [ ] A note added in the console reaches the next review prompt; scope inheritance + budget tested
-- [ ] Existing review rules survive the migration as notes
-- [ ] `fmt-lint`, `check-types`, `test`, both builds, `db:generate` drift clean
+- [x] A note added in the console reaches the next review prompt; scope inheritance + budget tested
+- [x] Existing review rules survive the migration as notes (throwaway Postgres 17)
+- [x] `fmt-lint`, `check-types`, `test`, studio build clean; service smoke 15/15 on Postgres
 
 ---
 

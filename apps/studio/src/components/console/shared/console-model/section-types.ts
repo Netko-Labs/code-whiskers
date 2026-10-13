@@ -157,7 +157,7 @@ export type SectionView =
   | 'pull-requests'
   | 'repositories'
   | 'codebase-map'
-  | 'review-rules'
+  | 'memory'
   | 'issues'
   | 'regressions'
   | 'releases'

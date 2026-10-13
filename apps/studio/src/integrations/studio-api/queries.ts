@@ -16,13 +16,15 @@ import {
   instanceSettingsSchema,
   integrationListSchema,
   issueLifecycleResultSchema,
+  type MemoryNoteInput,
+  type MemoryNotePatch,
   memberListSchema,
+  memoryActivityListSchema,
+  memoryNoteListSchema,
   okSchema,
   organizationListSchema,
-  type ReviewRuleInput,
   recentTriageActivityListSchema,
   repositoryListSchema,
-  reviewRuleListSchema,
   type SavedQueryInput,
   savedQueryListSchema,
   studioStorageSchema,
@@ -194,19 +196,29 @@ export const setIssueLifecycle = (input: IssueLifecycleInput) =>
 export const postTriageComment = (item: TriageItemRef, body: string) =>
   fetchStudio('/triage/comments', createdSchema, 'POST', { ...item, body })
 
-export const rulesQuery = () =>
+/** Realtime's `memory` topic invalidates both when whiskers learns something. */
+export const memoryQuery = () =>
   queryOptions({
-    queryKey: [STUDIO_QUERY_KEY, 'rules'],
-    queryFn: () => fetchStudio('/rules', reviewRuleListSchema),
+    queryKey: [STUDIO_QUERY_KEY, 'memory'],
+    queryFn: () => fetchStudio('/memory', memoryNoteListSchema),
   })
 
-export const createRule = (input: ReviewRuleInput) =>
-  fetchStudio('/rules', createdSchema, 'POST', input)
+export const memoryActivityQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'memory-activity'],
+    queryFn: () => fetchStudio('/memory/activity', memoryActivityListSchema),
+  })
 
-export const updateRule = (id: string, patch: Partial<ReviewRuleInput> & { isMuted?: boolean }) =>
-  fetchStudio(`/rules/${id}`, okSchema, 'PATCH', patch)
+export const createMemoryNote = (input: MemoryNoteInput) =>
+  fetchStudio('/memory', createdSchema, 'POST', input)
 
-export const deleteRule = (id: string) => fetchStudio(`/rules/${id}`, okSchema, 'DELETE')
+export const updateMemoryNote = (id: string, patch: MemoryNotePatch) =>
+  fetchStudio(`/memory/${id}`, okSchema, 'PATCH', patch)
+
+export const deleteMemoryNote = (id: string) => fetchStudio(`/memory/${id}`, okSchema, 'DELETE')
+
+export const undoMemoryActivity = (id: string) =>
+  fetchStudio(`/memory/activity/${id}/undo`, okSchema, 'POST')
 
 export const apiKeysQuery = () =>
   queryOptions({
