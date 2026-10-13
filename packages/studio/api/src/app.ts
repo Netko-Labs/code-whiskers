@@ -9,7 +9,7 @@ import { integrationRoutes } from './routes/integrations'
 import { internalRoutes } from './routes/internal'
 import { keyRoutes } from './routes/keys'
 import { memberRoutes } from './routes/members'
-import { ruleRoutes } from './routes/rules'
+import { memoryRoutes } from './routes/memory'
 import { savedQueryRoutes } from './routes/saved-queries'
 import { sessionRoutes } from './routes/session'
 import { triageRoutes } from './routes/triage'
@@ -45,7 +45,7 @@ export const app = new Elysia({ prefix: '/api' })
   // (￣^￣)ゞ API keys for scripts reading /v1
   .use(keyRoutes)
   // (｀・ω・´) review rules, written by humans, read by the reviewer
-  .use(ruleRoutes)
+  .use(memoryRoutes)
   // (￣▽￣)b saved telemetry views
   .use(savedQueryRoutes)
   // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided

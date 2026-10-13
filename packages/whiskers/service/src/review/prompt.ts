@@ -27,7 +27,8 @@ no emoji. "summary": exactly one sentence on what this slice changes in behaviou
 when you find nothing. Verdict: "request_changes" when any high/critical finding exists,
 otherwise "approve".
 
-Preamble sections: "Team rules" come from the maintainers — follow them, including severity.
+Preamble sections: "Team memory" is what the maintainers and earlier reviews taught you — follow
+it, including severity, and never raise what it says not to flag.
 "Project conventions" are the repository's CLAUDE.md / AGENTS.md — report a clear violation in a
 changed line as category "convention"; never flag code that follows them. "Where this PR already
 stands" is history — use it, never review it as code.

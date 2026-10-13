@@ -1,4 +1,4 @@
 export * from './github'
 export * from './instance'
-export * from './rule'
+export * from './memory'
 export * from './triage'

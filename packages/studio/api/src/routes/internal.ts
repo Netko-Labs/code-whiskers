@@ -8,6 +8,9 @@ import {
   FindingDismissSchema,
   IdParamSchema,
   IssueTransitionBodySchema,
+  MemoryContextQuerySchema,
+  MemoryLearnSchema,
+  MemoryUsedSchema,
   ProjectCreatedBodySchema,
   ProjectDeletedBodySchema,
   RealtimeEventsSchema,
@@ -19,9 +22,11 @@ import {
   fireAlertRule,
   forgetProject,
   getEvaluableRules,
+  getMemoryForRepository,
   getRepositoryWatch,
-  getRulesForRepository,
   getSuppressions,
+  learnMemoryNote,
+  markMemoryUsed,
   markRulesEvaluated,
   quietAlertRule,
   realtimeBus,
@@ -109,12 +114,23 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     if (!(await dismissFinding(body))) return status(404, 'Not found')
     return { ok: true }
   })
-  // (｀・ω・´) the team's rules for the installation this repo belongs to
-  .get('/rules', async ({ headers, query, status }) => {
+  // (｀・ω・´) what the reviewer should know about this repo, best match for the PR first
+  .get('/memory', { query: MemoryContextQuerySchema }, ({ headers, query, status }) => {
     if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
-    const repo = typeof query.repo === 'string' ? query.repo : ''
-    if (!repo) return status(400, 'repo is required')
-    return getRulesForRepository(repo)
+    return getMemoryForRepository(query.repo, query.q)
+  })
+  // (・∀・) the reviewer learned something; it applies now, a human audits it later
+  .post('/memory', { body: MemoryLearnSchema }, async ({ headers, body, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    const note = await learnMemoryNote(body)
+    if (!note) return status(404, 'Unknown repository')
+    realtimeBus.publish(['memory'])
+    return note
+  })
+  .post('/memory/used', { body: MemoryUsedSchema }, async ({ headers, body, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    await markMemoryUsed(body.ids)
+    return { ok: true }
   })
   // (ﾟДﾟ;) the conditions to evaluate — never where they are delivered
   .get('/alert-rules', ({ headers, status }) => {

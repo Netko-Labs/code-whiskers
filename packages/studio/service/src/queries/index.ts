@@ -1,5 +1,5 @@
 export * from './github'
 export * from './instance'
 export * from './member'
-export * from './rule'
+export * from './memory'
 export * from './triage'
