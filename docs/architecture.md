@@ -311,6 +311,41 @@ raw counts locally and pushes on a schedule.
 were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before whiskers 0008),
 `delta_from` (the last reviewed sha a delta read from), token counts, `created_at`,
 `completed_at`. `GET /v1/reviews/:id/pull-request` returns every push of that PR with its findings.
+The fix loop (whiskers 0011): `round` (1 + completed reviews of the PR before it, set when the
+review starts), `loop_verdict` (`mergeable` \| `needs_changes` \| `blocked` \| `needs_human`),
+`fixed_since_last_round` (finding ids). Null on older reviews; the contract derives them.
+
+**`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
+`title`, `body`, `suggestion`, `fingerprint` (`wf_` + 6 hex, stable across rounds), `done_when`,
+`evidence`, `since_round`, `thread_url` (the inline comment on GitHub), `created_at`. A review's
+findings are every finding open at its head: fresh, repeated, and blockers carried from earlier
+rounds that the delta did not see.
+
+**The fix loop.** A coding agent pushes, whiskers reviews, the agent reads the verdict and pushes
+again until the PR is `mergeable`; a human merges. The bot never pushes; the PR's threads stay the
+record.
+
+- *Finding ids.* A new finding's id hashes `owner/repo#pr`, file and title. The inline comment
+  carries it in a hidden `<!-- whiskers-finding wf_… round=N -->` marker, so the next round reads
+  it back from the thread; a finding settle matches to a thread (or, without one, to a row of the
+  last review) inherits its id and `since_round`. Two findings never share an id in one round.
+- *Verdict.* Over every open finding: any `critical` → `blocked`; any `high` → `needs_changes`; a
+  review that skipped sections → `needs_changes`; else `mergeable`. A team rule marked `blocker`
+  makes its violation `high` (the rule a finding came from is not tracked yet), so it asks for
+  changes rather than blocking. A repeat the model now rates lower keeps the severity of its open
+  blocking thread. `needs_human` is reserved for the loop limit and not produced yet.
+  `mergeable` is exactly when the GitHub review approves.
+- *Fixed.* An unanswered blocking thread is fixed when a complete delta review touched its file,
+  GitHub marks it outdated, and nothing raised this round matches it. Whiskers replies
+  `Fixed in <sha7>.` and resolves the thread (GraphQL `resolveReviewThread`, the App's pull
+  requests write permission); a failure is logged and the thread stays open. A thread closed that
+  way settles nothing: raised again, the finding is fresh and keeps its id.
+- *Contract.* The check run's title leads with the verdict and round, `failure` unless
+  `mergeable`; `output.text` holds the contract as fenced JSON. `GET /v1/reviews/pr/:owner/:repo/:number`
+  returns the same for the latest completed review (404 when there is none):
+  `{ pr, head, round, verdict, blockers[], suggestions[], fixed_since_last_round[] }`, each
+  finding `{ id, since_round, file, line, severity, title, done_when, evidence, thread }`.
+  Schema: `ReviewContractSchema` in `whiskers-domain`; builder: `getPullRequestContract`.
 
 **Review providers.** `REVIEW_PROVIDER` selects one implementation of `ReviewProvider`
 (`packages/whiskers/service/src/review/providers`): `openrouter`, `ai-gateway` and `openai` share
@@ -325,9 +360,6 @@ records the provider's model; an agent's cost and turns are logged, not stored. 
 another agent SDK plugs in beside `claude`. The harness runs in the worker process: the bot is
 read-only, so its boundary is the tool layer — `Read`/`Grep`/`Glob` behind the path guard, no
 network tool, no setting sources — plus an env that never holds the worker's own secrets.
-
-**`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
-`title`, `body`, `suggestion`, `created_at`.
 
 ### Errors
 
