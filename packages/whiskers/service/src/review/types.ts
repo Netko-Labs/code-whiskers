@@ -204,3 +204,18 @@ export type MemoryContext = {
   applied: { kind: MemoryKind; body: string }[]
   dropped: number
 }
+
+export type RepositoryIssueLike = {
+  id: string
+  title: string
+  culprit: string
+  eventCount: number
+  userCount: number
+  lastSeen: Date
+  regressedAt: Date | null
+}
+
+export type ProductionSignal = RepositoryIssueLike & {
+  file: string
+  function: string | null
+}
