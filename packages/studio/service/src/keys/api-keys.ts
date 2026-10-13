@@ -3,7 +3,7 @@ import { type ApiKeyCreate, apiKey } from '@code-whiskers/studio-domain'
 import { db } from '@code-whiskers/studio-repository'
 import { and, desc, eq, isNull, lt, or } from 'drizzle-orm'
 import { API_KEY_BYTES, API_KEY_PREFIX, LAST_USED_RESOLUTION_MS } from './constants'
-import type { ApiKeyRecord, CreatedApiKey } from './types'
+import type { ApiKeyCaller, ApiKeyRecord, CreatedApiKey } from './types'
 
 function hashKey(key: string): string {
   return createHash('sha256').update(key).digest('hex')
@@ -13,7 +13,13 @@ export const createApiKey = async (userId: string, input: ApiKeyCreate): Promise
   const key = `${API_KEY_PREFIX}${randomBytes(API_KEY_BYTES).toString('base64url')}`
   const [row] = await db
     .insert(apiKey)
-    .values({ userId, name: input.name, prefix: key.slice(0, 10), hash: hashKey(key) })
+    .values({
+      userId,
+      name: input.name,
+      scope: input.scope,
+      prefix: key.slice(0, 10),
+      hash: hashKey(key),
+    })
     .returning({ id: apiKey.id })
   if (!row) throw new Error('api key was not stored')
   return { id: row.id, key }
@@ -25,6 +31,7 @@ export const getApiKeysForUser = async (userId: string): Promise<ApiKeyRecord[]>
       id: apiKey.id,
       name: apiKey.name,
       prefix: apiKey.prefix,
+      scope: apiKey.scope,
       lastUsedAt: apiKey.lastUsedAt,
       revokedAt: apiKey.revokedAt,
       createdAt: apiKey.createdAt,
@@ -43,12 +50,12 @@ export const revokeApiKey = async (userId: string, id: string): Promise<boolean>
   return rows.length > 0
 }
 
-/** The owner of a live key, or null. Touches last_used_at at most once a minute. */
-export const verifyApiKey = async (key: string): Promise<string | null> => {
+/** A live key and who holds it, or null. Touches last_used_at at most once a minute. */
+export const resolveApiKey = async (key: string): Promise<ApiKeyCaller | null> => {
   if (!key.startsWith(API_KEY_PREFIX)) return null
   const hash = hashKey(key)
   const [row] = await db
-    .select({ id: apiKey.id, userId: apiKey.userId })
+    .select({ id: apiKey.id, userId: apiKey.userId, name: apiKey.name, scope: apiKey.scope })
     .from(apiKey)
     .where(and(eq(apiKey.hash, hash), isNull(apiKey.revokedAt)))
     .limit(1)
@@ -59,5 +66,9 @@ export const verifyApiKey = async (key: string): Promise<string | null> => {
     .update(apiKey)
     .set({ lastUsedAt: new Date() })
     .where(and(eq(apiKey.id, row.id), or(isNull(apiKey.lastUsedAt), lt(apiKey.lastUsedAt, stale))))
-  return row.userId
+  return { keyId: row.id, name: row.name, userId: row.userId, scope: row.scope }
 }
+
+/** The owner of a live key, or null. */
+export const verifyApiKey = async (key: string): Promise<string | null> =>
+  (await resolveApiKey(key))?.userId ?? null

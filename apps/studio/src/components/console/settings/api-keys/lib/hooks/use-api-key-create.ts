@@ -1,7 +1,7 @@
 import { ApiKeyCreateSchema } from '@code-whiskers/studio-domain'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { apiKeysQuery, createApiKey } from '@/integrations/studio-api'
+import { type ApiKey, apiKeysQuery, createApiKey } from '@/integrations/studio-api'
 import { useConsoleStore } from '../../../../use-console-store'
 import { formError } from '../../../lib'
 import type { ApiKeyCreateForm, CreatedSecret } from '../types'
@@ -10,13 +10,15 @@ import type { ApiKeyCreateForm, CreatedSecret } from '../types'
 export function useApiKeyCreate(): ApiKeyCreateForm {
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
+  const [scope, setScope] = useState<ApiKey['scope']>('read')
   const [isTouched, setTouched] = useState(false)
   const [secret, setSecret] = useState<CreatedSecret | null>(null)
 
   const mutation = useMutation({
-    mutationFn: (input: { name: string }) => createApiKey(input.name),
+    mutationFn: (input: { name: string; scope: ApiKey['scope'] }) =>
+      createApiKey(input.name, input.scope),
     onSuccess: (created, input) => {
-      setSecret({ name: input.name, key: created.key })
+      setSecret({ name: input.name, key: created.key, scope: input.scope })
       setName('')
       setTouched(false)
       void queryClient.invalidateQueries({ queryKey: apiKeysQuery().queryKey })
@@ -26,6 +28,8 @@ export function useApiKeyCreate(): ApiKeyCreateForm {
 
   return {
     name,
+    scope,
+    setScope,
     error: isTouched ? formError(ApiKeyCreateSchema, { name }) : null,
     isPending: mutation.isPending,
     secret,
@@ -35,7 +39,7 @@ export function useApiKeyCreate(): ApiKeyCreateForm {
     },
     submit: () => {
       setTouched(true)
-      const parsed = ApiKeyCreateSchema.safeParse({ name })
+      const parsed = ApiKeyCreateSchema.safeParse({ name, scope })
       if (parsed.success) mutation.mutate(parsed.data)
     },
     dismissSecret: () => setSecret(null),

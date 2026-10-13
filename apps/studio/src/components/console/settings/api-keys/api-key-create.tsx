@@ -1,15 +1,15 @@
 import { Button } from '@code-whiskers/ui/components/button'
 import { Input } from '@code-whiskers/ui/components/input'
-import { IconLock } from '@tabler/icons-react'
+import { NativeSelect, NativeSelectOption } from '@code-whiskers/ui/components/native-select'
 import { Panel } from '@/components/shared/page'
-import type { ApiKeyCreateProps } from './lib'
+import { type ApiKeyCreateProps, SCOPE_LABEL } from './lib'
 
-/** Vercel's inline create: name it, see the one scope it gets, create. */
+/** Vercel's inline create: name it, pick what it may do, create. */
 export function ApiKeyCreate({ form }: ApiKeyCreateProps) {
   return (
     <Panel
       title="Create a key"
-      description="It reads everything you can read through /v1, and nothing more. Name it after where it will live."
+      description="Read-only keys see what you can see through /v1. Review-loop keys also let a coding agent (Claude Code over MCP) reply on threads and add context to memory."
     >
       <form
         noValidate
@@ -43,10 +43,15 @@ export function ApiKeyCreate({ form }: ApiKeyCreateProps) {
             </p>
           )}
         </div>
-        <span className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface-subtle px-2.5 text-2xs text-muted-foreground">
-          <IconLock className="size-3.5" stroke={1.75} />
-          Read-only · /v1
-        </span>
+        <NativeSelect
+          aria-label="Key scope"
+          value={form.scope}
+          onChange={(event) => form.setScope(event.target.value === 'loop' ? 'loop' : 'read')}
+          className="h-8 text-2xs"
+        >
+          <NativeSelectOption value="read">{SCOPE_LABEL.read}</NativeSelectOption>
+          <NativeSelectOption value="loop">{SCOPE_LABEL.loop}</NativeSelectOption>
+        </NativeSelect>
         <Button type="submit" size="sm" className="h-8" disabled={form.isPending}>
           {form.isPending ? 'Creating…' : 'Create key'}
         </Button>
