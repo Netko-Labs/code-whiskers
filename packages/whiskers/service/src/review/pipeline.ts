@@ -2,7 +2,7 @@ import { createLogger } from '@code-whiskers/logger'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { clearFindings, createFindings } from '../mutations'
-import { countReviews, getPreviousReview } from '../queries'
+import { countReviews, getPreviousReview, getRepositoryIssues } from '../queries'
 import type { TokenTally } from '../shared/llm'
 import { chunkDiff, commentableLines } from './chunk'
 import { withoutDisprovedCompileClaims } from './ci'
@@ -20,6 +20,7 @@ import { buildFileManifest } from './grounding'
 import { closeRound, findingRows, linkPostedThreads, withThreadUrls } from './loop'
 import { buildMemoryContext, fetchMemory, markMemoryUsed, memoryForFiles } from './memory'
 import { resolveOutcome, reviewChunks } from './outcome'
+import { buildProductionContext, productionSignals } from './production'
 import { reviewProvider } from './providers'
 import type { ReviewReport } from './render'
 import { dismissStaleBlocks, hasStandingApproval, isStillHead } from './review-state'
@@ -93,10 +94,12 @@ export async function runPipeline(
   const commentable = commentableLines(diff)
   const changedFiles = [...commentable.keys()]
   // Read at the base branch: the PR's own CLAUDE.md must not rewrite the rules it is judged by.
-  const [conventions, memory] = await Promise.all([
+  const [conventions, memory, issues] = await Promise.all([
     fetchConventions(ref, head.baseSha, changedFiles).catch(warnWithout('conventions', [])),
     fetchMemory(slug, head.title, changedFiles),
+    getRepositoryIssues(slug).catch(warnWithout('production errors', [])),
   ])
+  const production = productionSignals(issues, changedFiles)
 
   const prContext = buildPrContext({
     reviewCount,
@@ -115,6 +118,7 @@ export async function runPipeline(
   const context = [
     memoryContext.text,
     buildConventionsContext(conventions),
+    buildProductionContext(production),
     buildDescriptionContext(head.body),
     buildFileManifest(diff),
     delta && deltaFrom ? buildDeltaNote(deltaFrom) : '',
@@ -129,6 +133,7 @@ export async function runPipeline(
         contextChars: context.length,
         memoryNotes: memoryContext.noteIds.length,
         memoryDropped: memoryContext.dropped,
+        liveErrors: production.length,
         conventions: conventions.map((file) => file.path),
         delta: delta ? deltaFrom : null,
       },

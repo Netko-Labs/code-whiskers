@@ -175,3 +175,13 @@ export interface Overview {
   series: OverviewBucket[]
   totals: OverviewTotals
 }
+
+export type RepositoryIssue = {
+  id: string
+  title: string
+  culprit: string
+  eventCount: number
+  userCount: number
+  lastSeen: Date
+  regressedAt: Date | null
+}

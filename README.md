@@ -58,7 +58,8 @@ Install the GitHub App on the organization with **Pull request**, **Issue commen
 request review comment** events, webhook URL `https://whiskers.netko.dev/webhooks/github`. On every
 PR the worker chunks the diff (generated, vendored and binary files skipped), reviews the chunks
 with the configured provider and posts a review plus a check run. Mentioning the bot on a review
-thread queues a fix. Every provider gets the same preamble (team memory, conventions, description, file
+thread queues a fix. Every provider gets the same preamble (team memory, conventions, live errors in the changed
+files from this instance's own error tracking, description, file
 list, delta note, PR history) and its findings go through the same grounding, settling and verdict.
 Each `review completed` log line carries the review's token tally (and turns and cost for an agent).
 
