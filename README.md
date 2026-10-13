@@ -166,6 +166,14 @@ Or skip typing — react on one of its review comments (checked every minute, in
 
 A reply, a 👎 or a resolved thread counts as an answer: that finding is not raised again on the PR.
 
+**For a coding agent in the loop.** The check run's title is the loop verdict and the round:
+`Mergeable` (success), `Needs changes` or `Blocked` (a critical; both failure). Its details end
+with the verdict contract as fenced JSON, and `GET /v1/reviews/pr/<owner>/<repo>/<number>` (an API
+key will do) returns the same for the latest completed review: blockers and suggestions with ids
+that survive rounds, a one-line "done when" per blocker, and the ids fixed since the last round.
+A blocker a push fixes gets a `Fixed in <sha>.` reply and its thread resolved. The bot still never
+pushes; a human merges. Details in `docs/architecture.md` → The fix loop.
+
 ### Sending data in
 
 - **Errors** — **New project** in the console (`/console/projects/new`): pick a platform, get the
