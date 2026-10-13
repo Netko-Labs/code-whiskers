@@ -1,12 +1,12 @@
+// conventions: >300 lines — the review's GitHub calls (check runs moved out); split when next touched
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { App, Octokit } from 'octokit'
 import { diffFromFiles } from './files-diff'
 import {
   REACTION_HINT,
   type ReviewReport,
-  type ReviewTarget,
-  renderAnnotation,
   renderFinding,
+  renderFindingMarker,
   renderReviewBody,
 } from './render'
 import type { HttpFailure } from './types'
@@ -288,18 +288,11 @@ const VERDICT_EVENT = {
 } as const
 
 const CHECK_NAME = 'code-whiskers review'
-const ANNOTATION_LEVEL = {
-  low: 'notice',
-  medium: 'warning',
-  high: 'failure',
-  critical: 'failure',
-} as const
-// The Checks API accepts at most 50 annotations per update.
-const MAX_ANNOTATIONS = 50
 
 export interface CheckOutput {
   title: string
   summary: string
+  text?: string
   annotations: Array<{
     path: string
     start_line: number
@@ -307,36 +300,6 @@ export interface CheckOutput {
     annotation_level: 'notice' | 'warning' | 'failure'
     message: string
   }>
-}
-
-/** The check-run face of a review: verdict headline, the review body, findings as annotations. */
-export function buildCheckOutput(report: ReviewReport, target: ReviewTarget): CheckOutput {
-  const { review } = report
-  const counts = review.findings.reduce<Record<string, number>>((acc, f) => {
-    acc[f.severity] = (acc[f.severity] ?? 0) + 1
-    return acc
-  }, {})
-  const breakdown = ['critical', 'high', 'medium', 'low']
-    .filter((s) => counts[s])
-    .map((s) => `${counts[s]} ${s}`)
-    .join(', ')
-  const headline = review.verdict === 'approve' ? 'Approved' : 'Changes requested'
-  return {
-    title:
-      review.findings.length === 0 ? `${headline} — no findings` : `${headline} — ${breakdown}`,
-    summary: renderReviewBody(report, target),
-    annotations: review.findings
-      .filter((f) => f.line !== null)
-      .slice(0, MAX_ANNOTATIONS)
-      .map((f) => ({
-        path: f.file,
-        // SAFETY: filter above guarantees line is non-null
-        start_line: f.line as number,
-        end_line: f.line as number,
-        annotation_level: ANNOTATION_LEVEL[f.severity],
-        message: renderAnnotation(f).slice(0, 4_000),
-      })),
-  }
 }
 
 /** Checks are App-only — under PAT fallback this quietly reports nothing. */
@@ -354,62 +317,16 @@ export async function startCheckRun(ref: PrRef, headSha: string): Promise<number
 }
 
 /**
- * Approve -> green check, request_changes -> red check, pipeline error ->
- * neutral (an infra failure must not read as a code verdict).
- */
-export async function completeCheckRun(
-  ref: PrRef,
-  headSha: string,
-  checkRunId: number | null,
-  result: { report: ReviewReport } | { error: string },
-): Promise<void> {
-  if (checkRunId === null) return
-  const octokit = await octokitFor(ref.owner, ref.repo)
-  const done =
-    'report' in result
-      ? {
-          conclusion:
-            result.report.review.verdict === 'approve'
-              ? ('success' as const)
-              : ('failure' as const),
-          output: buildCheckOutput(result.report, { owner: ref.owner, repo: ref.repo, headSha }),
-        }
-      : {
-          conclusion: 'neutral' as const,
-          output: { title: 'Review failed', summary: result.error.slice(0, 1000), annotations: [] },
-        }
-  const base = {
-    owner: ref.owner,
-    repo: ref.repo,
-    check_run_id: checkRunId,
-    status: 'completed' as const,
-    conclusion: done.conclusion,
-  }
-  try {
-    await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
-      ...base,
-      output: done.output,
-    })
-  } catch {
-    // A rejected annotation (hallucinated path, oversize) must not leave the
-    // check hanging in_progress — retry with the conclusion alone.
-    await octokit.request('PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}', {
-      ...base,
-      output: { title: done.output.title, summary: done.output.summary },
-    })
-  }
-}
-
-/**
  * One PR review: inline comments for findings with commentable lines, the rest
  * folded into the review body. Verdict maps straight onto GitHub's event.
+ * Returns GitHub's id for the posted review.
  */
 export async function postPrReview(
   ref: PrRef,
   headSha: string,
   report: ReviewReport,
   commentable: Map<string, Set<number>>,
-): Promise<void> {
+): Promise<number> {
   const octokit = await octokitFor(ref.owner, ref.repo)
   const { review } = report
   const inline = review.findings.filter(
@@ -429,23 +346,25 @@ export async function postPrReview(
       // SAFETY: filter above guarantees line is non-null for inline findings
       line: f.line as number,
       side: 'RIGHT' as const,
-      body: `${renderFinding(f)}\n\n${REACTION_HINT}`,
+      body: `${renderFinding(f)}\n\n${REACTION_HINT}${renderFindingMarker(f)}`,
     })),
   }
   try {
-    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
-      ...payload,
-      event: VERDICT_EVENT[review.verdict],
-    })
+    const { data } = await octokit.request(
+      'POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews',
+      { ...payload, event: VERDICT_EVENT[review.verdict] },
+    )
+    return Number(data.id)
   } catch (error) {
     // GitHub rejects APPROVE/REQUEST_CHANGES on your own PR (422). Personal-token
     // setups (dogfooding) demote to COMMENT so the findings still land.
     const { status, message } = error as { status?: number; message?: string }
     const ownPr = status === 422 && /your own pull request/i.test(message ?? '')
     if (!ownPr || review.verdict === 'comment') throw error
-    await octokit.request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
-      ...payload,
-      event: 'COMMENT',
-    })
+    const { data } = await octokit.request(
+      'POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews',
+      { ...payload, event: 'COMMENT' },
+    )
+    return Number(data.id)
   }
 }

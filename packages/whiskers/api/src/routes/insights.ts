@@ -1,5 +1,6 @@
 import {
   OverviewQuerySchema,
+  PullRequestParamSchema,
   ReviewIdParamSchema,
   ReviewRerunSchema,
 } from '@code-whiskers/whiskers-domain'
@@ -7,6 +8,7 @@ import {
   getHotspots,
   getInstanceStats,
   getOverview,
+  getPullRequestContract,
   getPullRequestReviews,
   getReview,
   getReviews,
@@ -36,6 +38,15 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
   })
   // ʕ•ᴥ•ʔ every review the cat has done
   .get('/reviews', () => getReviews())
+  // (•̀ᴗ•́)و what the latest review of a PR asks of whoever is fixing it
+  .get(
+    '/reviews/pr/:owner/:repo/:number',
+    { params: PullRequestParamSchema },
+    async ({ params, status }) => {
+      const contract = await getPullRequestContract(params.owner, params.repo, params.number)
+      return contract ?? status(404, { error: 'no completed review of that pull request' })
+    },
+  )
   // (=^･ω･^=) one review with its findings
   .get('/reviews/:reviewId', async ({ params, set }) => {
     const result = await getReview(params.reviewId)

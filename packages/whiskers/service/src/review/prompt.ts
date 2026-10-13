@@ -22,7 +22,9 @@ Line numbers reference the NEW side of the diff.
 
 Output: "title" states the problem, not the fix, under 80 characters, sentence case, no
 trailing period; "body" at most two sentences — what breaks and when; "suggestion" the concrete
-fix in one sentence or a short snippet, or null. Plain statements, no "I noticed", no hedging,
+fix in one sentence or a short snippet, or null; "doneWhen" one checkable line stating the
+fixed behaviour, e.g. "verifyOtp rejects a contact that belongs to another shopper" — required
+for high and critical, otherwise optional. Plain statements, no "I noticed", no hedging,
 no emoji. "summary": exactly one sentence on what this slice changes in behaviour, filled even
 when you find nothing. Verdict: "request_changes" when any high/critical finding exists,
 otherwise "approve".

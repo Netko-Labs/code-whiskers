@@ -2,16 +2,11 @@ import { createLogger } from '@code-whiskers/logger'
 import { reportError } from '@code-whiskers/observability/server'
 import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createReview } from '../mutations'
-import { hasReviewOfHead } from '../queries'
+import { getReviewRound, hasReviewOfHead } from '../queries'
 import { createTokenTally } from '../shared/llm'
-import {
-  completeCheckRun,
-  fetchPrHead,
-  type PrHead,
-  type PrRef,
-  postPrComment,
-  startCheckRun,
-} from './github'
+import { completeCheckRun } from './check-run'
+import { fetchPrHead, type PrHead, type PrRef, postPrComment, startCheckRun } from './github'
+import { contractOfRound, resolveFixedThreads } from './loop'
 import { runPipeline } from './pipeline'
 import { reviewProvider } from './providers'
 import { renderFailureComment } from './render'
@@ -19,11 +14,13 @@ import { RETRY_DELAYS_MS, retryDelayFor } from './retry'
 import type { PipelineAttempt, ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
+export * from './check-run'
 export * from './chunk'
 export * from './conventions'
 export * from './github'
 export * from './grounding'
 export * from './llm'
+export * from './loop'
 export * from './memory'
 export * from './prompt'
 export * from './providers'
@@ -96,6 +93,7 @@ async function reviewHead(
     deletions: head.deletions,
     status: 'running',
     model: reviewProvider().model,
+    round: await getReviewRound(ref.owner, ref.repo, ref.prNumber),
   })
   if (!review) return undefined
   logger.info({ ...ref, headSha, reviewId: review.id }, 'review started')
@@ -112,7 +110,7 @@ async function reviewHead(
   const progress: PipelineAttempt = { isPosted: false }
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const { report, merged, deltaFrom } = await runPipeline(
+      const { report, merged, deltaFrom, loop } = await runPipeline(
         ref,
         head,
         review,
@@ -120,12 +118,16 @@ async function reviewHead(
         progress,
         options,
       )
-      await completeCheckRun(ref, headSha, checkRunId, { report }).catch((error) => {
+      const contract = contractOfRound(ref, headSha, loop)
+      await completeCheckRun(ref, headSha, checkRunId, { report, contract }).catch((error) => {
         logger.warn({ err: messageOf(error) }, 'check run update failed')
       })
+      await resolveFixedThreads(ref, headSha, loop.fixed)
       return await completeReview(review.id, {
         status: 'completed',
         verdict: merged.verdict,
+        loopVerdict: loop.verdict,
+        fixedSinceLastRound: loop.fixedFingerprints,
         summary: merged.summary,
         diffScope: deltaFrom ? 'delta' : 'full',
         deltaFrom,

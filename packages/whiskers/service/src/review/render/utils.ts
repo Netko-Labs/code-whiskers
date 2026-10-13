@@ -1,14 +1,16 @@
-import type { LlmFinding } from '@code-whiskers/whiskers-domain'
+import type { LlmFinding, ReviewContract } from '@code-whiskers/whiskers-domain'
 import {
   BLOCKING_SEVERITIES,
   BOT_NAME,
+  LOOP_HEADLINE,
+  MAX_CHECK_TEXT_CHARS,
   MAX_FAILURE_CHARS,
   MAX_HIGHLIGHTS,
   MAX_TABLE_ROWS,
   SEVERITY_LABEL,
   SEVERITY_ORDER,
 } from './constants'
-import type { ReviewCoverage, ReviewReport, ReviewTarget } from './types'
+import type { ReportFinding, ReviewCoverage, ReviewReport, ReviewTarget } from './types'
 
 function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? '' : 's'}`
@@ -110,12 +112,52 @@ function fix(suggestion: string): string {
   return `**Fix**\n\n\`\`\`\n${text}\n\`\`\``
 }
 
+function doneWhen(finding: LlmFinding): string {
+  const condition = finding.doneWhen?.trim()
+  return condition && BLOCKING_SEVERITIES.has(finding.severity) ? `_Done when ${condition}_` : ''
+}
+
 /** An inline review comment: the line it sits on already says where. */
 export function renderFinding(finding: LlmFinding): string {
   const head = `**${SEVERITY_LABEL[finding.severity]} · ${finding.category}** — ${finding.title}`
-  return [head, finding.body.trim(), finding.suggestion ? fix(finding.suggestion) : '']
+  return [
+    head,
+    finding.body.trim(),
+    finding.suggestion ? fix(finding.suggestion) : '',
+    doneWhen(finding),
+  ]
     .filter(Boolean)
     .join('\n\n')
+}
+
+/** Invisible on GitHub; the next round reads the finding's id back from its thread. */
+export function renderFindingMarker(finding: ReportFinding): string {
+  if (!finding.fingerprint || !finding.sinceRound) return ''
+  return `\n<!-- whiskers-finding ${finding.fingerprint} round=${finding.sinceRound} -->`
+}
+
+export function renderFixedReply(headSha: string): string {
+  return `Fixed in ${headSha.slice(0, 7)}.`
+}
+
+export function renderLoopLine(contract: ReviewContract): string {
+  const fixed = contract.fixed_since_last_round.length
+  return [
+    `**${LOOP_HEADLINE[contract.verdict]}** (\`${contract.verdict}\`)`,
+    `round ${contract.round}`,
+    `${plural(contract.blockers.length, 'open blocker')}`,
+    fixed > 0 ? `${fixed} fixed since last round` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+/** The contract a coding agent parses; suggestions go first when it would not fit. */
+export function renderContractText(contract: ReviewContract): string {
+  const fence = (value: ReviewContract) =>
+    `Loop verdict for coding agents:\n\n\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``
+  const full = fence(contract)
+  return full.length <= MAX_CHECK_TEXT_CHARS ? full : fence({ ...contract, suggestions: [] })
 }
 
 function outsideDiff(findings: LlmFinding[], target: ReviewTarget): string {

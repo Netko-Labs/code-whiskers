@@ -15,3 +15,13 @@ export const MAX_TABLE_ROWS = 25
 export const MAX_HIGHLIGHTS = 8
 export const MAX_FAILURE_CHARS = 500
 export const REACTION_HINT = '<sub>React 👎 to dismiss · 🚀 to fix · 😕 to explain</sub>'
+export const FINDING_MARKER = /<!-- whiskers-finding (wf_[0-9a-f]+) round=(\d+) -->/
+export const FIXED_REPLY = /^Fixed in [0-9a-f]{7,40}\./
+export const LOOP_HEADLINE = {
+  mergeable: 'Mergeable',
+  needs_changes: 'Needs changes',
+  blocked: 'Blocked',
+  needs_human: 'Needs a human',
+} as const
+// GitHub caps a check run's `output.text` at 65535 characters.
+export const MAX_CHECK_TEXT_CHARS = 60_000

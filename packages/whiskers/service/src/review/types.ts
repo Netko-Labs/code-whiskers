@@ -1,4 +1,11 @@
-import type { LlmFinding, LlmReview, Review } from '@code-whiskers/whiskers-domain'
+import type {
+  LlmFinding,
+  LlmReview,
+  LoopVerdict,
+  Review,
+  ReviewContract,
+} from '@code-whiskers/whiskers-domain'
+import type { CheckOutput } from './github'
 import type { ReviewCoverage, ReviewReport } from './render'
 
 /** `reviewed`/`attempted` count leaf sections, so a split chunk reports each half. */
@@ -18,7 +25,10 @@ export type ThreadReply = {
   body: string
 }
 
-/** One inline comment CodeWhiskers left on this PR, and what people did with it since. */
+/**
+ * One inline comment CodeWhiskers left on this PR, and what people did with it since. The optional
+ * fields come from GitHub only; a thread rebuilt from the last review's findings has none.
+ */
 export type PriorThread = {
   path: string
   line: number | null
@@ -28,6 +38,12 @@ export type PriorThread = {
   isOutdated: boolean
   isDownvoted: boolean
   replies: ThreadReply[]
+  id?: string
+  url?: string
+  category?: string
+  fingerprint?: string
+  round?: number
+  isFixed?: boolean
 }
 
 export type Suppressed = {
@@ -56,7 +72,32 @@ export type PipelineResult = {
   report: ReviewReport
   merged: LlmReview
   deltaFrom: string | null
+  loop: ClosedRound
 }
+
+/** A finding with the identity it keeps across rounds. */
+export type ReviewedFinding = LlmFinding & {
+  fingerprint: string
+  sinceRound: number
+  threadUrl: string | null
+}
+
+/** Where this round leaves the fix loop. `findings` are every open one, carried blockers included. */
+export type ClosedRound = {
+  round: number
+  verdict: LoopVerdict
+  fresh: ReviewedFinding[]
+  findings: ReviewedFinding[]
+  fixed: PriorThread[]
+  fixedFingerprints: string[]
+}
+
+export type CheckCompletion = {
+  conclusion: 'success' | 'failure' | 'neutral'
+  output: CheckOutput
+}
+
+export type CheckResult = { report: ReviewReport; contract: ReviewContract } | { error: string }
 
 export type ReviewUsage = Pick<Review, 'model'> &
   Partial<Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens'>>
