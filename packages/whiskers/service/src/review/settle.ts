@@ -99,7 +99,7 @@ export function titleSimilarity(a: string, b: string): number {
   return shared / (left.size + right.size - shared)
 }
 
-export function isSameFinding(finding: LlmFinding, prior: PriorClaim): boolean {
+export function isSameFinding(finding: PriorClaim, prior: PriorClaim): boolean {
   const score = titleSimilarity(finding.title, prior.title)
   if (finding.file !== prior.file) {
     return isSameFeature(finding.file, prior.file) && score >= CROSS_FILE_TITLE
@@ -138,8 +138,9 @@ export function settleFindings(
     const isDismissed = suppressed.some((s) =>
       isSameFinding(finding, { file: s.file, line: null, title: s.title }),
     )
-    const thread = threads.find((t) =>
-      isSameFinding(finding, { file: t.path, line: t.line, title: t.title }),
+    // A thread the bot closed as fixed was never answered by a human; raised again, it is news.
+    const thread = threads.find(
+      (t) => !t.isFixed && isSameFinding(finding, { file: t.path, line: t.line, title: t.title }),
     )
     const isAnswered =
       thread !== undefined && (thread.isResolved || thread.isDownvoted || thread.replies.length > 0)

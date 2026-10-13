@@ -69,6 +69,7 @@ export function redactSecrets(review: LlmReview): LlmReview {
       body: redact(finding.body),
       evidence: redact(finding.evidence),
       suggestion: finding.suggestion === null ? null : redact(finding.suggestion),
+      doneWhen: finding.doneWhen ? redact(finding.doneWhen) : finding.doneWhen,
     })),
   }
 }

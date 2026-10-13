@@ -7,7 +7,16 @@ export const completeReview = async (
   id: string,
   data: Pick<Review, 'status' | 'verdict' | 'summary' | 'model'> &
     Partial<
-      Pick<Review, 'inputTokens' | 'outputTokens' | 'reasoningTokens' | 'diffScope' | 'deltaFrom'>
+      Pick<
+        Review,
+        | 'inputTokens'
+        | 'outputTokens'
+        | 'reasoningTokens'
+        | 'diffScope'
+        | 'deltaFrom'
+        | 'loopVerdict'
+        | 'fixedSinceLastRound'
+      >
     >,
 ): Promise<Review | undefined> => {
   const review = await db

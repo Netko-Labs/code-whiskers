@@ -1,11 +1,13 @@
 import { isBotLogin } from '../fix/utils'
 import { octokitFor, type PrRef } from './github'
+import { FINDING_MARKER, FIXED_REPLY } from './render'
 import type { PriorThread } from './types'
 
 const THREAD_PAGE = 100
 const MAX_PAGES = 5
 const FINDING_TITLE = /^\*\*[^*]+\*\*\s+—\s+(.+)$/m
 const FINDING_SEVERITY = /^\*\*(critical|high|medium|low)\b/i
+const FINDING_CATEGORY = /^\*\*(?:critical|high|medium|low) · ([a-z]+)\*\*/im
 
 interface ThreadsPage {
   repository: {
@@ -13,6 +15,7 @@ interface ThreadsPage {
       reviewThreads: {
         pageInfo: { hasNextPage: boolean; endCursor: string | null }
         nodes: Array<{
+          id: string
           isResolved: boolean
           isOutdated: boolean
           path: string
@@ -22,6 +25,7 @@ interface ThreadsPage {
             nodes: Array<{
               author: { login: string } | null
               body: string
+              url: string
               reactions: { nodes: Array<{ user: { login: string } | null }> }
             }>
           }
@@ -36,6 +40,16 @@ function severityOf(body: string): PriorThread['severity'] {
   return found === 'critical' || found === 'high' || found === 'medium' || found === 'low'
     ? found
     : null
+}
+
+/** The id, round and category the bot wrote into its own comment; older comments carry no id. */
+export function identityOf(body: string): Pick<PriorThread, 'fingerprint' | 'round' | 'category'> {
+  const marker = FINDING_MARKER.exec(body)
+  return {
+    fingerprint: marker?.[1],
+    round: marker?.[2] ? Number(marker[2]) : undefined,
+    category: FINDING_CATEGORY.exec(body)?.[1]?.toLowerCase(),
+  }
 }
 
 /**
@@ -55,10 +69,10 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
             reviewThreads(first: $size, after: $cursor) {
               pageInfo { hasNextPage endCursor }
               nodes {
-                isResolved isOutdated path line originalLine
+                id isResolved isOutdated path line originalLine
                 comments(first: 20) {
                   nodes {
-                    author { login } body
+                    author { login } body url
                     reactions(content: THUMBS_DOWN, first: 10) { nodes { user { login } } }
                   }
                 }
@@ -88,6 +102,13 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
         replies: rest
           .filter((comment) => !isBotLogin(comment.author?.login, botHandle))
           .map((comment) => ({ author: comment.author?.login ?? 'someone', body: comment.body })),
+        id: node.id,
+        url: root.url,
+        ...identityOf(root.body),
+        isFixed: rest.some(
+          (comment) =>
+            isBotLogin(comment.author?.login, botHandle) && FIXED_REPLY.test(comment.body),
+        ),
       })
     }
     if (!pageInfo.hasNextPage) break

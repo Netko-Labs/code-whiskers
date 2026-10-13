@@ -17,6 +17,7 @@ import {
 } from './delta'
 import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
+import { closeRound, findingRows, linkPostedThreads, withThreadUrls } from './loop'
 import { buildMemoryContext, fetchMemory, markMemoryUsed, memoryForFiles } from './memory'
 import { resolveOutcome, reviewChunks } from './outcome'
 import { reviewProvider } from './providers'
@@ -159,8 +160,20 @@ export async function runPipeline(
     priorThreads,
     isComplete,
   })
+  const loop = closeRound({
+    ref,
+    round: review.round ?? 1,
+    fresh,
+    repeated,
+    raised: checked,
+    priorThreads,
+    stillBlocking,
+    previous: previous?.findings ?? [],
+    delta,
+    isComplete,
+  })
   const summary = isComplete ? raw.summary : partialSummary(raw.summary, coverage)
-  const merged = { ...raw, summary, findings: remaining, verdict }
+  const merged = { ...raw, summary, findings: loop.findings, verdict }
   const report: ReviewReport = {
     review: merged,
     model: review.model ?? provider.model,
@@ -168,18 +181,8 @@ export async function runPipeline(
   }
 
   await clearFindings(review.id)
-  await createFindings(
-    merged.findings.map((f) => ({
-      reviewId: review.id,
-      file: f.file,
-      line: f.line,
-      severity: f.severity,
-      category: f.category,
-      title: f.title,
-      body: f.body,
-      suggestion: f.suggestion,
-    })),
-  )
+  await createFindings(findingRows(review.id, loop.findings))
+  let threadUrls = new Map<string, string>()
   // GitHub sees only what is new; the console keeps every open finding. An approval GitHub
   // dismissed on push (a stale-approval ruleset) is posted again, or the PR stays gated.
   const isApprovalLost =
@@ -199,12 +202,12 @@ export async function runPipeline(
   } else if (isUnchanged) {
     logger.info({ ...ref, headSha }, 'nothing new since the last review — no GitHub review posted')
   } else {
-    await postPrReview(
+    const githubReviewId = await postPrReview(
       ref,
       headSha,
       {
         ...report,
-        review: { ...merged, findings: fresh },
+        review: { ...merged, findings: loop.fresh },
         carried: {
           open: Math.max(repeated.length, stillBlocking.length),
           settled: settled.length,
@@ -213,6 +216,9 @@ export async function runPipeline(
       commentable,
     )
     attempt.isPosted = true
+    threadUrls = await linkPostedThreads(ref, review.id, githubReviewId).catch(
+      warnWithout('posted thread links', threadUrls),
+    )
   }
   // Only a complete, posted (or unchanged) clean review may lift the bot's own earlier blocks.
   if (
@@ -228,6 +234,9 @@ export async function runPipeline(
       ...ref,
       reviewId: review.id,
       verdict: merged.verdict,
+      loopVerdict: loop.verdict,
+      round: loop.round,
+      fixed: loop.fixedFingerprints.length,
       fresh: fresh.length,
       repeated: repeated.length,
       settled: settled.length,
@@ -236,5 +245,10 @@ export async function runPipeline(
     },
     'review completed',
   )
-  return { report, merged, deltaFrom: delta ? deltaFrom : null }
+  return {
+    report,
+    merged,
+    deltaFrom: delta ? deltaFrom : null,
+    loop: withThreadUrls(loop, threadUrls),
+  }
 }
