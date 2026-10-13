@@ -64,6 +64,7 @@ export const LlmFindingSchema = z.object({
   body: z.string().default(''),
   suggestion: z.string().nullable().default(null),
   evidence: z.string().default(''),
+  doneWhen: z.string().nullable().optional(),
 })
 export type LlmFinding = z.infer<typeof LlmFindingSchema>
 

@@ -1,4 +1,5 @@
 import { integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { LOOP_VERDICTS } from '../values'
 
 export const reviewTable = pgTable('review', {
   id: uuid('id')
@@ -17,6 +18,9 @@ export const reviewTable = pgTable('review', {
     .notNull()
     .default('pending'),
   verdict: text('verdict', { enum: ['approve', 'request_changes', 'comment'] }),
+  loopVerdict: text('loop_verdict', { enum: LOOP_VERDICTS }),
+  round: integer('round'),
+  fixedSinceLastRound: text('fixed_since_last_round').array().notNull().default([]),
   summary: text('summary'),
   model: text('model'),
   diffScope: text('diff_scope', { enum: ['full', 'delta'] }),
@@ -44,6 +48,11 @@ export const findingTable = pgTable('finding', {
   title: text('title').notNull(),
   body: text('body').notNull(),
   suggestion: text('suggestion'),
+  fingerprint: text('fingerprint'),
+  doneWhen: text('done_when'),
+  evidence: text('evidence'),
+  sinceRound: integer('since_round'),
+  threadUrl: text('thread_url'),
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())
     .notNull(),
