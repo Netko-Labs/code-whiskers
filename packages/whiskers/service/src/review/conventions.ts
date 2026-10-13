@@ -48,18 +48,18 @@ export function candidatePaths(dirs: Set<string>): string[] {
 
 /**
  * The repository's own instructions for agents — CLAUDE.md and AGENTS.md at the root and above
- * each changed file, plus what they import — read at the head being reviewed.
+ * each changed file, plus what they import — read at `sha`.
  */
 export async function fetchConventions(
   ref: PrRef,
-  headSha: string,
+  sha: string,
   changedFiles: string[],
 ): Promise<ConventionFile[]> {
   const octokit = await octokitFor(ref.owner, ref.repo)
   const { data } = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}', {
     owner: ref.owner,
     repo: ref.repo,
-    tree_sha: headSha,
+    tree_sha: sha,
     recursive: '1',
   })
   const dirs = applicableDirectories(changedFiles)
@@ -74,7 +74,7 @@ export async function fetchConventions(
         .sort((a, b) => depthOf(a) - depthOf(b))
 
   const read = (path: string) =>
-    fetchFileAtRef(ref, path, headSha)
+    fetchFileAtRef(ref, path, sha)
       .then((content) => ({ path, content }))
       .catch(() => null)
   const files = (await Promise.all(listed.map(read)))

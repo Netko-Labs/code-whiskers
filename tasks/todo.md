@@ -1,3 +1,28 @@
+# Review engine — agents push, whiskers reviews to mergeable (2026-10-12)
+
+Plan rendered in-thread (decisions, loop, memory, MCP, contract). Bot stays read-only; PR comments
+are the source of truth; memory in studio Postgres (scope org → repo → folders, full-text, no
+vector DB); notes auto-apply, humans audit; human merges unless a repo lets the agent.
+
+- [ ] PR 1 · Repo memory (`feat/repo-memory`): `memory_note` + `memory_activity`, console
+      Memory page + activity with undo, `/api/memory`, internal read/write/used, whiskers
+      memory context (rules always, rest ranked by full-text), review_rule migrated + dropped,
+      conventions read from the base branch, settled list = findings only
+- [ ] PR 2 · Verdict contract (`feat/verdict-contract`, parallel agent): fingerprints,
+      done_when, loop verdict + round, fixed-thread resolve, check run JSON, `/v1` contract
+- [ ] PR 3 · MCP server + `cw_` `loop` scope + `/whiskers-loop` Claude Code skill
+- [ ] PR 4 · Learning loop + Haiku→Sonnet engine + reviewer memory tools + repo summary
+- [ ] PR 5 · Merge brief, 5-round/stall limits, per-repo autonomy, merge_readiness
+- [ ] PR 6 · Production context (issues/errors per changed file) in notes and findings
+
+## Acceptance (PR 1)
+
+- [ ] A note added in the console reaches the next review prompt; scope inheritance + budget tested
+- [ ] Existing review rules survive the migration as notes
+- [ ] `fmt-lint`, `check-types`, `test`, both builds, `db:generate` drift clean
+
+---
+
 # Scope + review redesign (2026-09-24)
 
 Juan: "many things not associated with a repo or a project, so it's hard to filter; improve

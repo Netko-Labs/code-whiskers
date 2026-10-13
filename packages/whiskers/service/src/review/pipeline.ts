@@ -17,11 +17,11 @@ import {
 } from './delta'
 import { fetchPrConversation, fetchPrDiff, type PrHead, type PrRef, postPrReview } from './github'
 import { buildFileManifest } from './grounding'
+import { buildMemoryContext, fetchMemory, markMemoryUsed, memoryForFiles } from './memory'
 import { resolveOutcome, reviewChunks } from './outcome'
 import { reviewProvider } from './providers'
 import type { ReviewReport } from './render'
 import { dismissStaleBlocks, hasStandingApproval, isStillHead } from './review-state'
-import { buildRulesContext, fetchRules, rulesForFiles } from './rules'
 import { reviewVerdict, settleFindings, suppressedFindings } from './settle'
 import { fetchSuppressions } from './suppressions'
 import { fetchBotThreads } from './threads'
@@ -54,18 +54,16 @@ export async function runPipeline(
   const headSha = head.sha
   const slug = `${ref.owner}/${ref.repo}`
   const botHandle = whiskersEnvConfig.github.botHandle
-  const [diff, conversation, previous, reviewCount, suppressions, rules, threads] =
-    await Promise.all([
-      fetchPrDiff(ref),
-      fetchPrConversation(ref).catch(
-        warnWithout('conversation', { verdicts: [], discussion: [], inline: [] }),
-      ),
-      getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-      countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
-      fetchSuppressions(slug),
-      fetchRules(slug),
-      fetchBotThreads(ref, botHandle).catch(warnWithout('review threads', null)),
-    ])
+  const [diff, conversation, previous, reviewCount, suppressions, threads] = await Promise.all([
+    fetchPrDiff(ref),
+    fetchPrConversation(ref).catch(
+      warnWithout('conversation', { verdicts: [], discussion: [], inline: [] }),
+    ),
+    getPreviousReview(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+    countReviews(ref.owner, ref.repo, ref.prNumber, review.createdAt),
+    fetchSuppressions(slug),
+    fetchBotThreads(ref, botHandle).catch(warnWithout('review threads', null)),
+  ])
   // Without the threads, the last review's findings stand in as unanswered ones: nothing already
   // posted goes out again, and nothing a human settled is revived as fresh.
   const priorThreads: PriorThread[] =
@@ -93,9 +91,11 @@ export async function runPipeline(
     : null
   const commentable = commentableLines(diff)
   const changedFiles = [...commentable.keys()]
-  const conventions = await fetchConventions(ref, headSha, changedFiles).catch(
-    warnWithout('conventions', []),
-  )
+  // Read at the base branch: the PR's own CLAUDE.md must not rewrite the rules it is judged by.
+  const [conventions, memory] = await Promise.all([
+    fetchConventions(ref, head.baseSha, changedFiles).catch(warnWithout('conventions', [])),
+    fetchMemory(slug, head.title, changedFiles),
+  ])
 
   const prContext = buildPrContext({
     reviewCount,
@@ -109,9 +109,10 @@ export async function runPipeline(
     threads: threads ?? [],
     botHandle,
   })
-  const applicable = rulesForFiles(rules, changedFiles)
+  const memoryContext = buildMemoryContext(memoryForFiles(memory, changedFiles))
+  markMemoryUsed(memoryContext.noteIds)
   const context = [
-    buildRulesContext(applicable),
+    memoryContext.text,
     buildConventionsContext(conventions),
     buildDescriptionContext(head.body),
     buildFileManifest(diff),
@@ -125,7 +126,8 @@ export async function runPipeline(
       {
         ...ref,
         contextChars: context.length,
-        rules: applicable.length,
+        memoryNotes: memoryContext.noteIds.length,
+        memoryDropped: memoryContext.dropped,
         conventions: conventions.map((file) => file.path),
         delta: delta ? deltaFrom : null,
       },

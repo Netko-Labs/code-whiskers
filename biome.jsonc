@@ -116,6 +116,7 @@
       "!ds-bundle",
       "!.design-sync",
       "!.claude",
+      "!**/.eval",
       "!**/generated",
       "!**/dist",
       "!**/src/components/ui",

@@ -108,3 +108,20 @@ export type PrFile = {
   previousFilename?: string
   patch?: string
 }
+
+export type MemoryKind = 'rule' | 'preference' | 'dont_flag' | 'context' | 'lesson'
+
+export type MemoryNote = {
+  id: string
+  kind: MemoryKind
+  body: string
+  paths: string[]
+  isRepositoryNote: boolean
+  rank: number
+}
+
+export type MemoryContext = {
+  text: string
+  noteIds: string[]
+  dropped: number
+}
