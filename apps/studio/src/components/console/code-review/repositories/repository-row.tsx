@@ -1,6 +1,6 @@
 import { Switch } from '@code-whiskers/ui/components/switch'
 import { cn } from '@code-whiskers/ui/lib/utils'
-import { IconFolder, IconLock } from '@tabler/icons-react'
+import { IconFolder, IconLock, IconRobot } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { DataRow, DataRowLead, DataRowMeta, DataRowTrail } from '@/components/shared/data-list'
 import { SeverityDot } from '@/components/shared/status'
@@ -11,7 +11,7 @@ import { type RepositoryRowProps, useRepositoryActions } from './lib'
 const LINK = 'focus-ring rounded-sm underline-offset-4 hover:underline'
 
 export function RepositoryRow({ row }: RepositoryRowProps) {
-  const { setWatched } = useRepositoryActions()
+  const { setWatched, setAgentMerge } = useRepositoryActions()
   const { repository, lastPullRequest } = row
   const isWatched = repository.isWatched
 
@@ -82,6 +82,23 @@ export function RepositoryRow({ row }: RepositoryRowProps) {
         <DataRowMeta className="hidden w-20 text-right lg:block">
           {row.reviews} {row.reviews === 1 ? 'review' : 'reviews'}
         </DataRowMeta>
+        <button
+          type="button"
+          aria-pressed={repository.isAgentMergeAllowed}
+          aria-label={`Let coding agents merge ${row.slug} when it is mergeable`}
+          title={
+            repository.isAgentMergeAllowed
+              ? 'Agents merge once mergeable and CI is green'
+              : 'A person merges; click to let agents merge'
+          }
+          onClick={() => setAgentMerge(repository, !repository.isAgentMergeAllowed)}
+          className={cn(
+            'focus-ring flex size-7 items-center justify-center rounded-md transition-colors hover:bg-surface-hover',
+            repository.isAgentMergeAllowed ? 'text-foreground' : 'text-faint',
+          )}
+        >
+          <IconRobot className="size-4" stroke={1.75} />
+        </button>
         <span className="flex w-24 items-center justify-end gap-2">
           <span className="text-2xs text-muted-foreground">{isWatched ? 'Watched' : 'Paused'}</span>
           <Switch

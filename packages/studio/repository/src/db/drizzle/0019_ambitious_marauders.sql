@@ -1,0 +1,1 @@
+ALTER TABLE "repository" ADD COLUMN "is_agent_merge_allowed" boolean DEFAULT false NOT NULL;

@@ -14,12 +14,12 @@ export const githubRoutes = new Elysia({ name: 'github' })
   .get('/orgs', { auth: true }, ({ user }) => getOrganizationsForUser(user.id))
   // (=^･ω･^=) every repository under those installations
   .get('/repositories', { auth: true }, ({ user }) => getRepositoriesForUser(user.id))
-  // (｡-ω-)zzz pause or resume reviews on one repository
+  // (｡-ω-)zzz pause or resume reviews on one repository, or let agents merge there
   .patch(
     '/repositories/:id',
     { auth: true, params: RepositoryIdParamSchema, body: RepositoryWatchSchema },
     async ({ params, body, user, status }) => {
-      if (!(await setRepositoryWatched(user.id, params.id, body.isWatched))) {
+      if (!(await setRepositoryWatched(user.id, params.id, body))) {
         return status(404, 'Not found')
       }
       return { ok: true }

@@ -33,7 +33,7 @@ describe('memoryForFiles', () => {
 
 describe('buildMemoryContext', () => {
   test('is empty without notes', () => {
-    expect(buildMemoryContext([])).toEqual({ text: '', noteIds: [], dropped: 0 })
+    expect(buildMemoryContext([])).toEqual({ text: '', noteIds: [], applied: [], dropped: 0 })
   })
 
   test('groups notes by kind, rules first, with their scope', () => {

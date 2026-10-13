@@ -11,6 +11,7 @@ import {
   threadClaim,
 } from './fingerprint'
 import { fixedThreads } from './fixed'
+import { limitLoop } from './limits'
 import type { FingerprintClaim, RoundInput } from './types'
 import { loopVerdict } from './verdict'
 
@@ -96,9 +97,16 @@ export function closeRound(input: RoundInput): ClosedRound {
   const fixedFingerprints = fixed.map(
     (thread) => identityOfThread(thread, input.previous, lineage, input.round).fingerprint,
   )
+  const limited = limitLoop(
+    loopVerdict(findings, input.isComplete),
+    input.round,
+    findings,
+    input.previous,
+  )
   return {
     round: input.round,
-    verdict: loopVerdict(findings, input.isComplete),
+    verdict: limited.verdict,
+    humanReason: limited.humanReason,
     fresh,
     findings,
     fixed,

@@ -28,6 +28,7 @@ export {
   revokeApiKey,
   STUDIO_QUERY_KEY,
   savedQueriesQuery,
+  setAgentMergeAllowed,
   setIssueLifecycle,
   setRepositoryWatched,
   studioStorageQuery,

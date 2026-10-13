@@ -65,7 +65,7 @@ export function buildMemoryContext(notes: MemoryNote[]): MemoryContext {
     .filter((note) => note.kind !== 'rule')
     .sort((a, b) => b.rank - a.rank || specificity(b) - specificity(a))
   const kept = [...fill(rules, RULES_BUDGET_CHARS), ...fill(others, NOTES_BUDGET_CHARS)]
-  if (kept.length === 0) return { text: '', noteIds: [], dropped: notes.length }
+  if (kept.length === 0) return { text: '', noteIds: [], applied: [], dropped: notes.length }
 
   const blocks = SECTIONS.map(({ kind, title }) => {
     const lines = kept.filter((note) => note.kind === kind).map(lineOf)
@@ -74,6 +74,7 @@ export function buildMemoryContext(notes: MemoryNote[]): MemoryContext {
   return {
     text: `## Team memory for this repository — follow it over your own defaults\n\n${blocks.join('\n\n')}`,
     noteIds: kept.map((note) => note.id),
+    applied: kept.map(({ kind, body }) => ({ kind, body })),
     dropped: notes.length - kept.length,
   }
 }

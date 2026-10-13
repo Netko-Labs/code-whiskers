@@ -8,6 +8,7 @@ import {
 import {
   githubAccessFor,
   hasGithubApp,
+  loopReadiness,
   postAgentReply,
   previewCondition,
   reviewProvider,
@@ -26,6 +27,25 @@ function authorized(header: string | null): boolean {
 }
 
 export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal' })
+  // (・_・ヾ may this PR merge now: verdict on the current head, and everyone else's CI
+  .get('/loop/readiness', async ({ request, query, set }) => {
+    if (!authorized(request.headers.get('authorization'))) {
+      set.status = 401
+      return { error: 'unauthorized' }
+    }
+    const match = /^([\w.-]+)\/([\w.-]+)#(\d+)$/.exec(typeof query.pr === 'string' ? query.pr : '')
+    if (!match?.[1] || !match[2] || !match[3]) {
+      set.status = 400
+      return { error: 'pr must be owner/repo#number' }
+    }
+    const readiness = await loopReadiness({
+      owner: match[1],
+      repo: match[2],
+      prNumber: Number(match[3]),
+    })
+    if (!readiness) set.status = 404
+    return readiness ?? { error: 'no completed review of that pull request' }
+  })
   // (ง •̀_•́)ง a coding agent answers a finding over studio's MCP; the PR thread keeps it
   .post('/loop/reply', { body: AgentReplyBodySchema }, async ({ request, body, set }) => {
     if (!authorized(request.headers.get('authorization'))) {

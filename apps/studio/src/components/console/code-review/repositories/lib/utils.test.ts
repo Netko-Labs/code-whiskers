@@ -14,6 +14,7 @@ function repo(id: number, owner: string, name: string, isWatched = true): Reposi
     name,
     isPrivate: false,
     isWatched,
+    isAgentMergeAllowed: false,
     language: 'TypeScript',
     defaultBranch: 'main',
     pushedAt: null,
