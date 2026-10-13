@@ -142,8 +142,9 @@ async function reviewHead(
         deltaFrom,
         ...usage(),
       })
+      // Off the retry path: a brief that cannot post never re-runs a completed review.
       if (loop.verdict === 'mergeable' || loop.verdict === 'needs_human') {
-        await publishMergeBrief(ref)
+        void publishMergeBrief(ref)
       }
       return completed
     } catch (error) {
