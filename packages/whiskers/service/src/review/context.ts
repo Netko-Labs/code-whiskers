@@ -71,11 +71,14 @@ function humanNotes(conversation: PrConversation, botHandle: string): string[] {
 function ledgerLine(thread: PriorThread): string {
   const where = thread.line ? `${thread.path}:${thread.line}` : thread.path
   const reply = thread.replies[thread.replies.length - 1]
+  const pushback = thread.agentReplies?.[thread.agentReplies.length - 1]
   const fate = thread.isResolved
     ? 'resolved'
     : reply
       ? `${reply.author} answered: ${condense(reply.body)}`
-      : 'no answer yet'
+      : pushback
+        ? `coding agent ${pushback.agent} ${pushback.kind === 'disagree' ? 'disagreed' : pushback.kind === 'fixed' ? 'says fixed' : 'asked'}: ${condense(pushback.body)} (not a human decision: re-check it against the code)`
+        : 'no answer yet'
   return `- ${where} ${condense(thread.title)} — ${fate}`
 }
 
@@ -137,6 +140,7 @@ export function buildPrContext(input: PrContextInput): string {
 ${header}${body}
 
 Act on it: do not re-raise a finding this diff fixes. A comment that was resolved or answered
-is settled — do not raise it again in any wording; a human already decided. Raise only what is
-new in this diff.`
+is settled — do not raise it again in any wording; a human already decided. A coding agent's
+answer is not a decision: keep that finding unless the code now proves the agent right. Raise
+only what is new in this diff.`
 }

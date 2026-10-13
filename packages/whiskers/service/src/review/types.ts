@@ -25,6 +25,23 @@ export type ThreadReply = {
   body: string
 }
 
+export type AgentReplyKind = 'fixed' | 'disagree' | 'question'
+
+/** A coding agent's answer, posted through the App over MCP: never a human decision. */
+export type AgentReply = {
+  agent: string
+  kind: AgentReplyKind
+  body: string
+}
+
+export type AgentReplyInput = {
+  pr: string
+  id: string
+  kind: AgentReplyKind
+  message: string
+  agent: string
+}
+
 /**
  * One inline comment CodeWhiskers left on this PR, and what people did with it since. The optional
  * fields come from GitHub only; a thread rebuilt from the last review's findings has none.
@@ -38,6 +55,7 @@ export type PriorThread = {
   isOutdated: boolean
   isDownvoted: boolean
   replies: ThreadReply[]
+  agentReplies?: AgentReply[]
   id?: string
   url?: string
   category?: string

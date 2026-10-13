@@ -36,3 +36,12 @@ export const PullRequestParamSchema = z.object({
   number: z.coerce.number().int().positive(),
 })
 export type PullRequestParam = z.infer<typeof PullRequestParamSchema>
+
+/** Studio → whiskers: a coding agent answering one finding, posted on its thread. */
+export const AgentReplyBodySchema = z.object({
+  pr: z.string().regex(/^[\w.-]+\/[\w.-]+#\d+$/),
+  id: z.string().min(3).max(40),
+  kind: z.enum(['fixed', 'disagree', 'question']),
+  message: z.string().trim().min(3).max(2_000),
+  agent: z.string().trim().min(1).max(100),
+})
