@@ -3,10 +3,13 @@ import type { ApiKey } from '@/integrations/studio-api'
 export type CreatedSecret = {
   name: string
   key: string
+  scope: ApiKey['scope']
 }
 
 export type ApiKeyCreateForm = {
   name: string
+  scope: ApiKey['scope']
+  setScope: (scope: ApiKey['scope']) => void
   error: string | null
   isPending: boolean
   secret: CreatedSecret | null

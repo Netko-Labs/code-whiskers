@@ -3,6 +3,7 @@ import { queryOptions } from '@tanstack/react-query'
 import type { ZodType } from 'zod'
 import { ResponseError } from '@/integrations/observability'
 import {
+  type ApiKey,
   apiKeyListSchema,
   createdKeySchema,
   createdSchema,
@@ -226,8 +227,8 @@ export const apiKeysQuery = () =>
     queryFn: () => fetchStudio('/keys', apiKeyListSchema),
   })
 
-export const createApiKey = (name: string) =>
-  fetchStudio('/keys', createdKeySchema, 'POST', { name })
+export const createApiKey = (name: string, scope: ApiKey['scope']) =>
+  fetchStudio('/keys', createdKeySchema, 'POST', { name, scope })
 
 export const revokeApiKey = (id: string) => fetchStudio(`/keys/${id}`, okSchema, 'DELETE')
 

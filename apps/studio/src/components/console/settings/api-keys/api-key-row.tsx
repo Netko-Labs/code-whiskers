@@ -39,7 +39,10 @@ export function ApiKeyRow({ apiKey, onRevoke }: ApiKeyRowProps) {
         </DataRowDescription>
       </span>
       <DataRowTrail>
-        <DataRowMeta>{apiKey.prefix}…</DataRowMeta>
+        <DataRowMeta>
+          {apiKey.scope === 'loop' ? 'review loop · ' : ''}
+          {apiKey.prefix}…
+        </DataRowMeta>
         {onRevoke && (
           <AlertDialog>
             <AlertDialogTrigger

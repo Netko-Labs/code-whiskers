@@ -219,6 +219,7 @@ export const apiKeySchema = z.object({
   id: z.string(),
   name: z.string(),
   prefix: z.string(),
+  scope: z.enum(['read', 'loop']).default('read'),
   lastUsedAt: z.coerce.date().nullable(),
   revokedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),

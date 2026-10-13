@@ -16,3 +16,8 @@ export function markRevoked(keys: ApiKey[], id: string, at: Date): ApiKey[] {
 export function curlExample(origin: string): string {
   return `curl -H "Authorization: Bearer cw_…" ${origin}/v1/reviews`
 }
+
+/** The one line that connects Claude Code to the review loop with this key. */
+export function mcpCommand(origin: string, key: string): string {
+  return `claude mcp add --transport http code-whiskers ${origin}/api/mcp --header "Authorization: Bearer ${key}"`
+}
