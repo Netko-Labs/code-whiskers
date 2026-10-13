@@ -28,6 +28,8 @@ export const CLAUDE_DENIED_TOOLS = [
 export const CLAUDE_CREDENTIALS = REVIEW_PROVIDER_CREDENTIALS.claude
 export const CLAUDE_PASS_THROUGH = [...CLAUDE_CREDENTIALS, 'ANTHROPIC_BASE_URL'] as const
 export const CLAUDE_FIXED_ENV = {
+  // Context past 100k tokens bills at a higher rate; the CLI auto-compacts to stay under it.
+  CLAUDE_CODE_AUTO_COMPACT_WINDOW: '100000',
   CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1',
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1',
   DISABLE_AUTOUPDATER: '1',

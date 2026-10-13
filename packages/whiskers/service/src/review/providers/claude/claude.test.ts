@@ -109,6 +109,7 @@ describe('agent env', () => {
       expect(env[name]).toBeUndefined()
     }
     expect(env.CLAUDE_CODE_DISABLE_AUTO_MEMORY).toBe('1')
+    expect(env.CLAUDE_CODE_AUTO_COMPACT_WINDOW).toBe('100000')
   })
 
   test('a fresh config dir and HOME, unless a dev worker borrows the local login', () => {
