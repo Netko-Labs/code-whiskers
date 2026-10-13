@@ -15,11 +15,20 @@ export type ClaudeRunInput = {
   abortController: AbortController
   guard: HookCallback
   stderr: (text: string) => void
+  outputSchema?: Record<string, unknown>
 }
 
 export type ReviewSlice = {
   diff: string
   context: string
+}
+
+/** One agent run: the review itself, or the checker re-reading its findings. */
+export type AgentCall = {
+  prompt: string
+  systemPrompt: string
+  model: string
+  outputSchema?: Record<string, unknown>
 }
 
 export type ClaudeSessionSpec = {

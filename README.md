@@ -69,7 +69,7 @@ Each `review completed` log line carries the review's token tally (and turns and
 | `openrouter` (default) | one structured call per 14k-char chunk, 6 in parallel, medium reasoning | `OPENROUTER_API_KEY` | `openai/gpt-6-luna` |
 | `ai-gateway` | the same, through Vercel AI Gateway; cost lands in the tally | `AI_GATEWAY_API_KEY` | `openai/gpt-6-luna` |
 | `openai` | the same, straight to OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` |
-| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-opus-5-5` |
+| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-haiku-5-5` |
 
 Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
 malformed JSON is repaired and missing fields default. Mentions and fix replies stay on OpenRouter:
@@ -82,6 +82,18 @@ never load; the repo's conventions reach the prompt as for every provider), a fr
 memory, no persisted session, and an env built from names (never the worker's database URL or App
 key). A hook refuses any path that resolves outside the checkout. The checkout is shallow at the
 head sha, cloned with a contents-read token, with `.git` and harness config removed.
+
+Before anything is posted, a second model re-reads each `claude` finding in the same checkout,
+with the same team memory, and drops what the code does not prove or what memory says not to
+flag, re-rating severity as it goes (`REVIEW_VERIFY_MODEL`, default `claude-sonnet-5-5`; `off`
+posts findings unchecked). On 11 labelled PRs, Haiku raising and Sonnet checking held 75%
+precision with no false blockers at ~$0.03 a review, against Opus alone at 82% for ~$0.27. If the
+checker fails, the findings go out as raised.
+
+Team memory grows from the PR itself: `@code-whiskers ignore <why>` or a 👎 on a finding records
+a don't-flag note on that file, and `@code-whiskers remember [rule|preference|dont-flag|context|lesson]: <text>`
+saves a note for the repository (or, on an inline thread, that file). Both apply to the next
+review at once; the console's Memory → Activity shows and undoes every change.
 
 The harness runs in the worker process, no sandbox: the bot is read-only, and those tool limits,
 the path guard and the trimmed env are the boundary.

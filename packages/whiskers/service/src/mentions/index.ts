@@ -4,6 +4,7 @@ import { type FixTarget, runFix } from '../fix'
 import { type PrRef, runReview } from '../review'
 import { answerQuestion } from './answer'
 import { ignoreFinding } from './ignore'
+import { rememberNote } from './remember'
 import { acknowledge } from './thread'
 import type { MentionSource } from './types'
 import { parseMention } from './utils'
@@ -22,6 +23,7 @@ export async function runMention(ref: PrRef, target: FixTarget, source: MentionS
 
   if (command === 'fix') return runFix(ref, target)
   if (command === 'ignore') return ignoreFinding(ref, target, text)
+  if (command === 'remember') return rememberNote(ref, target, text)
 
   // Reviews and answers take a while; the reaction says the mention was heard.
   if (source.commentId !== null) {

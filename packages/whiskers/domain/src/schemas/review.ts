@@ -74,3 +74,16 @@ export const LlmReviewSchema = z.object({
   verdict: looseEnum(VERDICTS, 'comment'),
 })
 export type LlmReview = z.infer<typeof LlmReviewSchema>
+
+/** A second, stronger model's ruling on each finding the first one raised, by position. */
+export const LlmVerdictsSchema = z.object({
+  verdicts: z.array(
+    z.object({
+      index: z.number().int().nonnegative(),
+      keep: z.boolean(),
+      severity: SeveritySchema,
+      reason: z.string().default(''),
+    }),
+  ),
+})
+export type LlmVerdicts = z.infer<typeof LlmVerdictsSchema>

@@ -38,6 +38,7 @@ export const WhiskersConfigSchema = z.object({
     timeoutMs: z.number().int().positive().default(600_000),
     maxBudgetUsd: z.number().positive().optional(),
     claudeExecutable: z.string().optional(),
+    verifyModel: z.string().optional(),
   }),
   telemetry: z.object({
     retentionDays: z.number().int().positive().default(7),
