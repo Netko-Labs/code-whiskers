@@ -165,6 +165,16 @@ describe('settleFindings', () => {
     expect(result.fresh).toHaveLength(0)
   })
 
+  test('a thread the bot resolved as fixed settles nothing: raised again, it is news', () => {
+    const result = settleFindings(
+      [finding('b.tsx', 10, raised)],
+      [thread('b.tsx', 10, raised, { isResolved: true, isFixed: true })],
+      [],
+    )
+    expect(result.fresh).toHaveLength(1)
+    expect(result.settled).toHaveLength(0)
+  })
+
   test('a 👎 on the comment settles it too', () => {
     const result = settleFindings(
       [finding('a.tsx', 65, raised)],
