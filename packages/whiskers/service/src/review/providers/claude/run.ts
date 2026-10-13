@@ -1,5 +1,10 @@
 import type { SDKMessage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
-import { type LlmReview, LlmReviewSchema } from '@code-whiskers/whiskers-domain'
+import {
+  type LlmReview,
+  LlmReviewSchema,
+  type LlmVerdicts,
+  LlmVerdictsSchema,
+} from '@code-whiskers/whiskers-domain'
 import type { TokenSpend } from '../../../shared/llm'
 import { ReviewProviderError } from '../errors'
 import {
@@ -79,7 +84,7 @@ function providerFailure(state: ClaudeRunState, text: string): ReviewProviderErr
  * The structured answer, or why there is none. Provider-wide trouble (limits, a dead token) ends
  * the whole attempt; anything else fails this slice alone.
  */
-export function reviewFromRun(state: ClaudeRunState): LlmReview {
+function structuredFromRun(state: ClaudeRunState): unknown {
   const { result } = state
   const text = result
     ? result.subtype === 'success'
@@ -107,8 +112,18 @@ export function reviewFromRun(state: ClaudeRunState): LlmReview {
     const detail = denied.length > 0 ? ` (denied: ${denied.join(', ')})` : ''
     throw new Error(`the Claude agent finished without structured output${detail}`)
   }
-  const parsed = LlmReviewSchema.safeParse(result.structured_output)
+  return result.structured_output
+}
+
+export function reviewFromRun(state: ClaudeRunState): LlmReview {
+  const parsed = LlmReviewSchema.safeParse(structuredFromRun(state))
   if (!parsed.success) throw new Error('the Claude agent output did not match the review schema')
+  return parsed.data
+}
+
+export function verdictsFromRun(state: ClaudeRunState): LlmVerdicts {
+  const parsed = LlmVerdictsSchema.safeParse(structuredFromRun(state))
+  if (!parsed.success) throw new Error('the Claude checker output did not match the verdict schema')
   return parsed.data
 }
 

@@ -1,5 +1,6 @@
 import {
   DEFAULT_REVIEW_MODELS,
+  DEFAULT_VERIFY_MODELS,
   ReviewEffortSchema,
   type ReviewProviderId,
   ReviewProviderSchema,
@@ -21,6 +22,13 @@ export function reviewProviderFrom(env: NodeJS.ProcessEnv): ReviewProviderId {
   return ReviewProviderSchema.parse(setting(env, 'REVIEW_PROVIDER') ?? 'openrouter')
 }
 
+/** `REVIEW_VERIFY_MODEL=off` posts findings unchecked; unset keeps the provider's default checker. */
+function verifyModelFrom(env: NodeJS.ProcessEnv, provider: ReviewProviderId): string | undefined {
+  const value = setting(env, 'REVIEW_VERIFY_MODEL')
+  if (value?.toLowerCase() === 'off') return undefined
+  return value ?? DEFAULT_VERIFY_MODELS[provider]
+}
+
 /** `REVIEW_MODEL` overrides the active provider's default model, whichever provider that is. */
 export function reviewConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['review'] {
   const provider = reviewProviderFrom(env)
@@ -32,6 +40,7 @@ export function reviewConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['review
     timeoutMs: numeric(env, 'REVIEW_AGENT_TIMEOUT_MS') ?? 600_000,
     maxBudgetUsd: numeric(env, 'REVIEW_AGENT_MAX_BUDGET_USD'),
     claudeExecutable: setting(env, 'CLAUDE_CODE_EXECUTABLE'),
+    verifyModel: verifyModelFrom(env, provider),
   }
 }
 

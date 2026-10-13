@@ -1,4 +1,4 @@
-import type { MentionCommand } from './types'
+import type { MemoryKind, MentionCommand } from './types'
 
 export const COMMAND_WORDS: Record<string, MentionCommand> = {
   fix: 'fix',
@@ -7,7 +7,26 @@ export const COMMAND_WORDS: Record<string, MentionCommand> = {
   're-review': 'review',
   ignore: 'ignore',
   dismiss: 'ignore',
+  remember: 'remember',
+  learn: 'remember',
 }
+
+/** The first word after `remember` picks the kind of note; without one it is context. */
+export const MEMORY_KIND_WORDS: Record<string, MemoryKind> = {
+  rule: 'rule',
+  preference: 'preference',
+  prefer: 'preference',
+  "don't-flag": 'dont_flag',
+  'dont-flag': 'dont_flag',
+  ignore: 'dont_flag',
+  context: 'context',
+  lesson: 'lesson',
+}
+
+export const MEMORY_BODY_MAX = 600
+
+export const REMEMBER_USAGE =
+  'Say what to remember: `@code-whiskers remember rule: money is integer cents`. Kinds: rule, preference, dont-flag, context (the default), lesson.'
 
 export const ANSWER_TIMEOUT_MS = 90_000
 export const MAX_DIFF_CHARS = 24_000

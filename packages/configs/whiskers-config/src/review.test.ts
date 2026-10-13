@@ -19,9 +19,21 @@ describe('reviewConfigFrom', () => {
   })
 
   test('each provider brings its own default model', () => {
-    expect(reviewConfigFrom({ REVIEW_PROVIDER: 'claude' }).model).toBe('claude-opus-5-5')
+    expect(reviewConfigFrom({ REVIEW_PROVIDER: 'claude' }).model).toBe('claude-haiku-5-5')
     expect(reviewConfigFrom({ REVIEW_PROVIDER: 'ai-gateway' }).model).toBe('openai/gpt-6-luna')
     expect(reviewConfigFrom({ REVIEW_PROVIDER: 'openai' }).model).toBe('gpt-6-luna')
+  })
+
+  test('agentic reviews are checked by a second model unless turned off', () => {
+    expect(reviewConfigFrom({ REVIEW_PROVIDER: 'claude' }).verifyModel).toBe('claude-sonnet-5-5')
+    expect(
+      reviewConfigFrom({ REVIEW_PROVIDER: 'claude', REVIEW_VERIFY_MODEL: 'claude-opus-5-5' })
+        .verifyModel,
+    ).toBe('claude-opus-5-5')
+    expect(
+      reviewConfigFrom({ REVIEW_PROVIDER: 'claude', REVIEW_VERIFY_MODEL: 'off' }).verifyModel,
+    ).toBeUndefined()
+    expect(reviewConfigFrom({ REVIEW_PROVIDER: 'openrouter' }).verifyModel).toBeUndefined()
   })
 
   test('REVIEW_MODEL overrides the active provider and agent knobs parse as numbers', () => {

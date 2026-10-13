@@ -1,4 +1,11 @@
-export type MentionCommand = 'fix' | 'review' | 'ignore' | 'question'
+export type MentionCommand = 'fix' | 'review' | 'ignore' | 'remember' | 'question'
+
+export type MemoryKind = 'rule' | 'preference' | 'dont_flag' | 'context' | 'lesson'
+
+export type RememberRequest = {
+  kind: MemoryKind
+  body: string
+}
 
 export type ParsedMention = {
   command: MentionCommand

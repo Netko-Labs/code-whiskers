@@ -1,5 +1,5 @@
-import { COMMAND_WORDS } from './constants'
-import type { ParsedMention } from './types'
+import { COMMAND_WORDS, MEMORY_BODY_MAX, MEMORY_KIND_WORDS } from './constants'
+import type { ParsedMention, RememberRequest } from './types'
 
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\]/g
 const FINDING_TITLE = /^\*\*[^*]+\*\*\s+—\s+(.+)$/m
@@ -17,7 +17,8 @@ export function parseMention(body: string, handle: string): ParsedMention {
       .split(/\s+/)[0]
       ?.toLowerCase()
       .replace(/[.,:;!?]+$/, '') ?? ''
-  const command = COMMAND_WORDS[first]
+  // Own keys only: `constructor` or `__proto__` must stay questions, not inherited "commands".
+  const command = Object.hasOwn(COMMAND_WORDS, first) ? COMMAND_WORDS[first] : undefined
   return command
     ? { command, text: text.slice(first.length).trim() }
     : { command: 'question', text: text || body.trim() }
@@ -25,4 +26,15 @@ export function parseMention(body: string, handle: string): ParsedMention {
 
 export function findingTitleOf(body: string): string | null {
   return FINDING_TITLE.exec(body)?.[1]?.trim() ?? null
+}
+
+/** `rule: money is integer cents` → a rule; no recognised kind word → context. */
+export function parseRemember(text: string): RememberRequest | null {
+  const match = /^([\w'-]+)\s*:?\s*([\s\S]*)$/.exec(text.trim())
+  const word = match?.[1]?.toLowerCase() ?? ''
+  const isKind = Object.hasOwn(MEMORY_KIND_WORDS, word)
+  const kind = isKind ? MEMORY_KIND_WORDS[word] : 'context'
+  const body = (isKind ? (match?.[2] ?? '') : text).replace(/^[:\s]+/, '').trim()
+  if (!kind || body.length < 3) return null
+  return { kind, body: body.slice(0, MEMORY_BODY_MAX) }
 }

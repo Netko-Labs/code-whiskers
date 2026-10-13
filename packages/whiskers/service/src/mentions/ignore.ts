@@ -7,10 +7,12 @@ import { fetchThreadRoot } from './thread'
 import { findingTitleOf } from './utils'
 
 const MAX_NOTE_CHARS = 500
+const MAX_MEMORY_CHARS = 600
 
 /**
  * `@code-whiskers ignore` on one of the reviewer's own threads: studio records the dismissal (so
- * no PR on this repo raises it again), the thread is resolved, and the reply says so.
+ * no PR on this repo raises it again) and remembers it as a don't-flag note on that file, which a
+ * human can widen or undo in the console. The thread is resolved and the reply says so.
  */
 export async function ignoreFinding(
   ref: PrRef,
@@ -38,6 +40,15 @@ export async function ignoreFinding(
     file: root.path,
     title,
     note: note.slice(0, MAX_NOTE_CHARS),
+  })
+  await postToStudio('memory', {
+    repo,
+    kind: 'dont_flag',
+    body: (reason ? `${title} — ${reason}` : title).slice(0, MAX_MEMORY_CHARS),
+    paths: [root.path],
+    source: 'review',
+    sourceUrl: `https://github.com/${repo}/pull/${ref.prNumber}`,
+    actor: target.author,
   })
   const isResolved = await resolveThreadForComment(ref, root.id)
     .then(() => true)
