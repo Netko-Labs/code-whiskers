@@ -58,7 +58,7 @@ export function buildClaudeOptions(input: ClaudeRunInput): Options {
     mcpServers: {},
     persistSession: false,
     systemPrompt: input.systemPrompt,
-    outputFormat: { type: 'json_schema', schema: reviewJsonSchema() },
+    outputFormat: { type: 'json_schema', schema: input.outputSchema ?? reviewJsonSchema() },
     hooks: { PreToolUse: [{ hooks: [input.guard] }] },
     abortController: input.abortController,
     stderr: input.stderr,

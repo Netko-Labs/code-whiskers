@@ -2,6 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { query } from '@anthropic-ai/claude-agent-sdk'
+import { createLogger } from '@code-whiskers/logger'
 import type { LlmReview } from '@code-whiskers/whiskers-domain'
 import { addSpend, type TokenTally } from '../../../shared/llm'
 import { AGENT_REVIEW_SYSTEM, reviewPrompt } from '../../prompt'
@@ -13,20 +14,36 @@ import {
   redactSecrets,
   STDERR_TAIL_CHARS,
 } from '../agent'
+import { ReviewProviderError } from '../errors'
 import type { ReviewSession } from '../types'
 import { claudeEnv } from './env'
 import { buildClaudeOptions, readOnlyGuard } from './options'
-import { classifySdkError, emptyRunState, observe, reviewFromRun, spendOf } from './run'
-import type { ClaudeSessionSpec, ReviewSlice } from './types'
+import {
+  classifySdkError,
+  emptyRunState,
+  observe,
+  reviewFromRun,
+  spendOf,
+  verdictsFromRun,
+} from './run'
+import type { AgentCall, ClaudeRunState, ClaudeSessionSpec, ReviewSlice } from './types'
+import { applyVerdicts, VERIFY_SYSTEM, verdictsJsonSchema, verifyPrompt } from './verify'
 
-async function runOnce(
-  spec: ClaudeSessionSpec,
-  checkout: CheckoutDir,
-  configDir: string,
-  slice: ReviewSlice,
+const logger = createLogger('whiskers-claude')
+
+type SessionScope = {
+  spec: ClaudeSessionSpec
+  checkout: CheckoutDir
+  configDir: string
+  controllers: Set<AbortController>
+}
+
+async function runAgent(
+  scope: SessionScope,
+  call: AgentCall,
   tokens: TokenTally,
-  controllers: Set<AbortController>,
-): Promise<LlmReview> {
+): Promise<ClaudeRunState> {
+  const { spec, checkout, configDir, controllers } = scope
   const abortController = new AbortController()
   controllers.add(abortController)
   const timer = setTimeout(() => abortController.abort(), spec.limits.timeoutMs)
@@ -34,16 +51,17 @@ async function runOnce(
   let state = emptyRunState()
   try {
     const messages = query({
-      prompt: reviewPrompt(slice.diff, slice.context),
+      prompt: call.prompt,
       options: buildClaudeOptions({
         cwd: checkout.root,
         env: claudeEnv(configDir, spec.isDev),
-        systemPrompt: AGENT_REVIEW_SYSTEM,
-        config: { ...spec.config, maxTurns: spec.limits.maxTurns },
+        systemPrompt: call.systemPrompt,
+        config: { ...spec.config, model: call.model, maxTurns: spec.limits.maxTurns },
         executable: spec.binary,
         abortController,
         guard: readOnlyGuard(isInsideCheckout(checkout)),
         stderr: stderr.push,
+        outputSchema: call.outputSchema,
       }),
     })
     for await (const message of messages) state = observe(state, message)
@@ -57,7 +75,61 @@ async function runOnce(
     controllers.delete(abortController)
     if (state.result) addSpend(tokens, spendOf(state.result))
   }
-  return redactSecrets(reviewFromRun(state))
+  return state
+}
+
+/**
+ * The checker re-reads each finding in the same checkout. If it fails for any reason short of a
+ * provider-wide problem, the findings go out as raised rather than not at all.
+ */
+async function verify(
+  scope: SessionScope,
+  slice: ReviewSlice,
+  review: LlmReview,
+  tokens: TokenTally,
+): Promise<LlmReview> {
+  const model = scope.spec.config.verifyModel
+  if (!model || review.findings.length === 0) return review
+  try {
+    const state = await runAgent(
+      scope,
+      {
+        prompt: verifyPrompt(slice.diff, slice.context, review.findings),
+        systemPrompt: VERIFY_SYSTEM,
+        model,
+        outputSchema: verdictsJsonSchema(),
+      },
+      tokens,
+    )
+    const checked = applyVerdicts(review, verdictsFromRun(state))
+    logger.info(
+      { raised: review.findings.length, kept: checked.findings.length, model },
+      'findings checked',
+    )
+    return checked
+  } catch (error) {
+    if (error instanceof ReviewProviderError) throw error
+    logger.warn({ err: String(error), model }, 'checker failed; posting findings unchecked')
+    return review
+  }
+}
+
+async function reviewSlice(
+  scope: SessionScope,
+  slice: ReviewSlice,
+  tokens: TokenTally,
+): Promise<LlmReview> {
+  const state = await runAgent(
+    scope,
+    {
+      prompt: reviewPrompt(slice.diff, slice.context),
+      systemPrompt: AGENT_REVIEW_SYSTEM,
+      model: scope.spec.config.model,
+    },
+    tokens,
+  )
+  const review = redactSecrets(reviewFromRun(state))
+  return redactSecrets(await verify(scope, slice, review, tokens))
 }
 
 /** One checkout per review; `close` aborts what still runs, then removes it. */
@@ -72,13 +144,12 @@ export async function openClaudeSession(
     await checkout.destroy()
     throw error
   }
-  const controllers = new Set<AbortController>()
+  const scope: SessionScope = { spec, checkout, configDir, controllers: new Set() }
   return {
     retry: AGENT_RETRY,
-    review: (diff, context, tokens) =>
-      runOnce(spec, checkout, configDir, { diff, context }, tokens, controllers),
+    review: (diff, context, tokens) => reviewSlice(scope, { diff, context }, tokens),
     close: async () => {
-      for (const controller of controllers) controller.abort()
+      for (const controller of scope.controllers) controller.abort()
       await Promise.allSettled([
         checkout.destroy(),
         rm(configDir, { recursive: true, force: true }),
