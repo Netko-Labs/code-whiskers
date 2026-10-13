@@ -34,14 +34,16 @@ describe('handleMcpRequest', () => {
     expect(body.result.instructions).toContain('wait_for_review')
   })
 
-  test('lists the loop and memory tools', async () => {
+  test('lists the loop, memory and merge tools', async () => {
     const response = await handleMcpRequest(rpc('tools/list'), caller)
     const body = (await response.json()) as { result: { tools: { name: string }[] } }
     expect(body.result.tools.map((tool) => tool.name).sort()).toEqual([
       'get_findings',
+      'get_merge_brief',
       'get_pr_context',
       'memory_search',
       'memory_write',
+      'merge_readiness',
       'reply_to_finding',
       'review_status',
       'wait_for_review',

@@ -16,6 +16,7 @@ export const completeReview = async (
         | 'deltaFrom'
         | 'loopVerdict'
         | 'fixedSinceLastRound'
+        | 'memoryApplied'
       >
     >,
 ): Promise<Review | undefined> => {

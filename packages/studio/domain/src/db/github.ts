@@ -46,6 +46,8 @@ export const repository = pgTable(
     isPrivate: boolean('is_private').default(false).notNull(),
     // Whiskers only reviews a watched repository; the sync never flips this.
     isWatched: boolean('is_watched').default(true).notNull(),
+    // A coding agent may merge once whiskers says mergeable and CI is green; a person otherwise.
+    isAgentMergeAllowed: boolean('is_agent_merge_allowed').default(false).notNull(),
     language: text('language'),
     defaultBranch: text('default_branch'),
     pushedAt: timestamp('pushed_at'),

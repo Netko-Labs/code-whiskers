@@ -1,3 +1,4 @@
+export * from './get-loop-history'
 export * from './get-previous-review'
 export * from './get-pull-request-contract'
 export * from './get-pull-request-reviews'

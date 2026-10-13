@@ -12,6 +12,7 @@ import {
   getPullRequestReviews,
   getReview,
   getReviews,
+  mergeBriefOf,
   runReview,
 } from '@code-whiskers/whiskers-service'
 import { Elysia } from 'elysia'
@@ -45,6 +46,19 @@ export const insightRoutes = new Elysia({ name: 'insights', prefix: '/v1' })
     async ({ params, status }) => {
       const contract = await getPullRequestContract(params.owner, params.repo, params.number)
       return contract ?? status(404, { error: 'no completed review of that pull request' })
+    },
+  )
+  // (｀・ω・´) the card a human reads before merging
+  .get(
+    '/reviews/pr/:owner/:repo/:number/brief',
+    { params: PullRequestParamSchema },
+    async ({ params, status }) => {
+      const brief = await mergeBriefOf({
+        owner: params.owner,
+        repo: params.repo,
+        prNumber: params.number,
+      })
+      return brief ?? status(404, { error: 'no completed review of that pull request' })
     },
   )
   // (=^･ω･^=) one review with its findings

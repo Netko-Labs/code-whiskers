@@ -30,6 +30,7 @@ export type RepositoryListState = {
 
 export type RepositoryActions = {
   setWatched: (repository: Repository, isWatched: boolean) => void
+  setAgentMerge: (repository: Repository, isAllowed: boolean) => void
 }
 
 export type RepositoryRowProps = {

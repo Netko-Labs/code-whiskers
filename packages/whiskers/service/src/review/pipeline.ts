@@ -250,5 +250,6 @@ export async function runPipeline(
     merged,
     deltaFrom: delta ? deltaFrom : null,
     loop: withThreadUrls(loop, threadUrls),
+    memoryApplied: memoryContext.applied,
   }
 }

@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { LOOP_VERDICTS } from '../values'
 
 export const reviewTable = pgTable('review', {
@@ -21,6 +21,11 @@ export const reviewTable = pgTable('review', {
   loopVerdict: text('loop_verdict', { enum: LOOP_VERDICTS }),
   round: integer('round'),
   fixedSinceLastRound: text('fixed_since_last_round').array().notNull().default([]),
+  /** The team-memory notes this review was given, for the merge brief. */
+  memoryApplied: jsonb('memory_applied')
+    .$type<{ kind: string; body: string }[]>()
+    .notNull()
+    .default([]),
   summary: text('summary'),
   model: text('model'),
   diffScope: text('diff_scope', { enum: ['full', 'delta'] }),

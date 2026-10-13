@@ -85,6 +85,13 @@
       "when": 1791850446862,
       "tag": "0011_absent_blackheart",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791851624840,
+      "tag": "0012_windy_shard",
+      "breakpoints": true
     }
   ]
 }
