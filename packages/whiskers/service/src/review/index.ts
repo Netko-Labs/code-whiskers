@@ -14,6 +14,7 @@ import { RETRY_DELAYS_MS, retryDelayFor } from './retry'
 import type { PipelineAttempt, ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
+export * from './agent-reply'
 export * from './check-run'
 export * from './chunk'
 export * from './conventions'

@@ -111,6 +111,25 @@ uses `ANTHROPIC_API_KEY`.
 Settings → General shows the active reviewer, which credentials are set (never their values),
 what is missing, and a **Test** button that runs one tiny review through it.
 
+### Coding agents (MCP)
+
+A coding agent can drive a PR to mergeable against the reviewer: push, wait for the review, fix
+each blocker until its `done_when` holds, push again. Create a key with the **Review loop · MCP**
+scope (Settings → API keys); the dialog prints the one line for Claude Code:
+
+```sh
+claude mcp add --transport http code-whiskers https://<studio host>/api/mcp \
+  --header "Authorization: Bearer cw_…"
+```
+
+Tools: `get_pr_context`, `review_status`, `wait_for_review`, `get_findings`, `reply_to_finding`,
+`memory_search`, `memory_write`. Every tool checks that the key's owner is in the installation
+that owns the repository. `reply_to_finding` posts on the finding's GitHub thread through the App,
+labelled as the agent, so the PR keeps the whole conversation; an agent's "disagree" never
+settles a finding or teaches memory — the next review re-checks the claim against the code.
+Agents may add context notes only. [`docs/agent-loop/SKILL.md`](docs/agent-loop/SKILL.md) is a
+Claude Code skill for the loop (copy it to `~/.claude/skills/whiskers-loop/`).
+
 ## Error tracking
 
 Point any Sentry SDK at `https://whiskers.netko.dev/api/<projectId>/envelope` with one of the

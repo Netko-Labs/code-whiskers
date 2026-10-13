@@ -217,9 +217,14 @@ whole explorer search (levels, attributes, range), restored verbatim when opened
 `url_host`, `last_delivered_at`, `last_error`. Deleting one removes it from every rule's
 `destination_ids`.
 
-**`api_key`** — `id`, `installation_id`, `name`, `prefix` (shown in the UI),
-`hash` (never the key), `scope` jsonb, `environment`, `created_by`, `last_used_at`,
-`rotated_at`, `revoked_at`.
+**`api_key`** — `id`, `user_id`, `name`, `prefix` (shown in the UI), `hash` (never the key),
+`scope` (`read`: GET /v1 through the forwarder; `loop`: also `/api/mcp` replies and context notes),
+`last_used_at`, `revoked_at`. `/api/mcp` is a stateless MCP server on studio (keys only, never a
+session): memory tools read studio directly, review tools read whiskers'
+`GET /v1/reviews/pr/:owner/:repo/:number` on the internal network, and `reply_to_finding` goes
+through whiskers' `POST /internal/loop/reply`, which posts on the finding's thread as the App with
+a hidden `whiskers-agent-reply` marker. Bot-authored replies never settle a finding; the next
+review lists them as pushback to re-check.
 
 ### Triage decisions
 

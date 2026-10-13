@@ -1,9 +1,14 @@
 import { timingSafeEqual } from 'node:crypto'
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
-import { AlertPreviewBodySchema, IssueLifecycleBodySchema } from '@code-whiskers/whiskers-domain'
+import {
+  AgentReplyBodySchema,
+  AlertPreviewBodySchema,
+  IssueLifecycleBodySchema,
+} from '@code-whiskers/whiskers-domain'
 import {
   githubAccessFor,
   hasGithubApp,
+  postAgentReply,
   previewCondition,
   reviewProvider,
   setIssueLifecycle,
@@ -21,6 +26,16 @@ function authorized(header: string | null): boolean {
 }
 
 export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal' })
+  // (ง •̀_•́)ง a coding agent answers a finding over studio's MCP; the PR thread keeps it
+  .post('/loop/reply', { body: AgentReplyBodySchema }, async ({ request, body, set }) => {
+    if (!authorized(request.headers.get('authorization'))) {
+      set.status = 401
+      return { error: 'unauthorized' }
+    }
+    const posted = await postAgentReply(body)
+    if ('error' in posted) set.status = 404
+    return posted
+  })
   // (・ω・)ノ what a GitHub user can reach through this App
   .get('/github/access', async ({ request, query, set }) => {
     if (!authorized(request.headers.get('authorization'))) {

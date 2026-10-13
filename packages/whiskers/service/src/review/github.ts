@@ -212,12 +212,13 @@ export async function replyToReviewComment(
   { owner, repo, prNumber }: PrRef,
   commentId: number,
   body: string,
-): Promise<void> {
+): Promise<string> {
   const octokit = await octokitFor(owner, repo)
-  await octokit.request(
+  const { data } = await octokit.request(
     'POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies',
     { owner, repo, pull_number: prNumber, comment_id: commentId, body },
   )
+  return data.html_url
 }
 
 interface ReviewThreadsPage {

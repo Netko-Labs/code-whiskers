@@ -1,4 +1,5 @@
 import { isBotLogin } from '../fix/utils'
+import { parseAgentReply } from './agent-reply'
 import { octokitFor, type PrRef } from './github'
 import { FINDING_MARKER, FIXED_REPLY } from './render'
 import type { PriorThread } from './types'
@@ -102,6 +103,10 @@ export async function fetchBotThreads(ref: PrRef, botHandle: string): Promise<Pr
         replies: rest
           .filter((comment) => !isBotLogin(comment.author?.login, botHandle))
           .map((comment) => ({ author: comment.author?.login ?? 'someone', body: comment.body })),
+        agentReplies: rest
+          .filter((comment) => isBotLogin(comment.author?.login, botHandle))
+          .map((comment) => parseAgentReply(comment.body))
+          .filter((reply) => reply !== null),
         id: node.id,
         url: root.url,
         ...identityOf(root.body),
