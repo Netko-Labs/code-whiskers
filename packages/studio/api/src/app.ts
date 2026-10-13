@@ -8,6 +8,7 @@ import { instanceRoutes } from './routes/instance'
 import { integrationRoutes } from './routes/integrations'
 import { internalRoutes } from './routes/internal'
 import { keyRoutes } from './routes/keys'
+import { mcpRoutes } from './routes/mcp'
 import { memberRoutes } from './routes/members'
 import { memoryRoutes } from './routes/memory'
 import { savedQueryRoutes } from './routes/saved-queries'
@@ -42,10 +43,12 @@ export const app = new Elysia({ prefix: '/api' })
   .use(alertRoutes)
   // (っ˘ω˘ς) webhooks alerts are delivered to
   .use(integrationRoutes)
-  // (￣^￣)ゞ API keys for scripts reading /v1
+  // (￣^￣)ゞ API keys: scripts reading /v1, agents on /api/mcp
   .use(keyRoutes)
-  // (｀・ω・´) review rules, written by humans, read by the reviewer
+  // (｀・ω・´) repo memory: what the reviewer knows, written by people and learned in review
   .use(memoryRoutes)
+  // (ง •̀_•́)ง coding agents drive the review loop over MCP
+  .use(mcpRoutes)
   // (￣▽￣)b saved telemetry views
   .use(savedQueryRoutes)
   // ʕ·ᴥ·ʔ service-to-service: whiskers asks what humans have decided

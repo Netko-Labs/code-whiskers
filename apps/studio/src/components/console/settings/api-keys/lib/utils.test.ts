@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { ApiKey } from '@/integrations/studio-api'
-import { groupApiKeys, markRevoked } from './utils'
+import { groupApiKeys, markRevoked, mcpCommand } from './utils'
 
 const key = (id: string, revokedAt: Date | null = null): ApiKey => ({
   id,
   name: id,
   prefix: 'cw_abcdefg',
+  scope: 'read',
   lastUsedAt: null,
   revokedAt,
   createdAt: new Date('2026-10-01T00:00:00Z'),
@@ -31,5 +32,13 @@ describe('markRevoked', () => {
     const first = new Date('2026-10-01T00:00:00Z')
     const [revoked] = markRevoked([key('a', first)], 'a', new Date())
     expect(revoked?.revokedAt).toBe(first)
+  })
+})
+
+describe('mcpCommand', () => {
+  test('connects Claude Code to this instance with the key', () => {
+    expect(mcpCommand('https://whiskers.example', 'cw_abc')).toBe(
+      'claude mcp add --transport http code-whiskers https://whiskers.example/api/mcp --header "Authorization: Bearer cw_abc"',
+    )
   })
 })
