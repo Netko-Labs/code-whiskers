@@ -144,7 +144,9 @@ async function reviewHead(
       })
       // Off the retry path: a brief that cannot post never re-runs a completed review.
       if (loop.verdict === 'mergeable' || loop.verdict === 'needs_human') {
-        void publishMergeBrief(ref)
+        void publishMergeBrief(ref).catch((error: unknown) => {
+          logger.warn({ ...ref, err: messageOf(error) }, 'merge brief not posted')
+        })
       }
       return completed
     } catch (error) {
