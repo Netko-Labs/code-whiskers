@@ -91,6 +91,7 @@ export type PipelineResult = {
   merged: LlmReview
   deltaFrom: string | null
   loop: ClosedRound
+  memoryApplied: MemoryContext['applied']
 }
 
 /** A finding with the identity it keeps across rounds. */
@@ -101,9 +102,27 @@ export type ReviewedFinding = LlmFinding & {
 }
 
 /** Where this round leaves the fix loop. `findings` are every open one, carried blockers included. */
+export type HumanReason = 'round_limit' | 'stalled'
+
+export type CiState = 'green' | 'pending' | 'failing' | 'none'
+
+export type LoopReadiness = {
+  pr: string
+  head: string
+  reviewedHead: string
+  isCurrentHead: boolean
+  verdict: LoopVerdict
+  round: number
+  ci: CiState
+  failingChecks: string[]
+  isOpen: boolean
+  isReady: boolean
+}
+
 export type ClosedRound = {
   round: number
   verdict: LoopVerdict
+  humanReason: HumanReason | null
   fresh: ReviewedFinding[]
   findings: ReviewedFinding[]
   fixed: PriorThread[]
@@ -182,5 +201,6 @@ export type MemoryNote = {
 export type MemoryContext = {
   text: string
   noteIds: string[]
+  applied: { kind: MemoryKind; body: string }[]
   dropped: number
 }

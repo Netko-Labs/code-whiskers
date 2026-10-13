@@ -60,3 +60,37 @@ export async function postLoopReply(body: {
     return { error: 'whiskers is unreachable' }
   }
 }
+
+async function readWhiskers(
+  path: string,
+  isInternal: boolean,
+): Promise<{ value: unknown } | { error: string }> {
+  const { url, internalToken } = studioEnvConfig.whiskers
+  try {
+    const response = await fetch(new URL(path, url), {
+      headers: {
+        accept: 'application/json',
+        ...(isInternal && internalToken ? { authorization: `Bearer ${internalToken}` } : {}),
+      },
+      signal: AbortSignal.timeout(WHISKERS_TIMEOUT_MS),
+    })
+    if (response.status === 404) return { value: null }
+    if (!response.ok) return { error: `whiskers answered ${response.status}` }
+    return { value: await response.json() }
+  } catch (error) {
+    logger.warn({ err: String(error), path }, 'whiskers unreachable')
+    return { error: 'whiskers is unreachable' }
+  }
+}
+
+/** Verdict on the current head plus everyone else's CI, as whiskers sees it right now. */
+export function fetchReadiness(pr: PrRef) {
+  return readWhiskers(
+    `/internal/loop/readiness?pr=${encodeURIComponent(`${pr.slug}#${pr.number}`)}`,
+    true,
+  )
+}
+
+export function fetchMergeBrief(pr: PrRef) {
+  return readWhiskers(`/v1/reviews/pr/${pr.owner}/${pr.repo}/${pr.number}/brief`, false)
+}

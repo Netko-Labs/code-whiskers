@@ -18,6 +18,7 @@ const repo = (id: number, installationId: number, isWatched: boolean): Repositor
   name: `repo-${id}`,
   isPrivate: false,
   isWatched,
+  isAgentMergeAllowed: false,
   language: null,
   defaultBranch: 'main',
   pushedAt: null,

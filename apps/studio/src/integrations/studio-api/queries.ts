@@ -264,3 +264,6 @@ export const deleteSavedQuery = (id: string) =>
 
 export const setRepositoryWatched = (id: number, isWatched: boolean) =>
   fetchStudio(`/repositories/${id}`, okSchema, 'PATCH', { isWatched })
+
+export const setAgentMergeAllowed = (id: number, isAgentMergeAllowed: boolean) =>
+  fetchStudio(`/repositories/${id}`, okSchema, 'PATCH', { isAgentMergeAllowed })

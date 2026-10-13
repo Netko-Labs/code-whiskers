@@ -318,7 +318,8 @@ were skipped), `model`, `diff_scope` (`full` \| `delta`; null on reviews before 
 `completed_at`. `GET /v1/reviews/:id/pull-request` returns every push of that PR with its findings.
 The fix loop (whiskers 0011): `round` (1 + completed reviews of the PR before it, set when the
 review starts), `loop_verdict` (`mergeable` \| `needs_changes` \| `blocked` \| `needs_human`),
-`fixed_since_last_round` (finding ids). Null on older reviews; the contract derives them.
+`fixed_since_last_round` (finding ids), `memory_applied` (jsonb, whiskers 0012: the team notes the
+review was given, for the merge brief). Null on older reviews; the contract derives them.
 
 **`finding`** — `id`, `review_id` (FK, same DB), `file`, `line`, `severity`, `category`,
 `title`, `body`, `suggestion`, `fingerprint` (`wf_` + 6 hex, stable across rounds), `done_when`,
@@ -338,7 +339,11 @@ record.
   review that skipped sections → `needs_changes`; else `mergeable`. A team rule marked `blocker`
   makes its violation `high` (the rule a finding came from is not tracked yet), so it asks for
   changes rather than blocking. A repeat the model now rates lower keeps the severity of its open
-  blocking thread. `needs_human` is reserved for the loop limit and not produced yet.
+  blocking thread. `needs_human` replaces any non-mergeable verdict at round 5, or when two pushes
+  in a row leave the same blockers (every open blocker raised by round N-2). Ending at
+  `mergeable` or `needs_human` upserts the merge brief comment (`GET /v1/reviews/pr/:owner/:repo/:number/brief`);
+  a fixed high/critical blocker becomes a `lesson` note. `GET /internal/loop/readiness?pr=` adds CI
+  on the current head; studio's `merge_readiness` combines it with `repository.is_agent_merge_allowed`.
   `mergeable` is exactly when the GitHub review approves.
 - *Fixed.* An unanswered blocking thread is fixed when a complete delta review touched its file,
   GitHub marks it outdated, and nothing raised this round matches it. Whiskers replies

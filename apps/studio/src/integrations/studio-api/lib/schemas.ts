@@ -16,6 +16,7 @@ export const repositorySchema = z.object({
   name: z.string(),
   isPrivate: z.boolean(),
   isWatched: z.boolean(),
+  isAgentMergeAllowed: z.boolean().default(false),
   language: z.string().nullable(),
   defaultBranch: z.string().nullable(),
   pushedAt: z.coerce.date().nullable(),

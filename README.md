@@ -123,12 +123,21 @@ claude mcp add --transport http code-whiskers https://<studio host>/api/mcp \
 ```
 
 Tools: `get_pr_context`, `review_status`, `wait_for_review`, `get_findings`, `reply_to_finding`,
-`memory_search`, `memory_write`. Every tool checks that the key's owner is in the installation
+`memory_search`, `memory_write`, `merge_readiness`, `get_merge_brief`. Every tool checks that the key's owner is in the installation
 that owns the repository. `reply_to_finding` posts on the finding's GitHub thread through the App,
 labelled as the agent, so the PR keeps the whole conversation; an agent's "disagree" never
 settles a finding or teaches memory — the next review re-checks the claim against the code.
 Agents may add context notes only. [`docs/agent-loop/SKILL.md`](docs/agent-loop/SKILL.md) is a
 Claude Code skill for the loop (copy it to `~/.claude/skills/whiskers-loop/`).
+
+The loop ends at `mergeable`, or hands over as `needs_human` after 5 rounds or when two pushes
+in a row leave the same blockers standing. Either way a **merge brief** is posted on the PR (one
+comment, edited in place): what each round fixed, what still blocks, non-blocking suggestions,
+files the reviewer kept returning to, and the team notes it applied. A blocker a push fixes
+becomes a lesson note on that file. A person merges unless the repository's robot toggle
+(Repositories) lets agents merge; `merge_readiness` says `may_merge` only when the verdict on the
+current head is mergeable, every other check is green, and that toggle is on. Whiskers itself
+never merges.
 
 ## Error tracking
 

@@ -3,6 +3,7 @@ import type { Finding, LlmFinding } from '@code-whiskers/whiskers-domain'
 import type { PriorThread } from '../types'
 import { findingFingerprint } from './fingerprint'
 import { fixedThreads } from './fixed'
+import { limitLoop } from './limits'
 import { closeRound } from './round'
 import type { RoundInput } from './types'
 import { loopVerdict } from './verdict'
@@ -241,5 +242,56 @@ describe('fixedThreads', () => {
     expect(
       fixedThreads({ ...base, threads: [thread(OTP, { isOutdated: true, severity: 'medium' })] }),
     ).toEqual([])
+  })
+})
+
+describe('limitLoop', () => {
+  const blocker = (fingerprint: string, sinceRound: number) =>
+    ({
+      file: 'src/otp.ts',
+      line: 4,
+      severity: 'high',
+      category: 'bug',
+      title: fingerprint,
+      body: '',
+      suggestion: null,
+      evidence: '',
+      fingerprint,
+      sinceRound,
+      threadUrl: null,
+    }) as const
+  const stored = (fingerprint: string) => ({ severity: 'high' as const, fingerprint })
+
+  test('a mergeable round is never handed over', () => {
+    expect(limitLoop('mergeable', 7, [], []).verdict).toBe('mergeable')
+  })
+
+  test('round 5 without clearing the blockers goes to a human', () => {
+    expect(limitLoop('needs_changes', 5, [blocker('wf_a', 5)], [])).toEqual({
+      verdict: 'needs_human',
+      humanReason: 'round_limit',
+    })
+  })
+
+  test('one push that leaves a blocker is still the agent’s to fix', () => {
+    const result = limitLoop('needs_changes', 2, [blocker('wf_a', 1)], [stored('wf_a')])
+    expect(result.verdict).toBe('needs_changes')
+  })
+
+  test('two pushes in a row with the same blockers is a stall', () => {
+    expect(limitLoop('needs_changes', 3, [blocker('wf_a', 1)], [stored('wf_a')])).toEqual({
+      verdict: 'needs_human',
+      humanReason: 'stalled',
+    })
+  })
+
+  test('progress on any blocker is not a stall', () => {
+    const result = limitLoop(
+      'needs_changes',
+      3,
+      [blocker('wf_a', 1)],
+      [stored('wf_a'), stored('wf_b')],
+    )
+    expect(result.verdict).toBe('needs_changes')
   })
 })

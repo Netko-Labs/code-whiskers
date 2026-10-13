@@ -1,6 +1,7 @@
 // conventions: >300 lines — the review's GitHub calls (check runs moved out); split when next touched
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import { App, Octokit } from 'octokit'
+import { CHECK_NAME } from './constants'
 import { diffFromFiles } from './files-diff'
 import {
   REACTION_HINT,
@@ -287,8 +288,6 @@ const VERDICT_EVENT = {
   request_changes: 'REQUEST_CHANGES',
   comment: 'COMMENT',
 } as const
-
-const CHECK_NAME = 'code-whiskers review'
 
 export interface CheckOutput {
   title: string

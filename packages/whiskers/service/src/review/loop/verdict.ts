@@ -4,7 +4,7 @@ import { BLOCKING_SEVERITIES } from '../render'
 /**
  * Where the loop stands, from every open finding (carried blockers included). A critical blocks
  * outright; a high asks for changes; a review that skipped sections never vouches for a merge.
- * `needs_human` is reserved for the loop limit and not produced here.
+ * `needs_human` comes from `limitLoop`, which caps the rounds and spots a stall.
  */
 export function loopVerdict(
   findings: Pick<LlmFinding, 'severity'>[],

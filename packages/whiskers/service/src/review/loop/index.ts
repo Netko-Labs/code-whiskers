@@ -1,5 +1,7 @@
 export { buildReviewContract, contractOfReview, contractOfRound } from './contract'
 export { linkPostedThreads, resolveFixedThreads } from './github'
+export { learnFromFixed } from './lessons'
+export { limitLoop } from './limits'
 export { closeRound } from './round'
 export { findingRows, withThreadUrls } from './rows'
 export { loopVerdict } from './verdict'

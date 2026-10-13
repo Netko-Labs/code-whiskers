@@ -4,9 +4,10 @@ import type { Review } from '@code-whiskers/whiskers-domain'
 import { completeReview, createReview } from '../mutations'
 import { getReviewRound, hasReviewOfHead } from '../queries'
 import { createTokenTally } from '../shared/llm'
+import { publishMergeBrief } from './brief-publish'
 import { completeCheckRun } from './check-run'
 import { fetchPrHead, type PrHead, type PrRef, postPrComment, startCheckRun } from './github'
-import { contractOfRound, resolveFixedThreads } from './loop'
+import { contractOfRound, learnFromFixed, resolveFixedThreads } from './loop'
 import { runPipeline } from './pipeline'
 import { reviewProvider } from './providers'
 import { renderFailureComment } from './render'
@@ -15,6 +16,8 @@ import type { PipelineAttempt, ReviewUsage, RunReviewOptions } from './types'
 import { isRepositoryWatched } from './watching'
 
 export * from './agent-reply'
+export type { MergeBrief } from './brief'
+export * from './brief-publish'
 export * from './check-run'
 export * from './chunk'
 export * from './conventions'
@@ -25,11 +28,13 @@ export * from './loop'
 export * from './memory'
 export * from './prompt'
 export * from './providers'
+export * from './readiness'
 export * from './render'
 export * from './retry'
 export * from './settle'
 export * from './suppressions'
 export * from './threads'
+export type { CiState, HumanReason, LoopReadiness } from './types'
 export * from './watching'
 
 const logger = createLogger('whiskers-review')
@@ -111,7 +116,7 @@ async function reviewHead(
   const progress: PipelineAttempt = { isPosted: false }
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const { report, merged, deltaFrom, loop } = await runPipeline(
+      const { report, merged, deltaFrom, loop, memoryApplied } = await runPipeline(
         ref,
         head,
         review,
@@ -124,16 +129,22 @@ async function reviewHead(
         logger.warn({ err: messageOf(error) }, 'check run update failed')
       })
       await resolveFixedThreads(ref, headSha, loop.fixed)
-      return await completeReview(review.id, {
+      learnFromFixed(ref, headSha, loop.fixed)
+      const completed = await completeReview(review.id, {
         status: 'completed',
         verdict: merged.verdict,
         loopVerdict: loop.verdict,
         fixedSinceLastRound: loop.fixedFingerprints,
+        memoryApplied,
         summary: merged.summary,
         diffScope: deltaFrom ? 'delta' : 'full',
         deltaFrom,
         ...usage(),
       })
+      if (loop.verdict === 'mergeable' || loop.verdict === 'needs_human') {
+        await publishMergeBrief(ref)
+      }
+      return completed
     } catch (error) {
       const delay = retryDelayFor(error, attempt)
       if (delay !== undefined) {

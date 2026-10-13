@@ -1,0 +1,1 @@
+ALTER TABLE "review" ADD COLUMN "memory_applied" jsonb DEFAULT '[]'::jsonb NOT NULL;
