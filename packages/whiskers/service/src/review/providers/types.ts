@@ -56,4 +56,13 @@ export type SingleShotSpec = {
   languageModel: () => LanguageModel
   providerOptions: ProviderOptions | undefined
   credentials: readonly string[]
+  values: ReviewerCredentials
+}
+
+/** Credential name → value, studio's over the worker's env. Never logged, never returned. */
+export type ReviewerCredentials = Readonly<Record<string, string>>
+
+export type ResolvedReviewer = {
+  config: WhiskersConfig
+  credentials: ReviewerCredentials
 }

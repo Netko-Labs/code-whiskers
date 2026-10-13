@@ -4,12 +4,14 @@ import { REVIEW_PROVIDER_CREDENTIALS, type WhiskersConfig } from '@code-whiskers
 import { createGateway } from 'ai'
 import { openrouterModel } from '../../shared/llm'
 import { OPENAI_PROVIDER_OPTIONS } from './constants'
-import type { SingleShotSpec } from './types'
+import { envCredentials } from './settings'
+import type { ReviewerCredentials, SingleShotSpec } from './types'
 
 /** The three single-shot providers differ only here: which model factory, which options. */
 export function singleShotSpec(
   id: 'openrouter' | 'ai-gateway' | 'openai',
   config: WhiskersConfig = whiskersEnvConfig,
+  values: ReviewerCredentials = envCredentials(),
 ): SingleShotSpec {
   const { model } = config.review
   const credentials = REVIEW_PROVIDER_CREDENTIALS[id]
@@ -21,6 +23,7 @@ export function singleShotSpec(
       languageModel: () => openai(model),
       providerOptions: OPENAI_PROVIDER_OPTIONS,
       credentials,
+      values,
     }
   }
   if (id === 'ai-gateway') {
@@ -31,13 +34,15 @@ export function singleShotSpec(
       languageModel: () => gateway(model),
       providerOptions: OPENAI_PROVIDER_OPTIONS,
       credentials,
+      values,
     }
   }
   return {
     id,
     model,
-    languageModel: () => openrouterModel(model),
+    languageModel: () => openrouterModel(model, config.openrouter.apiKey),
     providerOptions: undefined,
     credentials,
+    values,
   }
 }

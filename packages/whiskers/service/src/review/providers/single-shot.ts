@@ -44,11 +44,13 @@ export function createSingleShotProvider(spec: SingleShotSpec): ReviewProvider {
       provider: spec.id,
       model: spec.model,
       isAgentic: false,
-      credentials: credentialPresence(spec.credentials),
+      credentials: credentialPresence(spec.credentials, spec.values),
       executable: null,
-      problems: credentialPresence(spec.credentials).some((c) => c.isSet)
+      problems: credentialPresence(spec.credentials, spec.values).some((c) => c.isSet)
         ? []
-        : [`set ${spec.credentials.join(' or ')} — every review will fail without it`],
+        : [
+            `add ${spec.credentials.join(' or ')} in the AI reviewer settings — reviews fail without it`,
+          ],
     }),
   }
 }

@@ -36,3 +36,20 @@ export const ReviewerTestResultSchema = z.object({
   error: z.string().nullable(),
 })
 export type ReviewerTestResult = z.infer<typeof ReviewerTestResultSchema>
+
+const InheritedModelSchema = z.string().trim().min(1).nullable().catch(null)
+
+/** Studio's `/api/internal/reviewer`: null or a value this worker cannot use inherits from env. */
+export const StudioReviewerSchema = z.object({
+  settings: z.object({
+    provider: ReviewProviderSchema.nullable().catch(null),
+    model: InheritedModelSchema,
+    verifyModel: InheritedModelSchema,
+    mentionModel: InheritedModelSchema,
+    effort: ReviewEffortSchema.nullable().catch(null),
+    maxTurns: z.number().int().positive().nullable().catch(null),
+    maxBudgetUsd: z.number().positive().nullable().catch(null),
+  }),
+  credentials: z.record(z.string(), z.string()).catch({}),
+})
+export type StudioReviewer = z.infer<typeof StudioReviewerSchema>

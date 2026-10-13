@@ -95,7 +95,7 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
       set.status = 401
       return { error: 'unauthorized' }
     }
-    return reviewProvider().status()
+    return (await reviewProvider(true)).status()
   })
   // (｀・ω・´) one tiny structured review through it, to prove the credential and model answer
   .post('/reviewer/test', async ({ request, set }) => {

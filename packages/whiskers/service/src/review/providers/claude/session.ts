@@ -54,7 +54,7 @@ async function runAgent(
       prompt: call.prompt,
       options: buildClaudeOptions({
         cwd: checkout.root,
-        env: claudeEnv(configDir, spec.isDev),
+        env: claudeEnv(configDir, spec.isDev, { ...process.env, ...spec.credentials }),
         systemPrompt: call.systemPrompt,
         config: { ...spec.config, model: call.model, maxTurns: spec.limits.maxTurns },
         executable: spec.binary,

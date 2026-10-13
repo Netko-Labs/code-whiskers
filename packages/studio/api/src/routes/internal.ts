@@ -24,6 +24,7 @@ import {
   getEvaluableRules,
   getMemoryForRepository,
   getRepositoryWatch,
+  getReviewerSecrets,
   getSuppressions,
   learnMemoryNote,
   markMemoryUsed,
@@ -175,4 +176,10 @@ export const internalRoutes = new Elysia({ name: 'internal', prefix: '/internal'
     const isWatched = repo ? await getRepositoryWatch(repo) : null
     if (isWatched === null) return status(404, 'Not found')
     return { isWatched }
+  })
+  // (｀・ω・´) the reviewer as the console set it, keys decrypted — the only place they leave studio
+  .get('/reviewer', async ({ headers, set, status }) => {
+    if (!authorized(headers.authorization)) return status(401, 'Unauthorized')
+    set.headers['cache-control'] = 'no-store'
+    return getReviewerSecrets()
   })

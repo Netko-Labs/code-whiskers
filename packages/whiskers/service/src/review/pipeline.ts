@@ -141,7 +141,7 @@ export async function runPipeline(
     )
   }
 
-  const provider = reviewProvider()
+  const provider = await reviewProvider()
   const chunks = chunkDiff(delta ?? diff, provider.chunkChars)
   const outcomes = await reviewChunks(
     provider,

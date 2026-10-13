@@ -1,9 +1,10 @@
 import { type LlmFix, LlmFixSchema } from '@code-whiskers/whiskers-domain'
 import { generateObject, type LanguageModel } from 'ai'
-import { openrouterModel, repairText } from '../shared/llm'
+import { mentionModel } from '../review/providers'
+import { repairText } from '../shared/llm'
 import { LLM_TIMEOUT_MS } from './constants'
 
-export const fixModel = (): LanguageModel => openrouterModel()
+export const fixModel = (): Promise<LanguageModel> => mentionModel()
 
 export const ANCHORED_SYSTEM = `You are the code-whiskers PR review agent. A user mentioned
 you on a review comment and asked you to fix the issue discussed there. You get a
@@ -23,7 +24,7 @@ actionable from the diff, say what is missing.`
 
 export async function generateFix(system: string, prompt: string): Promise<LlmFix> {
   const { object } = await generateObject({
-    model: fixModel(),
+    model: await fixModel(),
     schema: LlmFixSchema,
     system,
     prompt,

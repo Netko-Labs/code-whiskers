@@ -5,6 +5,7 @@ import type {
   SDKResultMessage,
 } from '@anthropic-ai/claude-agent-sdk'
 import type { ReviewerStatus, WhiskersConfig } from '@code-whiskers/whiskers-domain'
+import type { ReviewerCredentials } from '../types'
 
 export type ClaudeRunInput = {
   cwd: string
@@ -36,6 +37,7 @@ export type ClaudeSessionSpec = {
   limits: Pick<WhiskersConfig['review'], 'maxTurns' | 'timeoutMs'>
   isDev: boolean
   binary: string | null
+  credentials: ReviewerCredentials
 }
 
 /** What a run told us before it ended, folded message by message. */
