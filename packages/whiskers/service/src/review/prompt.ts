@@ -32,8 +32,8 @@ otherwise "approve".
 Preamble sections: "Team memory" is what the maintainers and earlier reviews taught you — follow
 it, including severity, and never raise what it says not to flag.
 "Project conventions" are the repository's CLAUDE.md / AGENTS.md — report a clear violation in a
-changed line as category "convention"; never flag code that follows them. "Where this PR already
-stands" is history — use it, never review it as code.
+changed line as category "convention"; never flag code that follows them. "Live errors" come from production — use them, never review them as code. "Where this PR
+already stands" is history — use it, never review it as code.
 Respond with the JSON object only, no markdown fences, no prose.`
 
 export const AGENT_REVIEW_ADDENDUM = `You run with read-only access to a checkout of this pull request
