@@ -39,7 +39,7 @@ expressions ship from `@code-whiskers/ui/brand`.
 ```bash
 bun install
 cp apps/studio/sample.env apps/studio/.env
-cp apps/whiskers/sample.env apps/whiskers/.env      # add OPENROUTER_API_KEY + GitHub App creds
+cp apps/whiskers/sample.env apps/whiskers/.env      # add GitHub App creds; reviewer keys go in Settings → General
 
 bun run repo docker:up --app studio && bun run repo db:migrate --app studio
 bun run repo docker:up --app whiskers && bun run repo db:migrate --app whiskers
@@ -63,9 +63,13 @@ files from this instance's own error tracking, description, file
 list, delta note, PR history) and its findings go through the same grounding, settling and verdict.
 Each `review completed` log line carries the review's token tally (and turns and cost for an agent).
 
-`REVIEW_PROVIDER` picks the reviewer; `REVIEW_MODEL` overrides its default model:
+Settings → General → **Reviewer settings** picks the provider, models and limits, and **Provider
+keys** stores the keys — encrypted with studio's `ENCRYPTION_KEY`, never shown again, and sent only
+to the worker over `/api/internal/reviewer` (cached a minute; Test and the status panel read fresh).
+A field left empty falls back to the worker's env (`REVIEW_PROVIDER`, `REVIEW_MODEL`,
+`REVIEW_VERIFY_MODEL`, `OPENROUTER_MODEL`, `REVIEW_AGENT_*`, the key names below), then the default:
 
-| `REVIEW_PROVIDER` | how it reviews | credential | default `REVIEW_MODEL` |
+| provider | how it reviews | key | default model |
 | --- | --- | --- | --- |
 | `openrouter` (default) | one structured call per 14k-char chunk, 6 in parallel, medium reasoning | `OPENROUTER_API_KEY` | `openai/gpt-6-luna` |
 | `ai-gateway` | the same, through Vercel AI Gateway; cost lands in the tally | `AI_GATEWAY_API_KEY` | `openai/gpt-6-luna` |
@@ -74,7 +78,8 @@ Each `review completed` log line carries the review's token tally (and turns and
 
 Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
 malformed JSON is repaired and missing fields default. Mentions and fix replies stay on OpenRouter:
-they follow `REVIEW_MODEL` while `REVIEW_PROVIDER=openrouter`, otherwise `OPENROUTER_MODEL`.
+they use the **Mention model**, else the review model while the provider is `openrouter`, else
+`OPENROUTER_MODEL`.
 
 The `claude` agent may open files in the checkout to verify a claim before filing it; evidence must
 still quote changed lines. It gets `Read`, `Grep` and `Glob` only (every other tool removed),
@@ -86,7 +91,7 @@ head sha, cloned with a contents-read token, with `.git` and harness config remo
 
 Before anything is posted, a second model re-reads each `claude` finding in the same checkout,
 with the same team memory, and drops what the code does not prove or what memory says not to
-flag, re-rating severity as it goes (`REVIEW_VERIFY_MODEL`, default `claude-sonnet-5-5`; `off`
+flag, re-rating severity as it goes (**Checker model**, default `claude-sonnet-5-5`; `off`
 posts findings unchecked). On 11 labelled PRs, Haiku raising and Sonnet checking held 75%
 precision with no false blockers at ~$0.03 a review, against Opus alone at 82% for ~$0.27. If the
 checker fails, the findings go out as raised.
@@ -99,9 +104,9 @@ review at once; the console's Memory → Activity shows and undoes every change.
 The harness runs in the worker process, no sandbox: the bot is read-only, and those tool limits,
 the path guard and the trimmed env are the boundary.
 
-Knobs: `REVIEW_AGENT_EFFORT` (medium), `REVIEW_AGENT_MAX_TURNS` (40),
-`REVIEW_AGENT_TIMEOUT_MS` (600000), `REVIEW_AGENT_MAX_BUDGET_USD` (unset),
-`CLAUDE_CODE_EXECUTABLE` (the build ships one at `dist/claude/claude`). A usage limit retries at
+Knobs in the same settings: effort (medium), max turns (40), max budget per run (unset). Env only:
+`REVIEW_AGENT_TIMEOUT_MS` (600000) and `CLAUDE_CODE_EXECUTABLE` (the build ships one at
+`dist/claude/claude`). A usage limit retries at
 its reset when that is within 15 minutes; an expired or revoked token fails the review saying to
 run `claude setup-token`.
 Without either credential a development worker uses the machine's own Claude Code login.
@@ -109,8 +114,8 @@ Without either credential a development worker uses the machine's own Claude Cod
 A `claude setup-token` token is for one operator's personal instance. A shared or team instance
 uses `ANTHROPIC_API_KEY`.
 
-Settings → General shows the active reviewer, which credentials are set (never their values),
-what is missing, and a **Test** button that runs one tiny review through it.
+Settings → General shows the active reviewer, which keys it has and where from (never their
+values), what is missing, and a **Test** button that runs one tiny review through it.
 
 ### Coding agents (MCP)
 
@@ -165,11 +170,10 @@ Production refuses to boot without its required env. Studio serves the public ho
 none and is reached at `WHISKERS_URL=http://<whiskers app uuid>:3002` on the Coolify network.
 
 Studio env: `BASE_URL`, `CORS`, `TRUSTED_ORIGINS`, `AUTH_SECRET`, `ENCRYPTION_KEY` (any length;
-encrypts webhook URLs), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`
+encrypts webhook URLs and reviewer keys — changing it means re-entering them), `DATABASE_URL`, `WHISKERS_URL`, `GITHUB_CLIENT_ID`/`SECRET`, `GITHUB_APP_SLUG`
 (default `code-whiskers`), `INTERNAL_TOKEN`. Whiskers env: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`,
 `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_B64`, `GITHUB_BOT_HANDLE`,
-`OPENROUTER_API_KEY`, `REVIEW_PROVIDER`, `REVIEW_MODEL` and the reviewer's credential (see
-Reviews), `INTERNAL_TOKEN` (also switches on alert evaluation),
+`INTERNAL_TOKEN` (also switches on alert evaluation and reading the reviewer settings),
 `TELEMETRY_RETENTION_DAYS` (default 7), `ERROR_EVENT_RETENTION_DAYS` (default 90).
 
 code-whiskers reports its own errors to a code-whiskers project when `SENTRY_DSN` is set (both apps;

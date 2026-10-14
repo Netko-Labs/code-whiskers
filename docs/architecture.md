@@ -294,8 +294,10 @@ No billing tables. A self-hosted instance has an operator, not a customer.
 **`setting`** — `key` PK, `value` jsonb, `updated_by`, `updated_at`. One row per knob:
 raw log retention days, rollup retention days, ingest rate cap, review concurrency,
 default review model. These are the things a plan tier would have decided for you.
-Exists since migration 0012 with one knob, `instance.name` (Settings → General; a missing
-row reads as "CodeWhiskers"); env-driven values (base URL, release) stay read-only.
+Exists since migration 0012. Knobs: `instance.name` (Settings → General; a missing row reads as
+"CodeWhiskers"), `reviewer.settings` (provider, models, effort, limits; null fields inherit the
+worker's env) and one `reviewer.credential.<NAME>` row per stored key, encrypted. Env-driven values
+(base URL, release) stay read-only.
 
 **`usage_rollup`** — `(meter, period_start)` PK, `meter`
 (`events` \| `log_lines` \| `spans` \| `reviews`), `count`, `bytes`, `updated_at`.
@@ -357,7 +359,11 @@ record.
   finding `{ id, since_round, file, line, severity, title, done_when, evidence, thread }`.
   Schema: `ReviewContractSchema` in `whiskers-domain`; builder: `getPullRequestContract`.
 
-**Review providers.** `REVIEW_PROVIDER` selects one implementation of `ReviewProvider`
+**Review providers.** The reviewer settings (studio `setting` rows `reviewer.settings` and
+`reviewer.credential.*`, keys AES-GCM encrypted with `ENCRYPTION_KEY`) select one implementation of
+`ReviewProvider`; whiskers reads them decrypted from `/api/internal/reviewer` (60 s cache), lays
+them over its env (`applyStudioReviewer`; env is the fallback, switching provider drops the env's
+models) and rebuilds the provider only when the fingerprint changes
 (`packages/whiskers/service/src/review/providers`): `openrouter`, `ai-gateway` and `openai` share
 one single-shot path (one `generateObject` per chunk; only the model factory differs); `claude`
 runs the Claude Agent SDK over a read-only checkout. A provider opens one session per review
