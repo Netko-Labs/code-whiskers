@@ -41,6 +41,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Raises the findings',
     placeholder: 'Provider default',
     inputMode: 'text',
+    catalog: 'review',
   },
   {
     field: 'verifyModel',
@@ -48,6 +49,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Re-reads each finding before it posts; Claude only, "off" skips it',
     placeholder: 'claude-sonnet-5-5',
     inputMode: 'text',
+    catalog: 'claude',
   },
   {
     field: 'mentionModel',
@@ -55,6 +57,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Answers @code-whiskers mentions and fix requests, always through OpenRouter',
     placeholder: 'Follows the review model on OpenRouter',
     inputMode: 'text',
+    catalog: 'openrouter',
   },
 ]
 

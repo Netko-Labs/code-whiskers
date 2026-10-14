@@ -32,3 +32,61 @@ export const ReviewerCredentialSchema = z.object({
   value: z.string().trim().min(1).max(REVIEWER_CREDENTIAL_MAX).nullable(),
 })
 export type ReviewerCredentialInput = z.infer<typeof ReviewerCredentialSchema>
+
+export const ModelCatalogQuerySchema = z.object({ provider: z.enum(REVIEWER_PROVIDERS) })
+
+const PriceSchema = z.number().nonnegative().optional().catch(undefined)
+
+/** One models.dev entry, read leniently: anything malformed reads as unknown, never as a failure. */
+export const ModelsDevModelSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().catch(''),
+  release_date: z.string().optional().catch(undefined),
+  status: z.string().optional().catch(undefined),
+  reasoning: z.boolean().catch(false),
+  tool_call: z.boolean().catch(false),
+  structured_output: z.boolean().optional().catch(undefined),
+  limit: z.object({ context: z.number().optional().catch(undefined) }).catch({}),
+  cost: z
+    .object({
+      input: PriceSchema,
+      output: PriceSchema,
+      context_over_200k: z
+        .object({ input: PriceSchema, output: PriceSchema })
+        .optional()
+        .catch(undefined),
+      tiers: z
+        .array(
+          z.object({
+            input: PriceSchema,
+            output: PriceSchema,
+            tier: z.object({ type: z.string(), size: z.number() }),
+          }),
+        )
+        .optional()
+        .catch(undefined),
+    })
+    .catch({}),
+})
+export type ModelsDevModel = z.infer<typeof ModelsDevModelSchema>
+
+/** Prices in USD per million tokens; `tier` is the dearer rate past a context size. */
+export const CatalogModelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  releaseDate: z.string().nullable(),
+  context: z.number().nullable(),
+  inputCost: z.number().nullable(),
+  outputCost: z.number().nullable(),
+  tier: z
+    .object({
+      contextOver: z.number(),
+      inputCost: z.number().nullable(),
+      outputCost: z.number().nullable(),
+    })
+    .nullable(),
+  isReasoning: z.boolean(),
+  hasTools: z.boolean(),
+  isDeprecated: z.boolean(),
+})
+export type CatalogModel = z.infer<typeof CatalogModelSchema>

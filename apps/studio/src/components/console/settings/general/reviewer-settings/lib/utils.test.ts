@@ -1,6 +1,15 @@
 import { describe, expect, test } from 'bun:test'
 import type { InstanceReviewer } from '@/integrations/studio-api'
-import { credentialState, draftFrom, parseDraft } from './utils'
+import {
+  asProvider,
+  catalogProviderOf,
+  credentialState,
+  draftFrom,
+  matchesModel,
+  modelSummary,
+  parseDraft,
+} from './utils'
+import { MODEL_FIELDS } from './values'
 
 const reviewer = (provider: string, isSet: boolean): InstanceReviewer => ({
   provider,
@@ -43,5 +52,38 @@ describe('credentialState', () => {
     expect(credentialState(presence(false), reviewer('claude', true))).toBe('env')
     expect(credentialState(presence(false), reviewer('claude', false))).toBe('needed')
     expect(credentialState(presence(false), reviewer('openrouter', false))).toBe('unset')
+  })
+})
+
+const haiku = {
+  id: 'claude-haiku-5-5',
+  name: 'Claude Haiku 5.5',
+  releaseDate: '2026-10-07',
+  context: 1_000_000,
+  inputCost: 0.1,
+  outputCost: 0.5,
+  tier: { contextOver: 100_000, inputCost: 0.5, outputCost: 2.5 },
+  isReasoning: true,
+  hasTools: true,
+  isDeprecated: false,
+}
+
+describe('model search', () => {
+  test('the summary carries context, price and the dearer tier', () => {
+    expect(modelSummary(haiku)).toBe('1M context · $0.1 / $0.5 per M · $0.5 / $2.5 past 100k')
+  })
+
+  test('matches id or name, any case', () => {
+    expect(matchesModel(haiku, 'HAIKU 5')).toBe(true)
+    expect(matchesModel(haiku, 'claude-haiku')).toBe(true)
+    expect(matchesModel(haiku, 'opus')).toBe(false)
+  })
+
+  test('the review model follows the active provider; the others are fixed', () => {
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, 'openai')).toBe('openai')
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'claude' }, 'openai')).toBe('claude')
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, null)).toBeNull()
+    expect(asProvider('ai-gateway')).toBe('ai-gateway')
+    expect(asProvider('nope')).toBeNull()
   })
 })

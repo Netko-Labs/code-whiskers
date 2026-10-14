@@ -67,7 +67,10 @@ Settings → General → **Reviewer settings** picks the provider, models and li
 keys** stores the keys — encrypted with studio's `ENCRYPTION_KEY`, never shown again, and sent only
 to the worker over `/api/internal/reviewer` (cached a minute; Test and the status panel read fresh).
 A field left empty falls back to the worker's env (`REVIEW_PROVIDER`, `REVIEW_MODEL`,
-`REVIEW_VERIFY_MODEL`, `OPENROUTER_MODEL`, `REVIEW_AGENT_*`, the key names below), then the default:
+`REVIEW_VERIFY_MODEL`, `OPENROUTER_MODEL`, `REVIEW_AGENT_*`, the key names below), then the default.
+Model fields search [models.dev](https://models.dev) for the provider (studio fetches it at most
+every 6 hours and keeps tool-capable models only), showing context, price per million tokens and
+any dearer context tier; any id still saves.
 
 | provider | how it reviews | key | default model |
 | --- | --- | --- | --- |

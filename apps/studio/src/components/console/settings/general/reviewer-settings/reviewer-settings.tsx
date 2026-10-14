@@ -3,7 +3,14 @@ import { Button } from '@code-whiskers/ui/components/button'
 import { NativeSelect, NativeSelectOption } from '@code-whiskers/ui/components/native-select'
 import { ErrorState } from '@/components/shared/empty-state'
 import { Panel, PanelSkeleton, SettingRow } from '@/components/shared/page'
-import { LIMIT_FIELDS, MODEL_FIELDS, PROVIDER_LABEL, useReviewerSettingsForm } from './lib'
+import {
+  catalogProviderOf,
+  LIMIT_FIELDS,
+  MODEL_FIELDS,
+  PROVIDER_LABEL,
+  useReviewerSettingsForm,
+} from './lib'
+import { ReviewerModelField } from './reviewer-model-field'
 import { ReviewerTextField } from './reviewer-text-field'
 
 export function ReviewerSettings() {
@@ -57,12 +64,12 @@ export function ReviewerSettings() {
         </NativeSelect>
       </SettingRow>
       {MODEL_FIELDS.map((spec) => (
-        <ReviewerTextField
+        <ReviewerModelField
           key={spec.field}
           spec={spec}
+          provider={catalogProviderOf(spec, form.activeProvider)}
           value={form.draft[spec.field]}
           onChange={(value) => form.setField(spec.field, value)}
-          onSubmit={form.save}
         />
       ))}
       <SettingRow
