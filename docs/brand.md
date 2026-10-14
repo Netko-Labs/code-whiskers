@@ -3,7 +3,10 @@
 Source of truth: the Claude Design project
 [CodeWhiskers](https://claude.ai/design/p/741c426a-5850-4698-bb48-ec9e5407aef6) (Brand Guidelines,
 Logo, Expressions, Login). This file is the working summary; the code lives in
-`packages/shared/ui/src/brand` and ships as `@code-whiskers/ui/brand`.
+`packages/shared/ui/src/brand` and ships as `@code-whiskers/ui/brand`. Static assets (SVG masters,
+favicons, app icons, bot avatar, the dashboard prototypes) live in `Netko-Labs/brand-assets` under
+`code-whiskers/`; `bun run code-whiskers:sync ../code-whiskers` writes them into
+`apps/studio/public/`.
 
 ## Idea
 
