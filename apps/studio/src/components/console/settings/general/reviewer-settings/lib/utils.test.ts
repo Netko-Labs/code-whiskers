@@ -52,6 +52,7 @@ describe('credentialState', () => {
     expect(credentialState(presence(false), reviewer('claude', true))).toBe('env')
     expect(credentialState(presence(false), reviewer('claude', false))).toBe('needed')
     expect(credentialState(presence(false), reviewer('openrouter', false))).toBe('unset')
+    expect(credentialState(presence(false), reviewer('openrouter', false), 'claude')).toBe('needed')
   })
 })
 
@@ -80,9 +81,15 @@ describe('model search', () => {
   })
 
   test('the review model follows the active provider; the others are fixed', () => {
-    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, 'openai')).toBe('openai')
-    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'claude' }, 'openai')).toBe('claude')
-    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, null)).toBeNull()
+    const providers = { review: 'openai', mention: 'claude' } as const
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, providers)).toBe('openai')
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'mention' }, providers)).toBe('claude')
+    expect(catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'openrouter' }, providers)).toBe(
+      'openrouter',
+    )
+    expect(
+      catalogProviderOf({ ...MODEL_FIELDS[0], catalog: 'review' }, { review: null, mention: null }),
+    ).toBeNull()
     expect(asProvider('ai-gateway')).toBe('ai-gateway')
     expect(asProvider('nope')).toBeNull()
   })

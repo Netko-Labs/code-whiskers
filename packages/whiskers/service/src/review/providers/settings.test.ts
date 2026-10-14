@@ -18,6 +18,7 @@ const INHERIT: StudioReviewer['settings'] = {
   provider: null,
   model: null,
   verifyModel: null,
+  mentionProvider: null,
   mentionModel: null,
   effort: null,
   maxTurns: null,
@@ -66,9 +67,23 @@ describe('applyStudioReviewer', () => {
 
   test('mentions follow the review model on openrouter unless studio names one', () => {
     const follows = applyStudioReviewer(BASE, studio({ model: 'ui/model' }), ENV)
-    expect(follows.config.openrouter.model).toBe('ui/model')
+    expect(follows.config.mention).toEqual({ provider: 'openrouter', model: 'ui/model' })
     const named = applyStudioReviewer(BASE, studio({ model: 'ui/model', mentionModel: 'm/x' }), ENV)
-    expect(named.config.openrouter.model).toBe('m/x')
+    expect(named.config.mention.model).toBe('m/x')
+  })
+
+  test('a mention provider of its own takes its default, or the review model when they match', () => {
+    const own = applyStudioReviewer(BASE, studio({ mentionProvider: 'openai' }), ENV)
+    expect(own.config.mention).toEqual({ provider: 'openai', model: 'gpt-6-luna' })
+    const settings = {
+      provider: 'claude' as const,
+      model: 'claude-x',
+      mentionProvider: 'claude' as const,
+    }
+    const shared = applyStudioReviewer(BASE, studio(settings), ENV)
+    expect(shared.config.mention).toEqual({ provider: 'claude', model: 'claude-x' })
+    const reviewOnly = applyStudioReviewer(BASE, studio({ provider: 'claude' }), ENV)
+    expect(reviewOnly.config.mention).toEqual(BASE.mention)
   })
 })
 

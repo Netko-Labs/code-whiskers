@@ -8,6 +8,7 @@ export const INHERITED_REVIEWER_SETTINGS: ReviewerSettings = {
   provider: null,
   model: null,
   verifyModel: null,
+  mentionProvider: null,
   mentionModel: null,
   effort: null,
   maxTurns: null,

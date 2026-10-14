@@ -45,6 +45,7 @@ export const StudioReviewerSchema = z.object({
     provider: ReviewProviderSchema.nullable().catch(null),
     model: InheritedModelSchema,
     verifyModel: InheritedModelSchema,
+    mentionProvider: ReviewProviderSchema.nullable().catch(null),
     mentionModel: InheritedModelSchema,
     effort: ReviewEffortSchema.nullable().catch(null),
     maxTurns: z.number().int().positive().nullable().catch(null),

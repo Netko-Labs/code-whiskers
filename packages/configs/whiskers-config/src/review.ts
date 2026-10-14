@@ -44,8 +44,18 @@ export function reviewConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['review
   }
 }
 
-/** Mentions and fix replies stay on OpenRouter; they follow `REVIEW_MODEL` only while reviews do. */
-export function openrouterModelFrom(env: NodeJS.ProcessEnv): string {
-  const reviewModel = reviewProviderFrom(env) === 'openrouter' ? setting(env, 'REVIEW_MODEL') : null
-  return setting(env, 'OPENROUTER_MODEL') ?? reviewModel ?? DEFAULT_REVIEW_MODELS.openrouter
+/**
+ * Mentions and fix replies default to OpenRouter. `MENTION_MODEL` (or the older `OPENROUTER_MODEL`
+ * on OpenRouter) names the model; otherwise they follow `REVIEW_MODEL` while on the review provider.
+ */
+export function mentionConfigFrom(env: NodeJS.ProcessEnv): WhiskersConfig['mention'] {
+  const provider = ReviewProviderSchema.parse(setting(env, 'MENTION_PROVIDER') ?? 'openrouter')
+  const legacy = provider === 'openrouter' ? setting(env, 'OPENROUTER_MODEL') : undefined
+  const reviewModel =
+    reviewProviderFrom(env) === provider ? setting(env, 'REVIEW_MODEL') : undefined
+  return {
+    provider,
+    model:
+      setting(env, 'MENTION_MODEL') ?? legacy ?? reviewModel ?? DEFAULT_REVIEW_MODELS[provider],
+  }
 }

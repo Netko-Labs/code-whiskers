@@ -20,7 +20,7 @@ export function ReviewerCredentials() {
         <ReviewerCredentialRow
           key={credential.name}
           credential={credential}
-          state={credentialState(credential, reviewer)}
+          state={credentialState(credential, reviewer, data.settings.mentionProvider)}
         />
       ))}
     </Panel>
