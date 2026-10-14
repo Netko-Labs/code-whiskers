@@ -12,7 +12,7 @@
     "@code-whiskers/studio-domain": "workspace:*",
     "@code-whiskers/studio-repository": "workspace:*",
     "@code-whiskers/typescript-config": "workspace:*",
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "better-auth": "^1.7.4",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.12",
