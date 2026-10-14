@@ -67,7 +67,8 @@ Settings → General → **Reviewer settings** picks the provider, models and li
 keys** stores the keys — encrypted with studio's `ENCRYPTION_KEY`, never shown again, and sent only
 to the worker over `/api/internal/reviewer` (cached a minute; Test and the status panel read fresh).
 A field left empty falls back to the worker's env (`REVIEW_PROVIDER`, `REVIEW_MODEL`,
-`REVIEW_VERIFY_MODEL`, `OPENROUTER_MODEL`, `REVIEW_AGENT_*`, the key names below), then the default.
+`REVIEW_VERIFY_MODEL`, `MENTION_PROVIDER`, `MENTION_MODEL`, `REVIEW_AGENT_*`, the key names below),
+then the default.
 Model fields search [models.dev](https://models.dev) for the provider (studio fetches it at most
 every 6 hours and keeps tool-capable models only), showing context, price per million tokens and
 any dearer context tier; any id still saves.
@@ -80,9 +81,11 @@ any dearer context tier; any id still saves.
 | `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `ANTHROPIC_API_KEY` | `claude-haiku-5-5` |
 
 Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
-malformed JSON is repaired and missing fields default. Mentions and fix replies stay on OpenRouter:
-they use the **Mention model**, else the review model while the provider is `openrouter`, else
-`OPENROUTER_MODEL`.
+malformed JSON is repaired and missing fields default. Mentions and fix replies answer through the
+**Mention provider** (`MENTION_PROVIDER`, default `openrouter`; any of the four, `claude` as a plain
+Messages API call with `ANTHROPIC_API_KEY`) and the **Mention model**, else the review model while
+both use the same provider, else `MENTION_MODEL` (`OPENROUTER_MODEL` still works on OpenRouter),
+else that provider's default.
 
 The `claude` agent may open files in the checkout to verify a claim before filing it; evidence must
 still quote changed lines. It gets `Read`, `Grep` and `Glob` only (every other tool removed),
@@ -94,8 +97,8 @@ head sha, cloned with a contents-read token, with `.git` and harness config remo
 
 Before anything is posted, a second model re-reads each `claude` finding in the same checkout,
 with the same team memory, and drops what the code does not prove or what memory says not to
-flag, re-rating severity as it goes (**Checker model**, default `claude-sonnet-5-5`; `off`
-posts findings unchecked). On 11 labelled PRs, Haiku raising and Sonnet checking held 75%
+flag, re-rating severity as it goes (**Checker model**, default `claude-sonnet-5-5`; its switch, or
+`REVIEW_VERIFY_MODEL=off`, posts findings unchecked). On 11 labelled PRs, Haiku raising and Sonnet checking held 75%
 precision with no false blockers at ~$0.03 a review, against Opus alone at 82% for ~$0.27. If the
 checker fails, the findings go out as raised.
 

@@ -22,7 +22,6 @@ export const WhiskersConfigSchema = z.object({
   }),
   openrouter: z.object({
     apiKey: z.string().default(''),
-    model: z.string().default(DEFAULT_REVIEW_MODELS.openrouter),
   }),
   openai: z.object({
     apiKey: z.string().default(''),
@@ -39,6 +38,10 @@ export const WhiskersConfigSchema = z.object({
     maxBudgetUsd: z.number().positive().optional(),
     claudeExecutable: z.string().optional(),
     verifyModel: z.string().optional(),
+  }),
+  mention: z.object({
+    provider: ReviewProviderSchema.default('openrouter'),
+    model: z.string().default(DEFAULT_REVIEW_MODELS.openrouter),
   }),
   telemetry: z.object({
     retentionDays: z.number().int().positive().default(7),

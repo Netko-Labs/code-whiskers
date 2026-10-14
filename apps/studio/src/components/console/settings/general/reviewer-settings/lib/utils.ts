@@ -9,7 +9,12 @@ import type {
   ReviewerCredentialPresence,
   ReviewerProvider,
 } from '@/integrations/studio-api'
-import type { ReviewerCredentialState, ReviewerDraft, ReviewerTextFieldSpec } from './types'
+import type {
+  CatalogProviders,
+  ReviewerCredentialState,
+  ReviewerDraft,
+  ReviewerTextFieldSpec,
+} from './types'
 import { CREDENTIAL_PROVIDERS, FIELD_LABEL, INHERITED_SETTINGS } from './values'
 
 export function draftFrom(settings: ReviewerSettings = INHERITED_SETTINGS): ReviewerDraft {
@@ -17,6 +22,7 @@ export function draftFrom(settings: ReviewerSettings = INHERITED_SETTINGS): Revi
     provider: settings.provider ?? '',
     model: settings.model ?? '',
     verifyModel: settings.verifyModel ?? '',
+    mentionProvider: settings.mentionProvider ?? '',
     mentionModel: settings.mentionModel ?? '',
     effort: settings.effort ?? '',
     maxTurns: settings.maxTurns?.toString() ?? '',
@@ -35,6 +41,7 @@ export function parseDraft(
     provider: orNull(draft.provider),
     model: orNull(draft.model),
     verifyModel: orNull(draft.verifyModel),
+    mentionProvider: orNull(draft.mentionProvider),
     mentionModel: orNull(draft.mentionModel),
     effort: orNull(draft.effort),
     maxTurns: numberOrNull(draft.maxTurns),
@@ -53,12 +60,13 @@ export function parseDraft(
 export function credentialState(
   credential: ReviewerCredentialPresence,
   reviewer: InstanceReviewer | undefined,
+  mentionProvider: ReviewerProvider | null = null,
 ): ReviewerCredentialState {
   if (credential.isSet) return 'stored'
   const onWorker = reviewer?.credentials.find((held) => held.name === credential.name)
   if (onWorker?.isSet) return 'env'
-  const isUsed =
-    reviewer && CREDENTIAL_PROVIDERS[credential.name].some((p) => p === reviewer.provider)
+  const inUse = [reviewer?.provider, mentionProvider]
+  const isUsed = CREDENTIAL_PROVIDERS[credential.name].some((p) => inUse.includes(p))
   return isUsed ? 'needed' : 'unset'
 }
 
@@ -68,11 +76,15 @@ export function asProvider(value: string | undefined): ReviewerProvider | null {
 
 export function catalogProviderOf(
   spec: ReviewerTextFieldSpec,
-  activeProvider: ReviewerProvider | null,
+  providers: CatalogProviders,
 ): ReviewerProvider | null {
   if (!spec.catalog) return null
-  return spec.catalog === 'review' ? activeProvider : spec.catalog
+  return spec.catalog === 'review' || spec.catalog === 'mention'
+    ? providers[spec.catalog]
+    : spec.catalog
 }
+
+export const isDisabledModel = (value: string): boolean => value.trim().toLowerCase() === 'off'
 
 export function matchesModel(model: CatalogModel, query: string): boolean {
   const needle = query.trim().toLowerCase()

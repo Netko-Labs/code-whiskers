@@ -11,11 +11,15 @@ import {
 
 const ModelSchema = z.string().trim().min(1).max(REVIEWER_MODEL_MAX).nullable()
 
-/** Null inherits: the worker's env first, then the provider's default. `verifyModel: 'off'` skips the checker. */
+/**
+ * Null inherits: the worker's env first, then the provider's default. `verifyModel: 'off'` skips the
+ * checker. `mentionProvider` answers mentions and fix requests, separately from reviews.
+ */
 export const ReviewerSettingsSchema = z.object({
   provider: z.enum(REVIEWER_PROVIDERS).nullable(),
   model: ModelSchema,
   verifyModel: ModelSchema,
+  mentionProvider: z.enum(REVIEWER_PROVIDERS).nullable(),
   mentionModel: ModelSchema,
   effort: z.enum(REVIEWER_EFFORTS).nullable(),
   maxTurns: z.number().int().min(1).max(REVIEWER_MAX_TURNS_LIMIT).nullable(),

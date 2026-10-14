@@ -1,9 +1,9 @@
 import { whiskersEnvConfig } from '@code-whiskers/whiskers-config'
 import type { ReviewerTestResult, WhiskersConfig } from '@code-whiskers/whiskers-domain'
 import type { LanguageModel } from 'ai'
-import { createTokenTally, openrouterModel } from '../../shared/llm'
+import { createTokenTally } from '../../shared/llm'
 import { createClaudeProvider } from './claude'
-import { singleShotSpec } from './models'
+import { languageModelOf, singleShotSpec } from './models'
 import { envCredentials, fingerprintOf, resolveReviewer } from './settings'
 import { createSingleShotProvider } from './single-shot'
 import type { ReviewerCredentials, ReviewProvider } from './types'
@@ -30,10 +30,10 @@ export async function reviewProvider(fresh = false): Promise<ReviewProvider> {
   return active.provider
 }
 
-/** Mentions and fix replies always answer through OpenRouter, keyed like the reviewer. */
+/** Mentions and fix replies answer through their own provider, keyed like the reviewer. */
 export async function mentionModel(): Promise<LanguageModel> {
-  const { openrouter } = (await resolveReviewer()).config
-  return openrouterModel(openrouter.model, openrouter.apiKey)
+  const { config, credentials } = await resolveReviewer()
+  return languageModelOf(config.mention.provider, config.mention.model, config, credentials)
 }
 
 /** A tiny review through the active provider: proves the credential and model answer, nothing more. */

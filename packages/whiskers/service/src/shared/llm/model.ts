@@ -8,7 +8,7 @@ import {
 } from './constants'
 
 export function openrouterModel(
-  id = whiskersEnvConfig.openrouter.model,
+  id: string,
   apiKey = whiskersEnvConfig.openrouter.apiKey,
 ): LanguageModel {
   return createOpenRouter({ apiKey })(id, {

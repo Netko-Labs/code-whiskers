@@ -1,4 +1,4 @@
-import { REVIEWER_EFFORTS, REVIEWER_PROVIDERS } from '@code-whiskers/studio-domain'
+import { REVIEWER_EFFORTS } from '@code-whiskers/studio-domain'
 import { Button } from '@code-whiskers/ui/components/button'
 import { NativeSelect, NativeSelectOption } from '@code-whiskers/ui/components/native-select'
 import { ErrorState } from '@/components/shared/empty-state'
@@ -6,11 +6,12 @@ import { Panel, PanelSkeleton, SettingRow } from '@/components/shared/page'
 import {
   catalogProviderOf,
   LIMIT_FIELDS,
+  MENTION_MODEL_FIELD,
   MODEL_FIELDS,
-  PROVIDER_LABEL,
   useReviewerSettingsForm,
 } from './lib'
 import { ReviewerModelField } from './reviewer-model-field'
+import { ReviewerProviderSelect } from './reviewer-provider-select'
 import { ReviewerTextField } from './reviewer-text-field'
 
 export function ReviewerSettings() {
@@ -45,33 +46,37 @@ export function ReviewerSettings() {
       }
       isFlush
     >
-      <SettingRow
+      <ReviewerProviderSelect
+        id="reviewer-provider"
         label="Provider"
-        htmlFor="reviewer-provider"
         description="One call per diff slice, or an agent over a read-only checkout (Claude)"
-      >
-        <NativeSelect
-          id="reviewer-provider"
-          value={form.draft.provider}
-          onChange={(event) => form.setField('provider', event.target.value)}
-        >
-          <NativeSelectOption value="">Inherit</NativeSelectOption>
-          {REVIEWER_PROVIDERS.map((provider) => (
-            <NativeSelectOption key={provider} value={provider}>
-              {PROVIDER_LABEL[provider]}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </SettingRow>
+        inheritLabel="Inherit"
+        value={form.draft.provider}
+        onChange={(value) => form.setField('provider', value)}
+      />
       {MODEL_FIELDS.map((spec) => (
         <ReviewerModelField
           key={spec.field}
           spec={spec}
-          provider={catalogProviderOf(spec, form.activeProvider)}
+          provider={catalogProviderOf(spec, form.catalogProviders)}
           value={form.draft[spec.field]}
           onChange={(value) => form.setField(spec.field, value)}
         />
       ))}
+      <ReviewerProviderSelect
+        id="reviewer-mention-provider"
+        label="Mention provider"
+        description="Answers @code-whiskers mentions and fix requests; any provider, with its key below"
+        inheritLabel="Inherit (OpenRouter)"
+        value={form.draft.mentionProvider}
+        onChange={(value) => form.setField('mentionProvider', value)}
+      />
+      <ReviewerModelField
+        spec={MENTION_MODEL_FIELD}
+        provider={catalogProviderOf(MENTION_MODEL_FIELD, form.catalogProviders)}
+        value={form.draft.mentionModel}
+        onChange={(value) => form.setField('mentionModel', value)}
+      />
       <SettingRow
         label="Effort"
         htmlFor="reviewer-effort"

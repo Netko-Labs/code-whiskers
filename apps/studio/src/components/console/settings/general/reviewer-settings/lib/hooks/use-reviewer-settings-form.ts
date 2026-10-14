@@ -9,6 +9,7 @@ import {
 import { useConsoleStore } from '../../../../../use-console-store'
 import type { ReviewerDraft, ReviewerSettingsForm } from '../types'
 import { asProvider, draftFrom, parseDraft } from '../utils'
+import { DEFAULT_MENTION_PROVIDER } from '../values'
 
 /** Edits stay local until saved; the worker's status refetches so the panel above shows the change. */
 export function useReviewerSettingsForm(): ReviewerSettingsForm {
@@ -44,7 +45,10 @@ export function useReviewerSettingsForm(): ReviewerSettingsForm {
     isLoading: query.isPending,
     isError: query.isError,
     retry: () => void query.refetch(),
-    activeProvider: asProvider(draft.provider) ?? asProvider(reviewer?.provider),
+    catalogProviders: {
+      review: asProvider(draft.provider) ?? asProvider(reviewer?.provider),
+      mention: asProvider(draft.mentionProvider) ?? DEFAULT_MENTION_PROVIDER,
+    },
     setField: (field, value) => setEdits((current) => ({ ...current, [field]: value })),
     reset: () => setEdits({}),
     save: () => {

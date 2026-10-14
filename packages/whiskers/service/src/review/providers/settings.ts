@@ -49,16 +49,22 @@ export function applyStudioReviewer(
   const isSwitched = provider !== base.review.provider
   const model = settings.model ?? (isSwitched ? DEFAULT_REVIEW_MODELS[provider] : base.review.model)
   const inheritedVerify = isSwitched ? DEFAULT_VERIFY_MODELS[provider] : base.review.verifyModel
+  const mentionProvider = settings.mentionProvider ?? base.mention.provider
+  const isMentionSwitched = mentionProvider !== base.mention.provider
+  const isMentionOnReview = mentionProvider === provider && (!!settings.model || isMentionSwitched)
   const mentionModel =
     settings.mentionModel ??
-    (provider === 'openrouter' && settings.model ? settings.model : base.openrouter.model)
+    (isMentionOnReview
+      ? model
+      : isMentionSwitched
+        ? DEFAULT_REVIEW_MODELS[mentionProvider]
+        : base.mention.model)
   return {
     config: {
       ...base,
       openrouter: {
         ...base.openrouter,
         apiKey: credentials.OPENROUTER_API_KEY ?? '',
-        model: mentionModel,
       },
       openai: { ...base.openai, apiKey: credentials.OPENAI_API_KEY ?? '' },
       aiGateway: { ...base.aiGateway, apiKey: credentials.AI_GATEWAY_API_KEY ?? '' },
@@ -71,6 +77,7 @@ export function applyStudioReviewer(
         maxTurns: settings.maxTurns ?? base.review.maxTurns,
         maxBudgetUsd: settings.maxBudgetUsd ?? base.review.maxBudgetUsd,
       },
+      mention: { provider: mentionProvider, model: mentionModel },
     },
     credentials,
   }
@@ -87,6 +94,6 @@ export async function resolveReviewer(fresh = false): Promise<ResolvedReviewer> 
 /** Changes whenever anything that shapes a provider does, credentials included. */
 export function fingerprintOf({ config, credentials }: ResolvedReviewer): string {
   return createHash('sha256')
-    .update(JSON.stringify([config.review, config.openrouter, credentials]))
+    .update(JSON.stringify([config.review, config.mention, config.openrouter, credentials]))
     .digest('hex')
 }

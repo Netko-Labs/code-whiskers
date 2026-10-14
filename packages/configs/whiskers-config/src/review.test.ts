@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { assertProductionEnv } from './production'
-import { openrouterModelFrom, reviewConfigFrom } from './review'
+import { mentionConfigFrom, reviewConfigFrom } from './review'
 
 const PRODUCTION = {
   NODE_ENV: 'production',
@@ -63,13 +63,32 @@ describe('reviewConfigFrom', () => {
   })
 })
 
-describe('openrouterModelFrom', () => {
-  test('follows REVIEW_MODEL only while reviews run on openrouter', () => {
-    expect(openrouterModelFrom({ REVIEW_MODEL: 'x/y' })).toBe('x/y')
-    expect(openrouterModelFrom({ REVIEW_PROVIDER: 'claude', REVIEW_MODEL: 'claude-x' })).toBe(
+describe('mentionConfigFrom', () => {
+  const modelOf = (env: NodeJS.ProcessEnv) => mentionConfigFrom(env).model
+
+  test('defaults to openrouter and follows REVIEW_MODEL only while reviews run there too', () => {
+    expect(mentionConfigFrom({}).provider).toBe('openrouter')
+    expect(modelOf({ REVIEW_MODEL: 'x/y' })).toBe('x/y')
+    expect(modelOf({ REVIEW_PROVIDER: 'claude', REVIEW_MODEL: 'claude-x' })).toBe(
       'openai/gpt-6-luna',
     )
-    expect(openrouterModelFrom({ REVIEW_PROVIDER: 'claude', OPENROUTER_MODEL: 'a/b' })).toBe('a/b')
+    expect(modelOf({ REVIEW_PROVIDER: 'claude', OPENROUTER_MODEL: 'a/b' })).toBe('a/b')
+  })
+
+  test('MENTION_PROVIDER picks another provider with its own default, or MENTION_MODEL', () => {
+    expect(mentionConfigFrom({ MENTION_PROVIDER: 'claude' })).toEqual({
+      provider: 'claude',
+      model: 'claude-haiku-5-5',
+    })
+    const sameAsReview = {
+      MENTION_PROVIDER: 'claude',
+      REVIEW_PROVIDER: 'claude',
+      REVIEW_MODEL: 'c',
+    }
+    expect(modelOf(sameAsReview)).toBe('c')
+    expect(modelOf({ MENTION_PROVIDER: 'openai', MENTION_MODEL: 'gpt-x' })).toBe('gpt-x')
+    expect(modelOf({ MENTION_PROVIDER: 'openai', OPENROUTER_MODEL: 'a/b' })).toBe('gpt-6-luna')
+    expect(() => mentionConfigFrom({ MENTION_PROVIDER: 'anthropic' })).toThrow()
   })
 })
 

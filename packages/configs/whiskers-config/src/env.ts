@@ -1,6 +1,6 @@
 import { dsnOf, environmentOf, releaseOf } from '@code-whiskers/observability'
 import { type WhiskersConfig, WhiskersConfigSchema } from '@code-whiskers/whiskers-domain'
-import { openrouterModelFrom, reviewConfigFrom } from './review'
+import { mentionConfigFrom, reviewConfigFrom } from './review'
 
 const whiskersConfig: WhiskersConfig = {
   app: {
@@ -25,7 +25,6 @@ const whiskersConfig: WhiskersConfig = {
   },
   openrouter: {
     apiKey: process.env.OPENROUTER_API_KEY ?? '',
-    model: openrouterModelFrom(process.env),
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY ?? '',
@@ -34,6 +33,7 @@ const whiskersConfig: WhiskersConfig = {
     apiKey: process.env.AI_GATEWAY_API_KEY ?? '',
   },
   review: reviewConfigFrom(process.env),
+  mention: mentionConfigFrom(process.env),
   telemetry: {
     retentionDays: Number(process.env.TELEMETRY_RETENTION_DAYS ?? 7),
     errorEventRetentionDays: Number(process.env.ERROR_EVENT_RETENTION_DAYS ?? 90),

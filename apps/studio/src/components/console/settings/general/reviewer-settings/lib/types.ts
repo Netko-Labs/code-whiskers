@@ -10,14 +10,18 @@ export type ReviewerField = keyof ReviewerSettings
 export type ReviewerDraft = Record<ReviewerField, string>
 
 export type ReviewerTextFieldSpec = {
-  field: Exclude<ReviewerField, 'provider' | 'effort'>
+  field: Exclude<ReviewerField, 'provider' | 'mentionProvider' | 'effort'>
   label: string
   description: string
   placeholder: string
   inputMode: 'text' | 'numeric' | 'decimal'
-  /** Whose models.dev list to search: the review provider's, or a fixed one. */
-  catalog?: 'review' | ReviewerProvider
+  /** Whose models.dev list to search: the review or mention provider's, or a fixed one. */
+  catalog?: 'review' | 'mention' | ReviewerProvider
+  /** Set, a switch beside the input saves the `'off'` sentinel and shows this instead. */
+  offLabel?: string
 }
+
+export type CatalogProviders = Record<'review' | 'mention', ReviewerProvider | null>
 
 export type ReviewerSettingsForm = {
   draft: ReviewerDraft
@@ -27,7 +31,7 @@ export type ReviewerSettingsForm = {
   isLoading: boolean
   isError: boolean
   retry: () => void
-  activeProvider: ReviewerProvider | null
+  catalogProviders: CatalogProviders
   setField: (field: ReviewerField, value: string) => void
   reset: () => void
   save: () => void
@@ -42,6 +46,15 @@ export type ReviewerTextFieldProps = {
 
 export type ReviewerModelFieldProps = Omit<ReviewerTextFieldProps, 'onSubmit'> & {
   provider: ReviewerProvider | null
+}
+
+export type ReviewerProviderSelectProps = {
+  id: string
+  label: string
+  description: string
+  inheritLabel: string
+  value: string
+  onChange: (value: string) => void
 }
 
 export type ReviewerCredentialForm = {
