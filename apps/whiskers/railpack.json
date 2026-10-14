@@ -3,6 +3,7 @@
   "provider": "node",
   "steps": {
     "build": {
+      "deployOutputs": [],
       "commands": ["...", "bun run repo build --app whiskers"]
     }
   },
