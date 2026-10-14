@@ -1,11 +1,13 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
 import {
   InstanceSettingsSchema,
+  ModelCatalogQuerySchema,
   ReviewerCredentialSchema,
   ReviewerSettingsSchema,
 } from '@code-whiskers/studio-domain'
 import {
   getInstanceSettings,
+  getModelCatalog,
   getReviewerSettings,
   getStudioStorage,
   hasInstanceAccess,
@@ -68,6 +70,10 @@ export const instanceRoutes = new Elysia({ name: 'instance', prefix: '/instance'
       return updateReviewerSettings(user.id, body)
     },
   )
+  // (・∀・) models.dev's list for one provider, so a model id is picked rather than recalled
+  .get('/reviewer/models', { auth: true, query: ModelCatalogQuerySchema }, async ({ query }) => ({
+    models: await getModelCatalog(query.provider),
+  }))
   // (｀・ω・´) write-only: store, replace or remove one key
   .put(
     '/reviewer/credentials',

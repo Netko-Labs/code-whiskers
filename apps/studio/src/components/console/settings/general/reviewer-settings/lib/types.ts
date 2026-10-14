@@ -1,4 +1,8 @@
-import type { ReviewerCredentialPresence, ReviewerSettings } from '@/integrations/studio-api'
+import type {
+  ReviewerCredentialPresence,
+  ReviewerProvider,
+  ReviewerSettings,
+} from '@/integrations/studio-api'
 
 export type ReviewerField = keyof ReviewerSettings
 
@@ -11,6 +15,8 @@ export type ReviewerTextFieldSpec = {
   description: string
   placeholder: string
   inputMode: 'text' | 'numeric' | 'decimal'
+  /** Whose models.dev list to search: the review provider's, or a fixed one. */
+  catalog?: 'review' | ReviewerProvider
 }
 
 export type ReviewerSettingsForm = {
@@ -21,6 +27,7 @@ export type ReviewerSettingsForm = {
   isLoading: boolean
   isError: boolean
   retry: () => void
+  activeProvider: ReviewerProvider | null
   setField: (field: ReviewerField, value: string) => void
   reset: () => void
   save: () => void
@@ -31,6 +38,10 @@ export type ReviewerTextFieldProps = {
   value: string
   onChange: (value: string) => void
   onSubmit: () => void
+}
+
+export type ReviewerModelFieldProps = Omit<ReviewerTextFieldProps, 'onSubmit'> & {
+  provider: ReviewerProvider | null
 }
 
 export type ReviewerCredentialForm = {

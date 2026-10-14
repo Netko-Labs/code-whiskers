@@ -22,9 +22,11 @@ import {
   memberListSchema,
   memoryActivityListSchema,
   memoryNoteListSchema,
+  modelCatalogSchema,
   okSchema,
   organizationListSchema,
   type ReviewerCredentialInput,
+  type ReviewerProvider,
   type ReviewerSettings,
   recentTriageActivityListSchema,
   repositoryListSchema,
@@ -128,6 +130,15 @@ export const reviewerSettingsQuery = () =>
   queryOptions({
     queryKey: [STUDIO_QUERY_KEY, 'instance', 'reviewer', 'settings'],
     queryFn: () => fetchStudio('/instance/reviewer/settings', reviewerSettingsRecordSchema),
+  })
+
+/** models.dev moves slowly; studio caches it for hours, so the browser can hold it too. */
+export const reviewerModelsQuery = (provider: ReviewerProvider) =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance', 'reviewer', 'models', provider],
+    queryFn: () =>
+      fetchStudio(`/instance/reviewer/models?provider=${provider}`, modelCatalogSchema),
+    staleTime: 60 * 60 * 1000,
   })
 
 export const updateReviewerSettings = (input: ReviewerSettings) =>

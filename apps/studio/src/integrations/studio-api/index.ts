@@ -25,6 +25,7 @@ export {
   recordTriage,
   renameSavedQuery,
   repositoriesQuery,
+  reviewerModelsQuery,
   reviewerSettingsQuery,
   revokeApiKey,
   STUDIO_QUERY_KEY,

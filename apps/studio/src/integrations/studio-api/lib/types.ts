@@ -38,8 +38,10 @@ export type Instance = z.infer<typeof instanceSchema>
 export type InstanceHealth = z.infer<typeof instanceHealthSchema>
 export type InstanceSettingsInput = { name: string }
 export type ReviewerSettingsRecord = z.infer<typeof reviewerSettingsRecordSchema>
+export type ReviewerProvider = NonNullable<ReviewerSettingsRecord['settings']['provider']>
 export type ReviewerCredentialPresence = ReviewerSettingsRecord['credentials'][number]
 export type {
+  CatalogModel,
   ReviewerCredentialInput,
   ReviewerCredentialName,
   ReviewerSettings,

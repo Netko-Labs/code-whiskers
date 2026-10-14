@@ -41,6 +41,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Raises the findings',
     placeholder: 'Provider default',
     inputMode: 'text',
+    catalog: 'review',
   },
   {
     field: 'verifyModel',
@@ -48,6 +49,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Re-reads each finding before it posts; Claude only, "off" skips it',
     placeholder: 'claude-sonnet-5-5',
     inputMode: 'text',
+    catalog: 'claude',
   },
   {
     field: 'mentionModel',
@@ -55,6 +57,7 @@ export const MODEL_FIELDS: ReviewerTextFieldSpec[] = [
     description: 'Answers @code-whiskers mentions and fix requests, always through OpenRouter',
     placeholder: 'Follows the review model on OpenRouter',
     inputMode: 'text',
+    catalog: 'openrouter',
   },
 ]
 
@@ -80,15 +83,13 @@ export const CREDENTIAL_LABEL: Record<ReviewerCredentialName, string> = {
   AI_GATEWAY_API_KEY: 'Vercel AI Gateway',
   OPENAI_API_KEY: 'OpenAI',
   ANTHROPIC_API_KEY: 'Anthropic',
-  CLAUDE_CODE_OAUTH_TOKEN: 'Claude subscription token',
 }
 
 export const CREDENTIAL_USE: Record<ReviewerCredentialName, string> = {
   OPENROUTER_API_KEY: 'Reviews on OpenRouter, and every @mention reply',
   AI_GATEWAY_API_KEY: 'Reviews through the AI Gateway',
   OPENAI_API_KEY: 'Reviews straight on OpenAI',
-  ANTHROPIC_API_KEY: 'Claude reviews, billed per token',
-  CLAUDE_CODE_OAUTH_TOKEN: 'Claude reviews on a subscription; from `claude setup-token`',
+  ANTHROPIC_API_KEY: 'Claude reviews and the finding checker',
 }
 
 export const CREDENTIAL_BADGE: Record<
@@ -106,5 +107,4 @@ export const CREDENTIAL_PROVIDERS: Record<ReviewerCredentialName, readonly Provi
   AI_GATEWAY_API_KEY: ['ai-gateway'],
   OPENAI_API_KEY: ['openai'],
   ANTHROPIC_API_KEY: ['claude'],
-  CLAUDE_CODE_OAUTH_TOKEN: ['claude'],
 }

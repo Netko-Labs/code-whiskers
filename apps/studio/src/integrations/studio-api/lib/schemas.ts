@@ -1,4 +1,8 @@
-import { ReviewerCredentialNameSchema, ReviewerSettingsSchema } from '@code-whiskers/studio-domain'
+import {
+  CatalogModelSchema,
+  ReviewerCredentialNameSchema,
+  ReviewerSettingsSchema,
+} from '@code-whiskers/studio-domain'
 import { z } from 'zod'
 
 export const organizationSchema = z.object({
@@ -169,6 +173,8 @@ export const reviewerSettingsRecordSchema = z.object({
   ),
   updatedAt: z.coerce.date().nullable(),
 })
+
+export const modelCatalogSchema = z.object({ models: z.array(CatalogModelSchema) })
 
 export const instanceHealthSchema = z.object({
   status: z.enum(['ok', 'degraded', 'unreachable']),

@@ -8,12 +8,13 @@ import {
 } from '@/integrations/studio-api'
 import { useConsoleStore } from '../../../../../use-console-store'
 import type { ReviewerDraft, ReviewerSettingsForm } from '../types'
-import { draftFrom, parseDraft } from '../utils'
+import { asProvider, draftFrom, parseDraft } from '../utils'
 
 /** Edits stay local until saved; the worker's status refetches so the panel above shows the change. */
 export function useReviewerSettingsForm(): ReviewerSettingsForm {
   const queryClient = useQueryClient()
   const query = useQuery({ ...reviewerSettingsQuery(), retry: false })
+  const { data: reviewer } = useQuery({ ...instanceReviewerQuery(), retry: false })
   const [edits, setEdits] = useState<Partial<ReviewerDraft>>({})
   const saved = draftFrom(query.data?.settings)
   const draft = { ...saved, ...edits }
@@ -43,6 +44,7 @@ export function useReviewerSettingsForm(): ReviewerSettingsForm {
     isLoading: query.isPending,
     isError: query.isError,
     retry: () => void query.refetch(),
+    activeProvider: asProvider(draft.provider) ?? asProvider(reviewer?.provider),
     setField: (field, value) => setEdits((current) => ({ ...current, [field]: value })),
     reset: () => setEdits({}),
     save: () => {
