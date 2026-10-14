@@ -39,6 +39,8 @@ export default defineConfig(({ command }) => ({
     tailwindcss(),
     tanstackStart(),
     nitro({
+      // use-sync-external-store's CJS shim keeps a runtime require('react'); ship the real package.
+      traceDeps: ['react'],
       features: { websocket: true },
       handlers: [{ route: '/realtime', handler: './src/server/realtime/handler.ts' }],
       plugins: [
