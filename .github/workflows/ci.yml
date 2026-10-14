@@ -5,6 +5,8 @@ on:
     types: [opened, synchronize, ready_for_review, reopened, edited]
   push:
     branches: [main]
+  # Dispatched by dependabot-lockfile.yml after it rewrites a Dependabot branch.
+  workflow_dispatch:
 
 jobs:
   quality:
@@ -26,7 +28,7 @@ jobs:
           test -z "$drift" || { echo "$drift"; echo 'schema changed without a committed migration'; exit 1; }
 
   commitlint:
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'push'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
@@ -36,4 +38,4 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+      - run: bunx commitlint --from ${{ github.event.pull_request.base.sha || 'origin/main' }} --to ${{ github.event.pull_request.head.sha || 'HEAD' }}

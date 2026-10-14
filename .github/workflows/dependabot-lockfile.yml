@@ -1,0 +1,47 @@
+name: Dependabot lockfile
+# Dependabot's npm updater never touches bun.lock and its subject fails commitlint. A GITHUB_TOKEN
+# push starts no workflow, so the job dispatches CI itself.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  lockfile:
+    if: github.actor == 'dependabot[bot]' && startsWith(github.head_ref, 'dependabot/npm_and_yarn/')
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - name: one conventional commit with the regenerated lockfile
+        id: rewrite
+        run: |
+          if [ "$(git log -1 --format=%an)" != 'dependabot[bot]' ]; then
+            echo 'head is already rewritten'; exit 0
+          fi
+          subject=$(git log -1 --format=%s)
+          git log -1 --format=%b > /tmp/body
+          git reset --soft "$(git merge-base HEAD origin/main)"
+          bun install
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          { printf '🏗️ %s\n\n' "${subject%% in /*}"; cat /tmp/body; } > /tmp/message
+          git commit -F /tmp/message --no-verify
+          git push --force-with-lease
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+      - name: run CI on the rewritten head
+        if: steps.rewrite.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.head_ref }}
+        run: gh workflow run ci.yml --ref "$BRANCH"
