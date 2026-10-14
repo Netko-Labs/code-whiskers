@@ -24,8 +24,11 @@ import {
   memoryNoteListSchema,
   okSchema,
   organizationListSchema,
+  type ReviewerCredentialInput,
+  type ReviewerSettings,
   recentTriageActivityListSchema,
   repositoryListSchema,
+  reviewerSettingsRecordSchema,
   type SavedQueryInput,
   savedQueryListSchema,
   studioStorageSchema,
@@ -120,6 +123,18 @@ export const instanceReviewerQuery = () =>
 
 export const testInstanceReviewer = () =>
   fetchStudio('/instance/reviewer/test', WhiskersReviewerTestSchema, 'POST')
+
+export const reviewerSettingsQuery = () =>
+  queryOptions({
+    queryKey: [STUDIO_QUERY_KEY, 'instance', 'reviewer', 'settings'],
+    queryFn: () => fetchStudio('/instance/reviewer/settings', reviewerSettingsRecordSchema),
+  })
+
+export const updateReviewerSettings = (input: ReviewerSettings) =>
+  fetchStudio('/instance/reviewer/settings', reviewerSettingsRecordSchema, 'PATCH', input)
+
+export const setReviewerCredential = (input: ReviewerCredentialInput) =>
+  fetchStudio('/instance/reviewer/credentials', reviewerSettingsRecordSchema, 'PUT', input)
 
 export const studioStorageQuery = () =>
   queryOptions({

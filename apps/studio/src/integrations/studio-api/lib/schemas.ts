@@ -1,3 +1,4 @@
+import { ReviewerCredentialNameSchema, ReviewerSettingsSchema } from '@code-whiskers/studio-domain'
 import { z } from 'zod'
 
 export const organizationSchema = z.object({
@@ -155,6 +156,18 @@ export const instanceSchema = instanceSettingsSchema.extend({
   release: z.string().default(''),
   environment: z.string().default(''),
   githubApp: z.object({ slug: z.string(), url: z.string(), installUrl: z.string() }),
+})
+
+export const reviewerSettingsRecordSchema = z.object({
+  settings: ReviewerSettingsSchema,
+  credentials: z.array(
+    z.object({
+      name: ReviewerCredentialNameSchema,
+      isSet: z.boolean(),
+      updatedAt: z.coerce.date().nullable(),
+    }),
+  ),
+  updatedAt: z.coerce.date().nullable(),
 })
 
 export const instanceHealthSchema = z.object({
