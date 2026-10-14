@@ -24,12 +24,10 @@ export function createClaudeProvider(
   values: ReviewerCredentials = envCredentials(),
 ): ReviewProvider {
   const review = config.review
-  const isDev = config.app.dev
   const host = hostClaudeBinary(review.claudeExecutable)
   const spec: ClaudeSessionSpec = {
     config: review,
     limits: review,
-    isDev,
     binary: host.path,
     credentials: values,
   }
@@ -37,10 +35,7 @@ export function createClaudeProvider(
   const status = async (): Promise<ReviewerStatus> => {
     const credentials = credentialPresence(CLAUDE_CREDENTIALS, values)
     const problems = [
-      !credentials.some((c) => c.isSet) &&
-        (isDev
-          ? 'no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY: using this machine’s Claude Code login'
-          : 'add ANTHROPIC_API_KEY (or CLAUDE_CODE_OAUTH_TOKEN) in the AI reviewer settings'),
+      !credentials.some((c) => c.isSet) && 'add ANTHROPIC_API_KEY in the AI reviewer settings',
       host.source === 'missing' && 'no Claude Code binary: set CLAUDE_CODE_EXECUTABLE or rebuild',
       host.source === 'env' &&
         host.path !== null &&

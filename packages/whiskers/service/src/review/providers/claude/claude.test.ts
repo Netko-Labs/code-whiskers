@@ -18,7 +18,7 @@ const WORKER_ENV = {
   GITHUB_APP_PRIVATE_KEY_B64: 'cHJpdmF0ZQ==',
   OPENROUTER_API_KEY: 'sk-or-v1-secret',
   INTERNAL_TOKEN: 'internal',
-  CLAUDE_CODE_OAUTH_TOKEN: TOKEN,
+  ANTHROPIC_API_KEY: TOKEN,
 }
 
 const options = (env: Record<string, string>) =>
@@ -90,21 +90,22 @@ describe('buildClaudeOptions', () => {
   })
 
   test('the credential travels in env only, never elsewhere in the options', () => {
-    const built = options(claudeEnv('/tmp/config', false, WORKER_ENV))
+    const built = options(claudeEnv('/tmp/config', WORKER_ENV))
     const { env, abortController, hooks, ...rest } = built
     expect(JSON.stringify(rest)).not.toContain(TOKEN)
-    expect(env?.CLAUDE_CODE_OAUTH_TOKEN).toBe(TOKEN)
+    expect(env?.ANTHROPIC_API_KEY).toBe(TOKEN)
   })
 })
 
 describe('agent env', () => {
   test('the worker’s own secrets never reach the agent process', () => {
-    const env = claudeEnv('/tmp/config', false, WORKER_ENV)
+    const env = claudeEnv('/tmp/config', { ...WORKER_ENV, CLAUDE_CODE_OAUTH_TOKEN: 'sub' })
     for (const name of [
       'DATABASE_URL',
       'GITHUB_APP_PRIVATE_KEY_B64',
       'OPENROUTER_API_KEY',
       'INTERNAL_TOKEN',
+      'CLAUDE_CODE_OAUTH_TOKEN',
     ]) {
       expect(env[name]).toBeUndefined()
     }
@@ -112,17 +113,14 @@ describe('agent env', () => {
     expect(env.CLAUDE_CODE_AUTO_COMPACT_WINDOW).toBe('100000')
   })
 
-  test('a fresh config dir and HOME, unless a dev worker borrows the local login', () => {
-    const isolated = claudeEnv('/tmp/config', false, WORKER_ENV)
-    expect(isolated).toMatchObject({
-      HOME: '/tmp/config',
-      CLAUDE_CONFIG_DIR: '/tmp/config/.claude',
-    })
-    const { CLAUDE_CODE_OAUTH_TOKEN, ...withoutToken } = WORKER_ENV
-    const local = claudeEnv('/tmp/config', true, withoutToken)
-    expect(local.HOME).toBe('/root')
-    expect(local.CLAUDE_CONFIG_DIR).toBeUndefined()
-    expect(claudeEnv('/tmp/config', false, withoutToken).CLAUDE_CONFIG_DIR).toBeDefined()
+  test('always a fresh config dir and HOME, so no machine login is ever borrowed', () => {
+    const { ANTHROPIC_API_KEY, ...withoutKey } = WORKER_ENV
+    for (const source of [WORKER_ENV, withoutKey]) {
+      expect(claudeEnv('/tmp/config', source)).toMatchObject({
+        HOME: '/tmp/config',
+        CLAUDE_CONFIG_DIR: '/tmp/config/.claude',
+      })
+    }
   })
 })
 
@@ -220,9 +218,9 @@ describe('reviewFromRun', () => {
     }
   })
 
-  test('an expired token says how to renew it', () => {
-    const state = run(result({ is_error: true, result: 'OAuth token has expired' }))
-    expect(() => reviewFromRun(state)).toThrow('claude setup-token')
+  test('a rejected key says where to fix it', () => {
+    const state = run(result({ is_error: true, result: 'invalid x-api-key' }))
+    expect(() => reviewFromRun(state)).toThrow('AI reviewer settings')
   })
 })
 

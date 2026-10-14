@@ -23,7 +23,7 @@ export const REVIEW_PROVIDER_CREDENTIALS = {
   openrouter: ['OPENROUTER_API_KEY'],
   'ai-gateway': ['AI_GATEWAY_API_KEY'],
   openai: ['OPENAI_API_KEY'],
-  claude: ['CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_API_KEY'],
+  claude: ['ANTHROPIC_API_KEY'],
 } as const satisfies Record<(typeof REVIEW_PROVIDERS)[number], readonly string[]>
 
 export const REVIEW_CREDENTIAL_NAMES = [

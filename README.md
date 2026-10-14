@@ -77,7 +77,7 @@ any dearer context tier; any id still saves.
 | `openrouter` (default) | one structured call per 14k-char chunk, 6 in parallel, medium reasoning | `OPENROUTER_API_KEY` | `openai/gpt-6-luna` |
 | `ai-gateway` | the same, through Vercel AI Gateway; cost lands in the tally | `AI_GATEWAY_API_KEY` | `openai/gpt-6-luna` |
 | `openai` | the same, straight to OpenAI | `OPENAI_API_KEY` | `gpt-6-luna` |
-| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `claude-haiku-5-5` |
+| `claude` | Claude Agent SDK over a read-only checkout of the PR head, 60k-char chunks, 2 in parallel | `ANTHROPIC_API_KEY` | `claude-haiku-5-5` |
 
 Single-shot chunks get three jittered attempts (a timeout splits the chunk) before they are skipped;
 malformed JSON is repaired and missing fields default. Mentions and fix replies stay on OpenRouter:
@@ -110,12 +110,9 @@ the path guard and the trimmed env are the boundary.
 Knobs in the same settings: effort (medium), max turns (40), max budget per run (unset). Env only:
 `REVIEW_AGENT_TIMEOUT_MS` (600000) and `CLAUDE_CODE_EXECUTABLE` (the build ships one at
 `dist/claude/claude`). A usage limit retries at
-its reset when that is within 15 minutes; an expired or revoked token fails the review saying to
-run `claude setup-token`.
-Without either credential a development worker uses the machine's own Claude Code login.
-
-A `claude setup-token` token is for one operator's personal instance. A shared or team instance
-uses `ANTHROPIC_API_KEY`.
+its reset when that is within 15 minutes; a rejected key fails the review saying where to fix it.
+Claude runs on `ANTHROPIC_API_KEY` only — no subscription token and no borrowed Claude Code login,
+in development too.
 
 Settings → General shows the active reviewer, which keys it has and where from (never their
 values), what is missing, and a **Test** button that runs one tiny review through it.

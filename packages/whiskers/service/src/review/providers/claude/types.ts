@@ -35,7 +35,6 @@ export type AgentCall = {
 export type ClaudeSessionSpec = {
   config: WhiskersConfig['review']
   limits: Pick<WhiskersConfig['review'], 'maxTurns' | 'timeoutMs'>
-  isDev: boolean
   binary: string | null
   credentials: ReviewerCredentials
 }

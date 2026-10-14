@@ -39,13 +39,12 @@ export const CLAUDE_API_HOST = 'api.anthropic.com'
 export const BUNDLED_CLAUDE_PATH = 'claude/claude'
 export const SDK_PACKAGE = '@anthropic-ai/claude-agent-sdk'
 
-const RENEW_TOKEN =
-  'run `claude setup-token` and update CLAUDE_CODE_OAUTH_TOKEN (or check ANTHROPIC_API_KEY) in the AI reviewer settings'
+const CHECK_KEY = 'check ANTHROPIC_API_KEY in the AI reviewer settings'
 
 /** Assistant errors no retry fixes: the review fails with this as its summary. */
 export const PERMANENT_CLAUDE_ERRORS: Record<string, string> = {
-  authentication_failed: `Claude token expired or revoked — ${RENEW_TOKEN}`,
-  oauth_org_not_allowed: `this Claude organization does not allow the token — ${RENEW_TOKEN}`,
+  authentication_failed: `Claude rejected the API key — ${CHECK_KEY}`,
+  oauth_org_not_allowed: `this Claude organization does not allow the key — ${CHECK_KEY}`,
   account_on_hold: 'the Claude account is on hold — resolve it at claude.ai',
   verification_required: 'the Claude account needs verification — sign in at claude.ai',
   billing_error: 'Claude refused for billing — check the plan or API credit',
