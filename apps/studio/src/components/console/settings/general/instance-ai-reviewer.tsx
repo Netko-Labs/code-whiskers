@@ -4,7 +4,7 @@ import { Panel, PanelSkeleton, SettingRow } from '@/components/shared/page'
 import { StatusBadge } from '@/components/shared/status'
 import { useAiReviewer } from './lib'
 
-/** Env-driven and read-only: which reviewer the worker runs, what it is missing, and a test run. */
+/** What the worker runs right now — the settings below over its env — what it is missing, and a test run. */
 export function InstanceAiReviewer() {
   const { reviewer, isLoading, isError, retry, test, isTesting, runTest } = useAiReviewer()
 
@@ -22,7 +22,7 @@ export function InstanceAiReviewer() {
   return (
     <Panel
       title="AI reviewer"
-      description="Set on the worker with REVIEW_PROVIDER and REVIEW_MODEL"
+      description="What the worker runs now: the settings below, then its env"
       actions={
         <Button size="sm" variant="outline" disabled={isTesting} onClick={runTest}>
           {isTesting ? 'Testing…' : 'Test'}
@@ -41,7 +41,7 @@ export function InstanceAiReviewer() {
       </SettingRow>
       <SettingRow
         label="Credentials"
-        description="Whether each is set on the worker, never its value"
+        description="Whether the worker has each, from studio or its env — never its value"
       >
         {reviewer.credentials.map((credential) => (
           <StatusBadge key={credential.name} tone={credential.isSet ? 'resolved' : 'neutral'}>

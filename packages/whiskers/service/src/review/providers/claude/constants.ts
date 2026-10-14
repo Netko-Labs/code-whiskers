@@ -40,7 +40,7 @@ export const BUNDLED_CLAUDE_PATH = 'claude/claude'
 export const SDK_PACKAGE = '@anthropic-ai/claude-agent-sdk'
 
 const RENEW_TOKEN =
-  'run `claude setup-token` and update CLAUDE_CODE_OAUTH_TOKEN (or check ANTHROPIC_API_KEY)'
+  'run `claude setup-token` and update CLAUDE_CODE_OAUTH_TOKEN (or check ANTHROPIC_API_KEY) in the AI reviewer settings'
 
 /** Assistant errors no retry fixes: the review fails with this as its summary. */
 export const PERMANENT_CLAUDE_ERRORS: Record<string, string> = {

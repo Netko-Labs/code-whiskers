@@ -7,10 +7,11 @@ import {
   OPENROUTER_STRUCTURED_OUTPUTS,
 } from './constants'
 
-const openrouter = createOpenRouter({ apiKey: whiskersEnvConfig.openrouter.apiKey })
-
-export function openrouterModel(id = whiskersEnvConfig.openrouter.model): LanguageModel {
-  return openrouter(id, {
+export function openrouterModel(
+  id = whiskersEnvConfig.openrouter.model,
+  apiKey = whiskersEnvConfig.openrouter.apiKey,
+): LanguageModel {
+  return createOpenRouter({ apiKey })(id, {
     provider: OPENROUTER_ROUTING,
     reasoning: OPENROUTER_REASONING,
     structuredOutputs: OPENROUTER_STRUCTURED_OUTPUTS,

@@ -4,11 +4,11 @@ import {
   fetchFileAtRef,
   fetchPrDiff,
   fetchPrHeadSha,
+  mentionModel,
   type PrRef,
   postPrComment,
   replyToReviewComment,
 } from '../review'
-import { openrouterModel } from '../shared/llm'
 import { ANSWER_SYSTEM, ANSWER_TIMEOUT_MS, MAX_DIFF_CHARS } from './constants'
 import { fetchThreadRoot } from './thread'
 
@@ -16,7 +16,7 @@ const EXCERPT_CONTEXT_LINES = 20
 
 async function generateAnswer(prompt: string): Promise<string> {
   const { text } = await generateText({
-    model: openrouterModel(),
+    model: await mentionModel(),
     system: ANSWER_SYSTEM,
     prompt,
     abortSignal: AbortSignal.timeout(ANSWER_TIMEOUT_MS),

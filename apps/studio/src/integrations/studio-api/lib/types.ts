@@ -16,6 +16,7 @@ import type {
   RESOLVE_MODES,
   recentTriageActivitySchema,
   repositorySchema,
+  reviewerSettingsRecordSchema,
   SAVED_QUERY_SECTIONS,
   savedQuerySchema,
   studioStorageSchema,
@@ -36,7 +37,12 @@ export type Viewer = z.infer<typeof viewerSchema>
 export type Instance = z.infer<typeof instanceSchema>
 export type InstanceHealth = z.infer<typeof instanceHealthSchema>
 export type InstanceSettingsInput = { name: string }
+export type ReviewerSettingsRecord = z.infer<typeof reviewerSettingsRecordSchema>
+export type ReviewerCredentialPresence = ReviewerSettingsRecord['credentials'][number]
 export type {
+  ReviewerCredentialInput,
+  ReviewerCredentialName,
+  ReviewerSettings,
   WhiskersReviewer as InstanceReviewer,
   WhiskersReviewerTest as InstanceReviewerTest,
 } from '@code-whiskers/studio-domain'

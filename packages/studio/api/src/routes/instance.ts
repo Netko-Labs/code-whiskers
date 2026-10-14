@@ -1,13 +1,20 @@
 import { studioEnvConfig } from '@code-whiskers/studio-config'
-import { InstanceSettingsSchema } from '@code-whiskers/studio-domain'
+import {
+  InstanceSettingsSchema,
+  ReviewerCredentialSchema,
+  ReviewerSettingsSchema,
+} from '@code-whiskers/studio-domain'
 import {
   getInstanceSettings,
+  getReviewerSettings,
   getStudioStorage,
   hasInstanceAccess,
   probeWhiskers,
   reviewerInWhiskers,
+  setReviewerCredential,
   testReviewerInWhiskers,
   updateInstanceSettings,
+  updateReviewerSettings,
 } from '@code-whiskers/studio-service'
 import { Elysia } from 'elysia'
 import { authPlugin } from '../setup'
@@ -51,3 +58,22 @@ export const instanceRoutes = new Elysia({ name: 'instance', prefix: '/instance'
     const result = await testReviewerInWhiskers()
     return result ?? status(502, 'Whiskers did not answer — check WHISKERS_URL and INTERNAL_TOKEN')
   })
+  // (・ω・) the reviewer's knobs and which keys are stored — a key's value never comes back
+  .get('/reviewer/settings', { auth: true }, () => getReviewerSettings())
+  .patch(
+    '/reviewer/settings',
+    { auth: true, body: ReviewerSettingsSchema },
+    async ({ body, user, status }) => {
+      if (!(await hasInstanceAccess(user.id))) return status(403, 'Forbidden')
+      return updateReviewerSettings(user.id, body)
+    },
+  )
+  // (｀・ω・´) write-only: store, replace or remove one key
+  .put(
+    '/reviewer/credentials',
+    { auth: true, body: ReviewerCredentialSchema },
+    async ({ body, user, status }) => {
+      if (!(await hasInstanceAccess(user.id))) return status(403, 'Forbidden')
+      return setReviewerCredential(user.id, body)
+    },
+  )

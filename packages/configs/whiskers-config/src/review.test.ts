@@ -74,15 +74,8 @@ describe('openrouterModelFrom', () => {
 })
 
 describe('assertProductionEnv', () => {
-  test('warns, without throwing, when the active provider has no credential', () => {
-    const warnings = assertProductionEnv({ ...PRODUCTION, REVIEW_PROVIDER: 'claude' })
-    expect(warnings).toHaveLength(1)
-    expect(warnings[0]).toContain('CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY')
-  })
-
-  test('either Claude credential satisfies the claude provider', () => {
-    const env = { ...PRODUCTION, REVIEW_PROVIDER: 'claude', CLAUDE_CODE_OAUTH_TOKEN: 'x' }
-    expect(assertProductionEnv(env)).toEqual([])
+  test('a provider credential missing from env is no warning: studio may hold it', () => {
+    expect(assertProductionEnv({ ...PRODUCTION, REVIEW_PROVIDER: 'claude' })).toEqual([])
   })
 
   test('development never warns', () => {

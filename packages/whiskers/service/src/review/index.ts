@@ -99,7 +99,7 @@ async function reviewHead(
     additions: head.additions,
     deletions: head.deletions,
     status: 'running',
-    model: reviewProvider().model,
+    model: (await reviewProvider()).model,
     round: await getReviewRound(ref.owner, ref.repo, ref.prNumber),
   })
   if (!review) return undefined

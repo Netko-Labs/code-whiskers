@@ -11,26 +11,36 @@ import {
 } from '../agent'
 import { PROBE_DIFF } from '../constants'
 import { credentialPresence } from '../credentials'
-import type { ReviewProvider } from '../types'
+import { envCredentials } from '../settings'
+import type { ReviewerCredentials, ReviewProvider } from '../types'
 import { CLAUDE_CREDENTIALS } from './constants'
 import { hostClaudeBinary } from './executable'
 import { openClaudeSession } from './session'
 import type { ClaudeSessionSpec } from './types'
 
 /** The Claude Agent SDK over a read-only checkout: three read tools, confined to the checkout. */
-export function createClaudeProvider(config: WhiskersConfig = whiskersEnvConfig): ReviewProvider {
+export function createClaudeProvider(
+  config: WhiskersConfig = whiskersEnvConfig,
+  values: ReviewerCredentials = envCredentials(),
+): ReviewProvider {
   const review = config.review
   const isDev = config.app.dev
   const host = hostClaudeBinary(review.claudeExecutable)
-  const spec: ClaudeSessionSpec = { config: review, limits: review, isDev, binary: host.path }
+  const spec: ClaudeSessionSpec = {
+    config: review,
+    limits: review,
+    isDev,
+    binary: host.path,
+    credentials: values,
+  }
 
   const status = async (): Promise<ReviewerStatus> => {
-    const credentials = credentialPresence(CLAUDE_CREDENTIALS)
+    const credentials = credentialPresence(CLAUDE_CREDENTIALS, values)
     const problems = [
       !credentials.some((c) => c.isSet) &&
         (isDev
           ? 'no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY: using this machine’s Claude Code login'
-          : 'set CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`) or ANTHROPIC_API_KEY'),
+          : 'add ANTHROPIC_API_KEY (or CLAUDE_CODE_OAUTH_TOKEN) in the AI reviewer settings'),
       host.source === 'missing' && 'no Claude Code binary: set CLAUDE_CODE_EXECUTABLE or rebuild',
       host.source === 'env' &&
         host.path !== null &&

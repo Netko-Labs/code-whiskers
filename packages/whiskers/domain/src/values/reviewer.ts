@@ -25,3 +25,7 @@ export const REVIEW_PROVIDER_CREDENTIALS = {
   openai: ['OPENAI_API_KEY'],
   claude: ['CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_API_KEY'],
 } as const satisfies Record<(typeof REVIEW_PROVIDERS)[number], readonly string[]>
+
+export const REVIEW_CREDENTIAL_NAMES = [
+  ...new Set(Object.values(REVIEW_PROVIDER_CREDENTIALS).flat()),
+] as readonly string[]
