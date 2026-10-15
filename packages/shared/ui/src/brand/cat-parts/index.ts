@@ -1,5 +1,0 @@
-export { CatEyes } from './cat-eyes'
-export { CatMarks } from './cat-marks'
-export { CatMouth } from './cat-mouth'
-export { CatRow } from './cat-row'
-export { CatTail } from './cat-tail'

@@ -74,10 +74,10 @@ Tokens: `--motion-fast` 120ms, `--motion-base` 180ms, `--motion-slow` 240ms; eas
 | `duration-fast` / `duration-base` / `duration-slow` | with `transition-*` |
 
 Rules: motion explains a change (arrived, moved, opened); 120–240ms, ease-out, no bounce, no
-loops except waiting states (`shimmer`, `LiveDot`, the cat in empty states). Alerts arrive, they
+loops except waiting states (`shimmer`, `LiveDot`, the mouse in empty states). Alerts arrive, they
 don't shake. Route changes cross-fade the page panel only (View Transitions, path changes only;
 search-param changes never animate). Reduced motion zeroes every token: nothing moves, fades
-become instant, `useCountUp` jumps, `EmptyState` keeps the cat still. It comes from the OS
+become instant, `useCountUp` jumps, `EmptyState` keeps the mouse still. It comes from the OS
 setting or from Settings → Account → Motion, which sets `data-motion="reduce"` on `<html>`
 (`useMotionPreference`, restored by the shell with `useStoredMotion`); read it with
 `usePrefersReducedMotion`, never `matchMedia` directly. Never add an animation
@@ -186,7 +186,7 @@ in. Use for inbox-style triage; full pages for anything linkable on its own.
 ### States — `@/components/shared/empty-state`
 
 `EmptyState` (`expression`, `title`, `description`, one `action`, one quieter `secondary`,
-`size="page" | "inline"`, or an `illustration` instead of the cat) and `ErrorState` (`onRetry`).
+`size="page" | "inline"`, or an `illustration` instead of the mouse) and `ErrorState` (`onRetry`).
 
 ```tsx
 <EmptyState
@@ -276,7 +276,7 @@ place (`useLeavingRows`, 180ms) and the selection moves to the row that took its
 2. Never invent data. An empty database must render every page sensibly: say what will appear
    and the one action that makes it appear (connect GitHub, set up a project, send a test event).
 3. Skeletons mirror the real layout (row height, column widths) so nothing jumps.
-4. One cat per screen: the expression lives in the empty state; chrome carries no cat. `idle` for
+4. One mouse per screen: the expression lives in the empty state; chrome carries no mouse. `idle` for
    empty, `sleeping` for nothing-to-do and "no matches", `confused` for failures and missing
    permissions.
 

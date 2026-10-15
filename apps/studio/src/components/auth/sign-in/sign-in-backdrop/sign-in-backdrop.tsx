@@ -40,6 +40,7 @@ export function SignInBackdrop() {
                   size={BACKDROP_TILE_SIZE}
                   ink={BACKDROP_INK}
                   paper={BACKDROP_PAPER}
+                  accent={BACKDROP_INK}
                 />
               </g>
             )
