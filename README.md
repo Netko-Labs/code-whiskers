@@ -31,8 +31,8 @@ flowchart LR
 | Database | auth tables | reviews, findings, projects, issues, events |
 | Dev URL | `https://studio.localhost` | `https://whiskers.localhost` |
 
-Shared: `packages/shared/{cli,logger,observability,ui,typescript-config}`. The cat mark and
-expressions ship from `@code-whiskers/ui/brand`.
+Shared: `packages/shared/{cli,logger,observability,ui,typescript-config}`. The ensō mouse mark
+and expressions ship from `@code-whiskers/ui/brand`.
 
 ## Run it
 

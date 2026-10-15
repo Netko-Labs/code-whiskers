@@ -12,35 +12,52 @@ favicons, app icons, bot avatar, the dashboard prototypes) live in `Netko-Labs/b
 
 Code review, error tracking and logs for teams who'd rather ship. A senior reviewer who never gets
 tired, never gets loud. Three traits: **calm** (no red walls, no sirens, no exclamation marks),
-**precise** (file, line, count, time; copy reads like a good commit message), **curious** (the cat is
-the only personality; it peeks, reads, notices, never lectures).
+**precise** (file, line, count, time; copy reads like a good commit message), **curious** (the mouse is
+the only personality; it sniffs, reads, notices, never lectures).
 
 Three surfaces: **Review** (PR comments), **Watch** (production errors, Sentry-compatible), **Logs**
-(search and correlation). One cat across all three.
+(search and correlation). One mouse across all three, and one ensō around them: the 360° view of what's going on in the code.
 
 ## Mark
 
-The diff cat: a box terminal with a face, a `−` line and a highlighted `+` line. One drawing, three
-cuts, all ink or white, never colored, never gradient, never 3D.
+The ensō mouse: a sumi-e mouse running through a vermilion ensō, the open brush circle. The ensō is
+the 360° view; the whiskers are how the mouse senses the code. One drawing in every cut; cuts change
+the frame and the scale, never the drawing.
 
 | Cut | Use | Code | Asset |
 | --- | --- | --- | --- |
 | Icon | 64px and up: stores, OG images, marketing | `<CatMark cut="icon" />` | `apps/studio/public/icon.svg`, `icon-dark.svg`, `logo192.png`, `logo512.png` |
-| Favicon | below 64px: tabs, sidebar header, wordmark lockup. Bigger eyes, no mouth, one `+` row | `<CatMark cut="favicon" />` | `apps/studio/public/favicon.svg` |
-| Round | bot avatar on GitHub, Slack, in-app comments; white on ink or ink on fog | `<CatMark cut="round" tone="dark" />` inside a circle | `apps/studio/public/avatar.svg` |
+| Favicon | below 64px: tabs, sidebar header, wordmark lockup. The icon without whiskers | `<CatMark cut="favicon" />` | `apps/studio/public/favicon.svg` |
+| Round | bot avatar on GitHub, Slack, in-app comments | `<CatMark cut="round" tone="dark" />` inside a circle | `apps/studio/public/avatar.svg` |
+
+At 24px and below `CatMark` switches to the optical cut the 16px `favicon.ico` layer uses: heavier
+ensō and tail, no face, no whiskers. The read at that size is a red ring with a dark mouse across it.
 
 Wordmark is Inter 600, one word, capital C and W: **CodeWhiskers** — everywhere, prose included.
-Never all-caps, never a custom letterform, never stacked with a tagline in-app. In terminals the cat
-is text: `=^.^=`. CLI name: `whiskers`. Package scope and repository stay kebab-case
+Never all-caps, never a custom letterform, never stacked with a tagline in-app. In terminals the mouse
+is text: `<:3)~`. CLI name: `whiskers`. Package scope and repository stay kebab-case
 (`@code-whiskers/*`) — those are identifiers, not the wordmark.
 
 ## Color
 
-Ink and paper. Chromatic color means severity or data, nothing else.
+Ink and paper. Chromatic color means severity or data, with one exception: the mark.
+
+The mascot has its own palette, washi, sumi and vermilion, set by `tone` on `CatMark` and
+`CatExpression` (`ink`, `paper`, `accent` override any of them, CSS variables included). Vermilion
+belongs to the ensō, the nose, the glyphs and a blush; it never colors UI chrome, and it is not
+Error red.
+
+| Mascot | Day (`tone="light"`) | Night (`tone="dark"`) |
+| --- | --- | --- |
+| Paper | `#F3EDE2` washi | `#0E0F14` |
+| Ink | `#16161A` sumi | `#ECE7DD` |
+| Accent | `#D9442C` vermilion | `#C8402A` |
+
+UI tokens:
 
 | Token | Hex | Tailwind | Use |
 | --- | --- | --- | --- |
-| Ink | `#09090B` | `ink` | text, primary buttons, the cat |
+| Ink | `#09090B` | `ink` | text, primary buttons |
 | Paper | `#FFFFFF` | `paper` | background, cards |
 | Fog | `#F5F5F5` | `fog` | muted fills, hover, code chips |
 | Hairline | `#E5E5E5` | `hairline` | every border, removed diff lines |
@@ -88,35 +105,36 @@ Say what happened, where, and what to do. Then stop.
 - Evidence first: lead with the location or the number. Opinion comes second, one clause.
 - Confident, not certain: "will throw" when it will, "may" when it may. Never "potential issue"
   as a blanket hedge.
-- The cat doesn't talk: no puns, no first-person "I noticed". The mascot expresses, the copy
+- The mouse doesn't talk: no puns, no first-person "I noticed". The mascot expresses, the copy
   reports. One dry line is allowed in empty states and 404s.
 - Mechanics: sentence case, no exclamation marks, no emoji, ellipsis only for pending ("Reviewing…").
 
 ## Expressions
 
-`<CatExpression expression="…" animated />`. One per product state, never two at once. Only eyes,
-mouth, tail, the body rows and the marks change; ears flatten only for a blocker.
+`<CatExpression expression="…" animated />`. One per product state, never two at once. The ensō is
+the status and stays put; the mouse carries the mood: pose, ear, tail, whiskers, eye, brow, mouth.
 
-| Expression | State | Loop when `animated` |
-| --- | --- | --- |
-| `idle` | default, empty states | blink every 5s, tail sways |
-| `reviewing` | reading a diff | eyes + caret scan the `+` row |
-| `thinking` | analysis running | three dots pulse |
-| `found` | issue found, a warning not a panic | head pops 6%, `!` rises in |
-| `approved` | LGTM, approval posted | none |
-| `blocker` | production error, failing check | 300ms shake |
-| `sleeping` | nothing to review, paused, 404 | face breathes, z's float |
-| `confused` | failed connection, missing permissions | none |
+| Expression | State | Mouse | Ensō | Glyph |
+| --- | --- | --- | --- | --- |
+| `idle` | default, empty states | runs, blinks, tail sways | still | none |
+| `reviewing` | reading a diff | lunges forward, focused lid, whiskers spread | a glint scans the rim | none |
+| `thinking` | analysis running | lifts its head, eye wanders up, tail taps | draws itself on | three dots |
+| `found` | issue found, a warning not a panic | rears up, ears perk, gasps | pulses outward | `!` pops |
+| `approved` | LGTM, approval posted | leaps through, happy eye, smile, blush | closes the circle | check |
+| `blocker` | production error, failing check | crouches, ears pinned, frowns, sweats | breaks into jittering arcs | `!!` |
+| `sleeping` | nothing to review, paused, 404 | lies down and breathes | dims | z's float |
+| `confused` | failed connection, missing permissions | head tilts, eye darts, wavy mouth | wobbles | `?` |
 
 Sizes: 112px in empty states, 48px inline next to headings, 24px in toasts. Below 48px use the
-static expression, and below 48px never animate; below 48px prefer the favicon cut. `crop` trims
-the frame to the drawing (720×620) for hero placements.
+static expression, and below 48px never animate; below 48px prefer the favicon cut. Face details
+register from about 64px; below that, pose and the ensō carry the state. `crop` trims the frame to
+the drawing (1010×800) for hero placements.
 
 ## Rules
 
-1. The cat is always ink or white.
-2. One cat per screen: icon in chrome, expression in empty states, not both.
-3. Chromatic color only signals severity or data.
+1. The mascot uses its own palette only: ink, paper, vermilion. No gradients, no 3D.
+2. One mouse per screen: icon in chrome, expression in empty states, not both.
+3. Chromatic color only signals severity or data; vermilion lives inside the mark.
 4. Backgrounds are flat. Depth is a hairline and a soft shadow.
 5. Evidence in mono, product in Inter.
 6. Sentence case. No exclamation marks. No emoji. No puns in product copy.
